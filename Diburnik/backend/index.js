@@ -3,6 +3,8 @@ const bodyParser = require("body-parser");
 const mongoose = require("mongoose");
 const passport = require("passport");
 const LocalStrategy = require("passport-local").Strategy;
+require("dotenv").config(); // Load environment variables from .env file
+
 
 const app = express();
 const port = 8000;
@@ -20,7 +22,14 @@ const jwt = require("jsonwebtoken");
 
 //const connectionString = "mongodb+srv://Nadav:Nc123456@cluster0.ohqxoec.mongodb.net/?retryWrites=true&w=majority"
 
-const connectionString = "mongodb+srv://Nadav:Nc123456@cluster0.ohqxoec.mongodb.net/kindergarten1";
+//const connectionString = "mongodb+srv://Nadav:Nc123456@cluster0.ohqxoec.mongodb.net/kindergarten1";
+const connectionString = process.env.MONGODB_CONNECTION_STRING;
+
+
+
+const User = require("./user");
+const Child = require("./child");
+const Board = require("./board");
 
 
 mongoose.connect(connectionString, {
@@ -41,9 +50,7 @@ app.listen(port, () => {
 
 
 
-const User = require("./user");
-const Child = require("./child");
-const Board = require("./board");
+
 
 //Create toekn
 const createToken = (userId) => {
@@ -56,6 +63,10 @@ const createToken = (userId) => {
 }
 
 
+
+/********************************************************* */
+///////                   app.post                      /////
+/********************************************************* */
 
 app.post("/login",(req,res)=>{
     const {username,password} = req.body;
@@ -121,6 +132,34 @@ app.post("/register", (req, res) => {
     }
   });
 
+
+  app.post('/boards/add', async (req, res) => {
+    const { profileId, category } = req.body;
+  
+    try {
+      // Create a new board using the Board model
+      const newBoard = new Board({
+        category: category,
+        words: [], // You can add words if needed
+      });
+  
+      // Save the new board to the database
+      const savedBoard = await newBoard.save();
+  
+      // Update the child's boards with the new board's ID
+      const updatedChild = await Child.findByIdAndUpdate(
+        profileId,
+        { $push: { boards: savedBoard._id } },
+        { new: true }
+      );
+  
+      res.status(201).json(savedBoard);
+    } catch (error) {
+      console.error('Error creating board:', error);
+      res.status(500).json({ message: 'Internal server error' });
+    }
+  });
+  
 
 
 

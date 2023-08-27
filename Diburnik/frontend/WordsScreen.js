@@ -37,11 +37,6 @@ const WordsScreen = ({ route }) => {
     <View style={styles.container}>
       <View style={styles.header}>
         <Text style={styles.title}>Words List</Text>
-        <Button
-          title="+"
-          onPress={() => setIsModalVisible(true)}
-          style={styles.addButton}
-        />
       </View>
       <View style={styles.wordsContainer}>
         {words.map((word, index) => (
@@ -66,6 +61,12 @@ const WordsScreen = ({ route }) => {
           <Button title="Close" onPress={() => setIsModalVisible(false)} />
         </View>
       </Modal>
+      <TouchableOpacity
+        style={styles.addButton}
+        onPress={() => setIsModalVisible(true)}
+      >
+        <Text style={styles.addButtonText}>+</Text>
+      </TouchableOpacity>
     </View>
   );
 };
@@ -86,7 +87,19 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   addButton: {
-    fontSize: 24,
+    position: 'absolute',
+    bottom: 20,
+    right: 20,
+    width: 60,
+    height: 60,
+    backgroundColor: 'blue',
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderRadius: 30,
+  },
+  addButtonText: {
+    fontSize: 40,
+    color: 'white',
   },
   modalContainer: {
     flex: 1,

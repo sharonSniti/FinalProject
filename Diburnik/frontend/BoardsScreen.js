@@ -1,11 +1,13 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, Text, TouchableOpacity, Modal, TextInput, Button, StyleSheet } from 'react-native';
 import axios from 'axios';
 import { useNavigation } from '@react-navigation/native';
 
 const BoardsScreen = ({ route }) => {
   const { profileId } = route.params;
   const [boards, setBoards] = useState([]);
+  const [isModalVisible, setIsModalVisible] = useState(false);
+  const [newBoardName, setNewBoardName] = useState('');
   const navigation = useNavigation();
 
   useEffect(() => {
@@ -28,11 +30,24 @@ const BoardsScreen = ({ route }) => {
       console.log('Error fetching updated words:', error);
     }
   };
-  
-  
 
+  const handleAddBoard = async () => {
+    if (newBoardName.trim() !== '') {
+      try {
+        const response = await axios.post(`http://192.168.31.184:8000/boards/add`, {
+          profileId,
+          category: newBoardName,
+        });
 
-
+        const newBoard = response.data;
+        setBoards([...boards, newBoard]);
+        setNewBoardName('');
+        setIsModalVisible(false); // Close the modal after adding a board
+      } catch (error) {
+        console.log('Error creating board:', error);
+      }
+    }
+  };
 
   return (
     <View style={styles.container}>
@@ -46,13 +61,31 @@ const BoardsScreen = ({ route }) => {
               key={board._id}
               style={styles.board}
               onPress={() => handleBoardPress(board._id)}
-              >
+            >
               <Text style={styles.categoryText}>{board.category}</Text>
             </TouchableOpacity>
           ))
         )}
       </View>
-      <Text style={styles.profileName}>{profileId.firstname}</Text>
+      <TouchableOpacity
+        style={styles.addButton}
+        onPress={() => setIsModalVisible(true)}
+      >
+        <Text style={styles.addButtonText}>+</Text>
+      </TouchableOpacity>
+      <Modal visible={isModalVisible} animationType="slide">
+        <View style={styles.modalContainer}>
+          <Text style={styles.title}>Add New Board</Text>
+          <TextInput
+            style={styles.input}
+            value={newBoardName}
+            onChangeText={setNewBoardName}
+            placeholder="Enter a new board name"
+          />
+          <Button title="Add" onPress={handleAddBoard} />
+          <Button title="Close" onPress={() => setIsModalVisible(false)} />
+        </View>
+      </Modal>
     </View>
   );
 };
@@ -87,8 +120,32 @@ const styles = StyleSheet.create({
   categoryText: {
     fontSize: 16,
   },
-  profileName: {
-    fontSize: 18,
+  addButton: {
+    position: 'absolute',
+    bottom: 20,
+    right: 20,
+    width: 60,
+    height: 60,
+    backgroundColor: 'blue',
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderRadius: 30,
+  },
+  addButtonText: {
+    fontSize: 40,
+    color: 'white',
+  },
+  modalContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  input: {
+    marginBottom: 10,
+    padding: 10,
+    borderWidth: 1,
+    borderColor: 'gray',
+    borderRadius: 5,
   },
 });
 
