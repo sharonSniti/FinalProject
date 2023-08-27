@@ -20,8 +20,6 @@ const WordsScreen = ({ route }) => {
           words: updatedWords,
         });
 
-        // You can optionally fetch the updated board data after adding words
-        // and update the state accordingly if needed
       } catch (error) {
         console.log('Error updating words:', error);
       }
@@ -29,14 +27,14 @@ const WordsScreen = ({ route }) => {
   };
 
   const handleWordPress = (word) => {
-    // Do something with the pressed word
+    // TEXT TO SPEECH
     console.log('Word pressed:', word);
   };
 
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.title}>Words List</Text>
+        <Text style={styles.title}>המילים שלי</Text>
       </View>
       <View style={styles.wordsContainer}>
         {words.map((word, index) => (
