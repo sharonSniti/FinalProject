@@ -3,22 +3,15 @@ import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { useNavigation } from '@react-navigation/native';
 import LoginScreen from './LoginScreen';
-import Boards from './Boards';
+import RegisterScreen from './RegisterScreen';
+import Boards from './BoardsScreen';
+import Profiles from './ProfileSelectionScreen'
+import WordsScreen from './WordsScreen'; // Update the path to your WordsScreen
+
 
 const Stack = createStackNavigator();
 
-const SuppressWarningsComponent = ({ children }) => {
-  useEffect(() => {
-    const yellowBoxWarning = console.ignoredYellowBox;
-    console.ignoredYellowBox = ['Key "cancelled" in the image picker result'];
 
-    return () => {
-      console.ignoredYellowBox = yellowBoxWarning;
-    };
-  }, []);
-
-  return children;
-};
 
 const App = () => {
   return (
@@ -36,6 +29,18 @@ const App = () => {
         <Stack.Screen
           name="Boards"
           component={Boards}
+        />
+        <Stack.Screen
+          name="Profiles"
+          component={Profiles}
+        />
+        <Stack.Screen
+          name="Register"
+          component={RegisterScreen}
+        />
+        <Stack.Screen
+          name="Words"
+          component={WordsScreen}
         />
         {/* add more screens here */}
       </Stack.Navigator>
