@@ -162,6 +162,29 @@ app.post("/register", (req, res) => {
   
 
 
+  // Define a route to handle adding a new child profile
+  app.post('/children/add', async (req, res) => {
+    const { firstName, lastName } = req.body;
+
+    try {
+      const newProfile = new Child({
+        firstName,
+        lastName,
+        // other profile properties
+     });
+
+     const savedProfile = await newProfile.save();
+
+      res.status(201).json(savedProfile);
+   } catch (error) {
+      console.error('Error adding profile:', error);
+      res.status(500).json({ message: 'Internal server error' });
+    }
+  });
+
+  
+
+
 
 
 /********************************************************* */
