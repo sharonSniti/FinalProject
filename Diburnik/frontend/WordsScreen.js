@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { View, Text, Button, TextInput, Modal, TouchableOpacity, StyleSheet } from 'react-native';
 import axios from 'axios';
-import { Ionicons } from '@expo/vector-icons';
 
 const WordsScreen = ({ route }) => {
   const { profileId, boardId, words: initialWords } = route.params;
@@ -28,7 +27,8 @@ const WordsScreen = ({ route }) => {
 
   const handleWordPress = (word) => {
     // TEXT TO SPEECH
-    console.log('Word pressed:', word);
+    const reversedWord = word.split('').reverse().join('');
+    console.log('Word pressed:', reversedWord);
   };
 
   return (

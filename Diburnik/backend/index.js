@@ -2,6 +2,7 @@ const express = require("express");
 const bodyParser = require("body-parser");
 const mongoose = require("mongoose");
 const passport = require("passport");
+const multer = require('multer');
 const LocalStrategy = require("passport-local").Strategy;
 require("dotenv").config(); // Load environment variables from .env file
 
@@ -17,12 +18,12 @@ app.use(passport.initialize());
 const jwt = require("jsonwebtoken");
 
 
-//const dbName = 'kindergarten1';
+// Configure multer for handling image uploads
+const storage = multer.memoryStorage(); // Store the image in memory
+const upload = multer({ storage: storage });
 
 
-//const connectionString = "mongodb+srv://Nadav:Nc123456@cluster0.ohqxoec.mongodb.net/?retryWrites=true&w=majority"
 
-//const connectionString = "mongodb+srv://Nadav:Nc123456@cluster0.ohqxoec.mongodb.net/kindergarten1";
 const connectionString = process.env.MONGODB_CONNECTION_STRING;
 
 
@@ -133,21 +134,24 @@ app.post("/register", (req, res) => {
   });
 
 
-  app.post('/boards/add', async (req, res) => {
+  app.post('/boards/add', upload.single('image'), async (req, res) => {
     const { profileId, category } = req.body;
   
     try {
-      // Create a new board using the Board model
       const newBoard = new Board({
         category: category,
-        words: [], // You can add words if needed
+        words: [], 
       });
   
-      // Save the new board to the database
-      const savedBoard = await newBoard.save();
+      if (req.file) {                       // If an image was uploaded, store its details in the board
+        
+        newBoard.image.contentType = req.file.mimetype;
+        newBoard.image.data = req.file.buffer;          // Use req.file.buffer to get the image buffer
+      }
   
-      // Update the child's boards with the new board's ID
-      const updatedChild = await Child.findByIdAndUpdate(
+      const savedBoard = await newBoard.save();
+      await Child.findByIdAndUpdate(
+        
         profileId,
         { $push: { boards: savedBoard._id } },
         { new: true }
@@ -162,28 +166,29 @@ app.post("/register", (req, res) => {
   
 
 
-  // Define a route to handle adding a new child profile
-  app.post('/children/add', async (req, res) => {
+  
+  app.post('/children/add', upload.single('image'), async (req, res) => {
     const { firstName, lastName } = req.body;
-
+    const { buffer, mimetype } = req.file; // Get image data from multer
+  
     try {
       const newProfile = new Child({
         firstName,
         lastName,
-        // other profile properties
-     });
-
-     const savedProfile = await newProfile.save();
-
+        image: {
+          data: buffer, // Save the image buffer
+          contentType: mimetype, // Save the image content type
+        },
+      });
+  
+      const savedProfile = await newProfile.save();
+  
       res.status(201).json(savedProfile);
-   } catch (error) {
+    } catch (error) {
       console.error('Error adding profile:', error);
       res.status(500).json({ message: 'Internal server error' });
     }
   });
-
-  
-
 
 
 
@@ -191,18 +196,30 @@ app.post("/register", (req, res) => {
 ///////                   app.get                       /////
 /********************************************************* */
 
-  // Fetch the children data from database using the Child model
-app.get("/children", (req, res) => {
-    
-    Child.find()
-      .then((children) => {
-        res.status(200).json(children);
-      })
-      .catch((error) => {
-        console.log("Error fetching children:", error);
-        res.status(500).json({ message: "Server error" });
-      });
-  });
+
+
+app.get("/children", async (req, res) => {
+  try {
+    const children = await Child.find().select('firstName lastName image'); // Ensure 'image' is selected
+
+    // Map children to send a simplified version to the frontend
+    const simplifiedChildren = children.map((child) => ({
+      _id: child._id,
+      firstName: child.firstName,
+      lastName: child.lastName,
+      image: {
+        data: child.image.data.toString('base64'), // Convert binary data to base64
+        contentType: child.image.contentType,
+      },
+    }));
+
+    res.status(200).json(simplifiedChildren);
+  } catch (error) {
+    console.log("Error fetching children:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
 
 
   app.get('/children/:profileId', async (req, res) => {
