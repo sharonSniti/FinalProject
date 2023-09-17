@@ -1,22 +1,38 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, TouchableOpacity, Image, Modal, TextInput, Button, StyleSheet } from 'react-native';
 import axios from 'axios';
+import * as ImagePicker from 'expo-image-picker';
 
 const ProfileSelectionScreen = ({ navigation }) => {
   const [profiles, setProfiles] = useState([]);
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [newProfileFirstName, setNewProfileFirstName] = useState('');
   const [newProfileLastName, setNewProfileLastName] = useState('');
+  const [newProfileImage, setNewProfileImage] = useState('');
 
   useEffect(() => {
+    fetchProfiles(); // Fetch profiles on component mount
+  }, []);
+
+  const fetchProfiles = () => {
     axios.get('http://192.168.31.184:8000/children')
       .then((response) => {
-        setProfiles(response.data);
+        if (response.status === 200) {
+          const childData = response.data.map((child) => ({
+            _id: child._id,
+            firstName: child.firstName,
+            lastName: child.lastName,
+            image: child.image,
+          }));
+          setProfiles(childData);
+
+
+        }
       })
       .catch((error) => {
         console.log('Error fetching profiles:', error);
       });
-  }, []);
+  };
 
   const handleProfileSelect = (profileId) => {
     navigation.navigate('Boards', { profileId });
@@ -26,19 +42,60 @@ const ProfileSelectionScreen = ({ navigation }) => {
     setIsModalVisible(true);
   };
 
+  const handleCancel = () => {
+    setIsModalVisible(false);
+    setNewProfileFirstName('');
+    setNewProfileLastName('');
+    setNewProfileImage('');
+  };
+
+  const handleImagePicker = async () => {
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      quality: 0.1,
+    });
+
+    if (!result.canceled) {
+      setNewProfileImage(result.assets[0]);
+    }
+  };
+
   const handleSubmitProfile = async () => {
     if (newProfileFirstName.trim() !== '' && newProfileLastName.trim() !== '') {
       try {
-        const response = await axios.post('http://192.168.31.184:8000/children/add', {
-          firstName: newProfileFirstName,
-          lastName: newProfileLastName,
+        const formData = new FormData();
+        formData.append('firstName', newProfileFirstName);
+        formData.append('lastName', newProfileLastName);
+
+        if (newProfileImage) {
+          const localUri = newProfileImage.uri;
+          const filename = localUri.split('/').pop();
+          const type = `image/${filename.split('.').pop()}`;
+
+          console.log("profile URI: ",localUri);
+
+          formData.append('image', {
+            uri: localUri,
+            name: filename,
+            type: type,
+          });
+        }
+
+        const response = await axios.post('http://192.168.31.184:8000/children/add', formData, {
+          headers: {
+            'Content-Type': 'multipart/form-data',
+          },
         });
 
         const newProfile = response.data;
-        setProfiles([...profiles, newProfile]);
+        
+        setProfiles([...profiles, newProfile]); // Update the profiles state to include the new profile
         setIsModalVisible(false);
         setNewProfileFirstName('');
         setNewProfileLastName('');
+        setNewProfileImage('');
+        fetchProfiles();                        // Fetch profiles again to immediately update the list
       } catch (error) {
         console.log('Error adding profile:', error);
       }
@@ -54,15 +111,24 @@ const ProfileSelectionScreen = ({ navigation }) => {
           style={styles.profileItem}
           onPress={() => handleProfileSelect(profile._id)}
         >
-          <Image source={{ uri: profile.image }} style={styles.profileImage} />
-          <Text style={styles.profileName}>{profile.firstName} {profile.lastName}</Text>
+          {profile.image && (
+            <Image
+              source={{
+                uri: `data:${profile.image.contentType};base64,${profile.image.data}`,
+              }}
+              style={styles.profileImage}
+            />
+          )}
+          <Text style={styles.profileName}>
+            {profile.firstName} {profile.lastName}
+          </Text>
         </TouchableOpacity>
       ))}
       <TouchableOpacity
         style={styles.addButton}
         onPress={handleAddProfile}
       >
-         <Text style={styles.addButtonText}>+</Text>
+        <Text style={styles.addButtonText}>+</Text>
       </TouchableOpacity>
       <Modal visible={isModalVisible} animationType="slide">
         <View style={styles.modalContainer}>
@@ -79,8 +145,15 @@ const ProfileSelectionScreen = ({ navigation }) => {
             onChangeText={setNewProfileLastName}
             placeholder="Last Name"
           />
+           {/* Add the image selection UI */}
+          <TouchableOpacity onPress={handleImagePicker}>
+            <Text style={styles.selectImageText}>Select Profile Image</Text>
+          </TouchableOpacity>
+          {newProfileImage && (
+            <Image source={{ uri: newProfileImage.uri }} style={styles.profileImage} />
+          )}
           <Button title="Add Profile" onPress={handleSubmitProfile} />
-          <Button title="Cancel" onPress={() => setIsModalVisible(false)} />
+          <Button title="Cancel" onPress={handleCancel} />
         </View>
       </Modal>
     </View>
@@ -154,6 +227,11 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: 'gray',
     borderRadius: 5,
+  },
+  selectImageText: {
+    color: 'blue',
+    fontSize: 16,
+    marginBottom: 10,
   },
 });
 
