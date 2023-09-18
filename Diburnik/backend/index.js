@@ -31,6 +31,7 @@ const connectionString = process.env.MONGODB_CONNECTION_STRING;
 const User = require("./user");
 const Child = require("./child");
 const Board = require("./board");
+const Word = require("./word");
 
 
 mongoose.connect(connectionString, {
@@ -110,28 +111,40 @@ app.post("/register", (req, res) => {
 
 
 
-  app.post('/boards/:boardId/updateWords', async (req, res) => {
-    const { boardId } = req.params;
-    const { words } = req.body;
-  
-    try {
-      // Find the board by ID and update the words field
-      const updatedBoard = await Board.findByIdAndUpdate(
-        boardId,
-        { words },
-        { new: true } // Return the updated board
-      );
-  
-      if (!updatedBoard) {
-        return res.status(404).json({ message: 'Board not found' });
-      }
-  
-      res.status(200).json({ message: 'Words updated successfully', board: updatedBoard });
-    } catch (error) {
-      console.error('Error updating words:', error);
-      res.status(500).json({ message: 'Internal server error' });
+app.post('/words/add', upload.single('image'), async (req, res) => {
+  const { boardId, text } = req.body;
+
+  try {
+    // Find the board by ID
+    const board = await Board.findById(boardId);
+
+    if (!board) {
+      return res.status(404).json({ message: 'Board not found' });
     }
-  });
+
+    const newWord = new Word({
+      text,
+    });
+
+    if (req.file) {
+      newWord.image.contentType = req.file.mimetype;
+      newWord.image.data = req.file.buffer;
+    }
+
+    const savedWord = await newWord.save();
+
+    // Add the new word to the board's words array
+    board.words.push(savedWord);
+    await board.save();
+
+    res.status(201).json(savedWord);
+  } catch (error) {
+    console.error('Error creating word:', error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+});
+
+
 
 
   app.post('/boards/add', upload.single('image'), async (req, res) => {
@@ -246,6 +259,28 @@ app.get("/children", async (req, res) => {
       res.status(200).json(board);
     } catch (error) {
       console.log('Error fetching board:', error);
+      res.status(500).json({ message: 'Server error' });
+    }
+  });
+
+
+
+  app.get('/boards/:boardId/words', async (req, res) => {
+    const { boardId } = req.params;
+  
+    try {
+      const board = await Board.findById(boardId);
+      if (!board) {
+        return res.status(404).json({ message: 'Board not found' });
+      }
+  
+      // Assuming 'words' is an array of Word IDs in your Board schema,
+      // you can fetch the actual Word documents here.
+      const words = await Word.find({ _id: { $in: board.words } });
+  
+      res.status(200).json(words);
+    } catch (error) {
+      console.log('Error fetching board words:', error);
       res.status(500).json({ message: 'Server error' });
     }
   });

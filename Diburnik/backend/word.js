@@ -1,7 +1,7 @@
 const mongoose = require('mongoose');
 
-const boardSchema = new mongoose.Schema({
-  category: {
+const wordSchema = new mongoose.Schema({
+  text: {
     type: String,
     required: true,
   },
@@ -9,14 +9,8 @@ const boardSchema = new mongoose.Schema({
     data: Buffer, // Store binary image data
     contentType: String, // Store content type (e.g., image/jpeg, image/png, etc.)
   },
-  words: [
-    {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'Word',
-    },
-  ],
 });
 
-const Board = mongoose.model('Board', boardSchema);
+const Word = mongoose.model('Word', wordSchema);
 
-module.exports = Board;
+module.exports = Word;
