@@ -14,7 +14,7 @@ const BoardsScreen = ({ route }) => {
   const [newBoardName, setNewBoardName] = useState('');
   const [newBoardImage, setNewBoardImage] = useState('');
   const navigation = useNavigation();
-  const baseUrl = 'https://diburnik.onrender.com';
+  const baseUrl = 'https://diburnik-q0iq.onrender.com/';
 
   useEffect(() => {
     axios.get(`${baseUrl}/children/${profileId}`)

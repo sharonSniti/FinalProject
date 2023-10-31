@@ -12,7 +12,7 @@ const RegisterScreen = () => {
 
   const navigation = useNavigation(); 
 
-  const baseUrl = 'https://diburnik.onrender.com';
+  const baseUrl = 'https://diburnik-q0iq.onrender.com/';
 
 
   const handleRegistration = () => {

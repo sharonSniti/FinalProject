@@ -9,7 +9,7 @@ const ProfileSelectionScreen = ({ navigation }) => {
   const [newProfileFirstName, setNewProfileFirstName] = useState('');
   const [newProfileLastName, setNewProfileLastName] = useState('');
   const [newProfileImage, setNewProfileImage] = useState('');
-  const baseUrl = 'https://diburnik.onrender.com';
+  const baseUrl = 'https://diburnik-q0iq.onrender.com/';
 
   useEffect(() => {
     fetchProfiles(); // Fetch profiles on component mount
