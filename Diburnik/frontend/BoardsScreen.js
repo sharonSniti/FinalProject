@@ -14,9 +14,10 @@ const BoardsScreen = ({ route }) => {
   const [newBoardName, setNewBoardName] = useState('');
   const [newBoardImage, setNewBoardImage] = useState('');
   const navigation = useNavigation();
+  const baseUrl = 'https://diburnik.onrender.com';
 
   useEffect(() => {
-    axios.get(`http://192.168.31.184:8000/children/${profileId}`)
+    axios.get(`${baseUrl}/children/${profileId}`)
       .then((response) => {
         const childBoards = response.data.boards; 
         setBoards(childBoards);
@@ -29,7 +30,7 @@ const BoardsScreen = ({ route }) => {
 
   const handleBoardPress = async (boardId) => {
     try {
-      const response = await axios.get(`http://192.168.31.184:8000/boards/${boardId}`);
+      const response = await axios.get(`${baseUrl}/boards/${boardId}`);
       const updatedWords = response.data.words;
       navigation.navigate('Words', { boardId, words: updatedWords });
     } catch (error) {
@@ -77,7 +78,7 @@ const BoardsScreen = ({ route }) => {
         }
         
         // Send a POST request with the form data to create a new board
-        const response = await axios.post('http://192.168.31.184:8000/boards/add', formData, {
+        const response = await axios.post('${baseUrl}/boards/add', formData, {
           headers: {
             'Content-Type': 'multipart/form-data',
           },

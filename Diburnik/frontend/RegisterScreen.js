@@ -12,6 +12,9 @@ const RegisterScreen = () => {
 
   const navigation = useNavigation(); 
 
+  const baseUrl = 'https://diburnik.onrender.com';
+
+
   const handleRegistration = () => {
     // Check if any field is empty
     if (!username || !password || !email) {
@@ -32,7 +35,7 @@ const RegisterScreen = () => {
       email: email,
     };
   
-    axios.post('http://192.168.31.184:8000/register', user).then((response) => {
+    axios.post('  ${baseUrl}/register', user).then((response) => {
       console.log(response);
       setRegistrationMessage("רישום בוצע בהצלחה");
       setUsername("");
