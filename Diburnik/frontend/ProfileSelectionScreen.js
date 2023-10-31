@@ -9,13 +9,14 @@ const ProfileSelectionScreen = ({ navigation }) => {
   const [newProfileFirstName, setNewProfileFirstName] = useState('');
   const [newProfileLastName, setNewProfileLastName] = useState('');
   const [newProfileImage, setNewProfileImage] = useState('');
+  const baseUrl = 'https://diburnik.onrender.com';
 
   useEffect(() => {
     fetchProfiles(); // Fetch profiles on component mount
   }, []);
 
   const fetchProfiles = () => {
-    axios.get('http://192.168.31.184:8000/children')
+    axios.get('${baseUrl}/children')
       .then((response) => {
         if (response.status === 200) {
           const childData = response.data.map((child) => ({
@@ -82,7 +83,7 @@ const ProfileSelectionScreen = ({ navigation }) => {
           });
         }
 
-        const response = await axios.post('http://192.168.31.184:8000/children/add', formData, {
+        const response = await axios.post('${baseUrl}/children/add', formData, {
           headers: {
             'Content-Type': 'multipart/form-data',
           },

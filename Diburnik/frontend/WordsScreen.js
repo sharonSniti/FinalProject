@@ -16,8 +16,10 @@ const WordsScreen = ({ route }) => {
   const [newWordImage, setNewWordImage] = useState('');
   const navigation = useNavigation();
 
+  const baseUrl = 'https://diburnik.onrender.com';
+
   useEffect(() => {
-    axios.get(`http://192.168.31.184:8000/boards/${boardId}/words`) // Update the API URL here
+    axios.get(`${baseUrl}/boards/${boardId}/words`) // Update the API URL here
       .then((response) => {
         const boardWords = response.data;
         setWords(boardWords);

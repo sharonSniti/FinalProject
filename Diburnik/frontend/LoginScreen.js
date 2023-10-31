@@ -11,13 +11,15 @@ const LoginScreen = () => {
 
   const navigation = useNavigation(); 
 
+  const baseUrl = 'https://diburnik.onrender.com';
+
   const handleLogin = () => {
     const user = {
       username: username,
       password: password,
     };
 
-    axios.post('http://192.168.31.184:8000/login', user).then((res) =>{    
+    axios.post('${baseUrl}/login', user).then((res) =>{    
       console.log("response: "+res);
       const token = res.data.token;
       AsyncStorage.setItem("authToken",token);
