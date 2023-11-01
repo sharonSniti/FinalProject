@@ -26,7 +26,10 @@ const upload = multer({ storage: storage });
 
 const connectionString = process.env.MONGODB_CONNECTION_STRING;
 
-
+// Keep-alive endpoint
+app.get('/keep-alive', (req, res) => {
+  res.status(200).send('OK');
+});
 
 const User = require("./user");
 const Child = require("./child");

@@ -4,7 +4,7 @@ import axios from 'axios';
 import { useNavigation } from '@react-navigation/native';
 import * as ImagePicker from 'expo-image-picker';
 import { Buffer } from 'buffer'; 
-
+import config from './config';
 
 
 const BoardsScreen = ({ route }) => {
@@ -14,10 +14,9 @@ const BoardsScreen = ({ route }) => {
   const [newBoardName, setNewBoardName] = useState('');
   const [newBoardImage, setNewBoardImage] = useState('');
   const navigation = useNavigation();
-  const baseUrl = 'https://diburnik-q0iq.onrender.com/';
 
   useEffect(() => {
-    axios.get(`${baseUrl}/children/${profileId}`)
+    axios.get(`${config.baseUrl}/children/${profileId}`)
       .then((response) => {
         const childBoards = response.data.boards; 
         setBoards(childBoards);
@@ -30,7 +29,7 @@ const BoardsScreen = ({ route }) => {
 
   const handleBoardPress = async (boardId) => {
     try {
-      const response = await axios.get(`${baseUrl}/boards/${boardId}`);
+      const response = await axios.get(`${config.baseUrl}/boards/${boardId}`);
       const updatedWords = response.data.words;
       navigation.navigate('Words', { boardId, words: updatedWords });
     } catch (error) {
@@ -44,7 +43,7 @@ const BoardsScreen = ({ route }) => {
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
       allowsEditing: true,
-      quality: 0.2,
+      quality: 0.01,
     });
 
     if (!result.canceled) {
@@ -78,7 +77,8 @@ const BoardsScreen = ({ route }) => {
         }
         
         // Send a POST request with the form data to create a new board
-        const response = await axios.post('${baseUrl}/boards/add', formData, {
+        const response = await axios.post(`${config.baseUrl}/boards/add`, formData, {
+
           headers: {
             'Content-Type': 'multipart/form-data',
           },
