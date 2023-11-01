@@ -2,10 +2,11 @@ import React, { useEffect, useState } from 'react';
 import { View, Text, TouchableOpacity, Modal, TextInput, Button, StyleSheet, Image } from 'react-native';
 import axios from 'axios';
 import { useNavigation } from '@react-navigation/native';
-import * as ImagePicker from 'expo-image-picker';
 import { Buffer } from 'buffer';
-//import ImageResizer from 'react-native-image-resizer';
+import * as ImagePicker from 'expo-image-picker';
+import * as Speech from 'expo-speech';
 
+import config from './config';
 
 
 const WordsScreen = ({ route }) => {
@@ -16,10 +17,10 @@ const WordsScreen = ({ route }) => {
   const [newWordImage, setNewWordImage] = useState('');
   const navigation = useNavigation();
 
-  const baseUrl = 'https://diburnik-q0iq.onrender.com/';
 
   useEffect(() => {
-    axios.get(`${baseUrl}/boards/${boardId}/words`) // Update the API URL here
+    //axios.get(`https://diburnik.onrender.com/boards/${boardId}/words`) // Update the API URL here
+    axios.get(`${config.baseUrl}/boards/${boardId}/words`) // 
       .then((response) => {
         const boardWords = response.data;
         setWords(boardWords);
@@ -33,13 +34,15 @@ const WordsScreen = ({ route }) => {
     // TEXT TO SPEECH
     const reversedWord = word.text.split('').reverse().join('');
     console.log('Word pressed:', reversedWord);
+    // Speak the reversed word in Hebrew
+    Speech.speak(word.text, { language: 'he', rate: 0.75 });
   };
 
   const handleImagePicker = async () => {
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
       allowsEditing: true,
-      quality: 0.2,
+      quality: 0.01,
     });
 
     if (!result.canceled) {
@@ -75,7 +78,7 @@ const WordsScreen = ({ route }) => {
           });
         }
   
-        const response = await axios.post('http://192.168.31.184:8000/words/add', formData, {
+        const response = await axios.post(`${config.baseUrl}/words/add`, formData, {
           headers: {
             'Content-Type': 'multipart/form-data',
           },

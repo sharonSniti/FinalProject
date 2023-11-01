@@ -3,6 +3,8 @@ import { View, Text, TextInput, TouchableOpacity, StyleSheet } from 'react-nativ
 import { useNavigation } from '@react-navigation/native'; 
 import axios from 'axios';
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import config from './config';
+
 
 const LoginScreen = () => {
   const [username, setUsername] = useState(''); 
@@ -11,7 +13,6 @@ const LoginScreen = () => {
 
   const navigation = useNavigation(); 
 
-  const baseUrl = 'https://diburnik-q0iq.onrender.com/';
 
   const handleLogin = () => {
     const user = {
@@ -19,7 +20,7 @@ const LoginScreen = () => {
       password: password,
     };
 
-    axios.post('${baseUrl}/login', user).then((res) =>{    
+    axios.post(`${config.baseUrl}/login`, user).then((res) =>{    
       console.log("response: "+res);
       const token = res.data.token;
       AsyncStorage.setItem("authToken",token);

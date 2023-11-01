@@ -2,8 +2,7 @@ import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet } from 'react-native';
 import { useNavigation } from '@react-navigation/native'; 
 import axios from 'axios';
-import AsyncStorage from "@react-native-async-storage/async-storage";
-
+import config from './config';
 const RegisterScreen = () => {
   const [username, setUsername] = useState(''); 
   const [password, setPassword] = useState('');
@@ -12,7 +11,6 @@ const RegisterScreen = () => {
 
   const navigation = useNavigation(); 
 
-  const baseUrl = 'https://diburnik-q0iq.onrender.com/';
 
 
   const handleRegistration = () => {
@@ -35,7 +33,7 @@ const RegisterScreen = () => {
       email: email,
     };
   
-    axios.post('  ${baseUrl}/register', user).then((response) => {
+    axios.post(`${config.baseUrl}/register`, user).then((response) => {
       console.log(response);
       setRegistrationMessage("רישום בוצע בהצלחה");
       setUsername("");

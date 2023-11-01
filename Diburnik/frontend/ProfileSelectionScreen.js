@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { View, Text, TouchableOpacity, Image, Modal, TextInput, Button, StyleSheet } from 'react-native';
 import axios from 'axios';
 import * as ImagePicker from 'expo-image-picker';
+import config from './config';
 
 const ProfileSelectionScreen = ({ navigation }) => {
   const [profiles, setProfiles] = useState([]);
@@ -9,14 +10,13 @@ const ProfileSelectionScreen = ({ navigation }) => {
   const [newProfileFirstName, setNewProfileFirstName] = useState('');
   const [newProfileLastName, setNewProfileLastName] = useState('');
   const [newProfileImage, setNewProfileImage] = useState('');
-  const baseUrl = 'https://diburnik-q0iq.onrender.com/';
 
   useEffect(() => {
     fetchProfiles(); // Fetch profiles on component mount
   }, []);
 
   const fetchProfiles = () => {
-    axios.get('${baseUrl}/children')
+    axios.get(`${config.baseUrl}/children`)
       .then((response) => {
         if (response.status === 200) {
           const childData = response.data.map((child) => ({
@@ -54,7 +54,7 @@ const ProfileSelectionScreen = ({ navigation }) => {
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
       allowsEditing: true,
-      quality: 0.1,
+      quality: 0.01,
     });
 
     if (!result.canceled) {
@@ -83,7 +83,7 @@ const ProfileSelectionScreen = ({ navigation }) => {
           });
         }
 
-        const response = await axios.post('${baseUrl}/children/add', formData, {
+        const response = await axios.post(`${config.baseUrl}/children/add`, formData, {
           headers: {
             'Content-Type': 'multipart/form-data',
           },
