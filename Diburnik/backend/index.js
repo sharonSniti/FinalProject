@@ -27,17 +27,11 @@ const upload = multer({ storage: storage });
 const connectionString = process.env.MONGODB_CONNECTION_STRING;
 
 // Keep-alive endpoint
-const job = require('~/cron.js');
+const jobObject = require('./cron.js');
+const job = jobObject.job; // Access the 'job' property from the exported object
 job.start();
 
 
-// // Send a request to the keep-alive endpoint every 15 minutes (900000 milliseconds)
-// setInterval(function() {
-//   fetch('/keep-alive')
-//     .then(response => response.text())
-//     .then(data => console.log(data))
-//     .catch(error => console.error('Error:', error));
-// }, 900000); // 15 minutes
 
 const User = require("./user");
 const Child = require("./child");
