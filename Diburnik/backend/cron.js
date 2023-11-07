@@ -13,10 +13,7 @@ const job = new cron.CronJob('*/14 * * * *', function() {
 
     //Perform HTTPS GET request to backend
     https.get(backendUrl,(res)=>{
-        if(res.statusCode == 200) 
-            console.log("alive");
-        else
-            console.error("failed to keep alive");
+        console.log("alive")
             
         
     }).on('error',(err)=> {

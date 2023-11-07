@@ -2,10 +2,10 @@ import React, { useEffect, useState } from 'react';
 import { View, Text, TouchableOpacity, Modal, TextInput, Button, StyleSheet ,Image } from 'react-native';
 import axios from 'axios';
 import { useNavigation } from '@react-navigation/native';
-import * as ImagePicker from 'expo-image-picker';
 import { Buffer } from 'buffer'; 
 import config from './config';
 
+import { handleImagePicker, addAndUploadData } from './utils';
 
 const BoardsScreen = ({ route }) => {
   const { profileId } = route.params;
@@ -39,18 +39,9 @@ const BoardsScreen = ({ route }) => {
 
 
 
-  const handleImagePicker = async () => {
-    const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
-      allowsEditing: true,
-      quality: 0.01,
-    });
-
-    if (!result.canceled) {
-      setNewBoardImage(result.assets[0]);
-    }
-  };
-
+  const handleBoardImagePicker = async () => {
+    handleImagePicker(setNewBoardImage);
+  }
 
 
   const handleAddBoard = async () => {
@@ -60,29 +51,7 @@ const BoardsScreen = ({ route }) => {
         formData.append('profileId', profileId);
         formData.append('category', newBoardName); 
   
-        // If you have an image to upload, add it to the form data
-        if (newBoardImage) {
-          const localUri = newBoardImage.uri;
-
-          const filename = localUri.split('/').pop();
-          const type = `image/${filename.split('.').pop()}`;
-          console.log("Type of image is: ", type);
-          
-
-          formData.append('image', {
-            uri: localUri,
-            name: filename,
-            type: type,
-          });
-        }
-        
-        // Send a POST request with the form data to create a new board
-        const response = await axios.post(`${config.baseUrl}/boards/add`, formData, {
-
-          headers: {
-            'Content-Type': 'multipart/form-data',
-          },
-        });
+        const response = await addAndUploadData(formData, newBoardImage, 'boards');
   
         const newBoard = response.data;
 
@@ -140,7 +109,7 @@ const BoardsScreen = ({ route }) => {
             placeholder="Enter a new board name"
           />
           {/* Add the image selection UI */}
-          <TouchableOpacity onPress={handleImagePicker}>
+          <TouchableOpacity onPress={handleBoardImagePicker}>
             <Text style={styles.selectImageText}>Select Board Image</Text>
           </TouchableOpacity>
           {newBoardImage && (
