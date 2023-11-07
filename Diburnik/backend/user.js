@@ -13,10 +13,15 @@ const userSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
-  children: [
+  userType: { 
+    type: String,
+    enum: ['teacher', 'child'],
+    required: true,
+  },
+  child: [
     {
       type: mongoose.Schema.Types.ObjectId,
-      ref: 'Child', // Reference the Child model
+      ref: 'Child',
     },
   ],
 });
