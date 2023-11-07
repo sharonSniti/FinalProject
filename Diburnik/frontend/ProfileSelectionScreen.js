@@ -1,38 +1,42 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, TouchableOpacity, Image, Modal, TextInput, Button, StyleSheet } from 'react-native';
 import axios from 'axios';
-import * as ImagePicker from 'expo-image-picker';
 import config from './config';
 
-const ProfileSelectionScreen = ({ navigation }) => {
+const ProfileSelectionScreen = ({ route, navigation }) => {
+  const { teacherId, child } = route.params;
   const [profiles, setProfiles] = useState([]);
-  const [isModalVisible, setIsModalVisible] = useState(false);
-  const [newProfileFirstName, setNewProfileFirstName] = useState('');
-  const [newProfileLastName, setNewProfileLastName] = useState('');
-  const [newProfileImage, setNewProfileImage] = useState('');
+  const [isSearchMenuVisible, setIsSearchMenuVisible] = useState(false);
+  const [newChildUsername, setNewChildUsername] = useState('');
+  const [newChildEmail, setNewChildEmail] = useState('');
+  const [errorMessage, setErrorMessage] = useState(''); 
+
 
   useEffect(() => {
     fetchProfiles(); // Fetch profiles on component mount
   }, []);
 
   const fetchProfiles = () => {
-    axios.get(`${config.baseUrl}/children`)
+    console.log("child is : ", child );
+    axios.get(`${config.baseUrl}/children`, {
+      params: {
+        child: child,
+      },
+    })
       .then((response) => {
-        if (response.status === 200) {
-          const childData = response.data.map((child) => ({
-            _id: child._id,
-            firstName: child.firstName,
-            lastName: child.lastName,
-            image: child.image,
-          }));
-          setProfiles(childData);
-
-
-        }
-      })
-      .catch((error) => {
-        console.log('Error fetching profiles:', error);
-      });
+        //console.log("response from children data = ",response.data);
+      if (response.status === 200) {
+        const childData = response.data.map((child) => ({
+          _id: child._id,
+          firstName: child.firstName,
+          lastName: child.lastName,
+          image: child.image,
+        }));
+        setProfiles(childData);
+      }
+    }).catch((error) => {
+      console.log('Error fetching profiles:', error);
+    });
   };
 
   const handleProfileSelect = (profileId) => {
@@ -40,67 +44,41 @@ const ProfileSelectionScreen = ({ navigation }) => {
   };
 
   const handleAddProfile = () => {
-    setIsModalVisible(true);
+    toggleSearchMenu();
   };
 
-  const handleCancel = () => {
-    setIsModalVisible(false);
-    setNewProfileFirstName('');
-    setNewProfileLastName('');
-    setNewProfileImage('');
+  const toggleSearchMenu = () => {
+    setIsSearchMenuVisible(!isSearchMenuVisible);
   };
 
-  const handleImagePicker = async () => {
-    const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
-      allowsEditing: true,
-      quality: 0.01,
-    });
+  const handleSearchChild = () => {
+    // Search and add a child 
+    const formData = new FormData();
+    formData.append('username', newChildUsername);
+    formData.append('email', newChildEmail);
+    formData.append('teacherId', teacherId);
 
-    if (!result.canceled) {
-      setNewProfileImage(result.assets[0]);
-    }
-  };
 
-  const handleSubmitProfile = async () => {
-    if (newProfileFirstName.trim() !== '' && newProfileLastName.trim() !== '') {
-      try {
-        const formData = new FormData();
-        formData.append('firstName', newProfileFirstName);
-        formData.append('lastName', newProfileLastName);
 
-        if (newProfileImage) {
-          const localUri = newProfileImage.uri;
-          const filename = localUri.split('/').pop();
-          const type = `image/${filename.split('.').pop()}`;
+    axios.post(`${config.baseUrl}/addChildId`, formData).then((response) => {
+      if (response.status === 200) {
+        const newChild = response.data.child; // The child found in the search
+        // Add the new child to the profiles
+        setProfiles([...profiles, newChild]);
+        toggleSearchMenu();
+        //fetchProfiles();
 
-          console.log("profile URI: ",localUri);
-
-          formData.append('image', {
-            uri: localUri,
-            name: filename,
-            type: type,
-          });
-        }
-
-        const response = await axios.post(`${config.baseUrl}/children/add`, formData, {
-          headers: {
-            'Content-Type': 'multipart/form-data',
-          },
-        });
-
-        const newProfile = response.data;
-        
-        setProfiles([...profiles, newProfile]); // Update the profiles state to include the new profile
-        setIsModalVisible(false);
-        setNewProfileFirstName('');
-        setNewProfileLastName('');
-        setNewProfileImage('');
-        fetchProfiles();                        // Fetch profiles again to immediately update the list
-      } catch (error) {
-        console.log('Error adding profile:', error);
       }
-    }
+      else if (response.status === 400) {
+        //console.log('Child is already associated with the teacher');
+        const errorMessage = 'Child is already associated with the teacher';
+        setErrorMessage(errorMessage);
+
+      }
+
+    }).catch((error) => {
+      console.log('Error adding child to teacher', error);
+    });
   };
 
   return (
@@ -131,30 +109,27 @@ const ProfileSelectionScreen = ({ navigation }) => {
       >
         <Text style={styles.addButtonText}>+</Text>
       </TouchableOpacity>
-      <Modal visible={isModalVisible} animationType="slide">
+      <Modal visible={isSearchMenuVisible} animationType="slide">
         <View style={styles.modalContainer}>
-          <Text style={styles.modalTitle}>Add New Profile</Text>
+          <Text style={styles.modalTitle}>Search and Add Child</Text>
+          {/* Add search input fields for child's email or username */}
           <TextInput
             style={styles.input}
-            value={newProfileFirstName}
-            onChangeText={setNewProfileFirstName}
-            placeholder="First Name"
+            placeholder="Child's Email"
+            onChangeText={(text) => setNewChildEmail(text)}
           />
           <TextInput
             style={styles.input}
-            value={newProfileLastName}
-            onChangeText={setNewProfileLastName}
-            placeholder="Last Name"
+            placeholder="Child's Username"
+            onChangeText={(text) => setNewChildUsername(text)}
           />
-           {/* Add the image selection UI */}
-          <TouchableOpacity onPress={handleImagePicker}>
-            <Text style={styles.selectImageText}>Select Profile Image</Text>
-          </TouchableOpacity>
-          {newProfileImage && (
-            <Image source={{ uri: newProfileImage.uri }} style={styles.profileImage} />
+          
+          {errorMessage !== '' && (
+            <Text style={styles.errorText}>{errorMessage}</Text>
           )}
-          <Button title="Add Profile" onPress={handleSubmitProfile} />
-          <Button title="Cancel" onPress={handleCancel} />
+          
+          <Button title="Search and Add Child" onPress={handleSearchChild} />
+          <Button title="Cancel" onPress={toggleSearchMenu} />
         </View>
       </Modal>
     </View>
@@ -229,10 +204,8 @@ const styles = StyleSheet.create({
     borderColor: 'gray',
     borderRadius: 5,
   },
-  selectImageText: {
-    color: 'blue',
-    fontSize: 16,
-    marginBottom: 10,
+  errorText: {
+    color: 'red',
   },
 });
 

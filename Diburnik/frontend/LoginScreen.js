@@ -14,19 +14,41 @@ const LoginScreen = () => {
   const navigation = useNavigation(); 
 
 
-  const handleLogin = () => {
+  const handleLogin = async () => {
     const user = {
       username: username,
       password: password,
     };
-
-    axios.post(`${config.baseUrl}/login`, user).then((res) =>{    
-      console.log("response: "+res);
+  
+    axios.post(`${config.baseUrl}/login`, user).then(async (res) => {
+      console.log("response: " + res);
       const token = res.data.token;
-      AsyncStorage.setItem("authToken",token);
-      //navigation.navigate('Boards');
-      navigation.navigate('Profiles');
+      AsyncStorage.setItem("authToken", token);
+  
+      try {
+        const userResponse = await axios.get(`${config.baseUrl}/user`, {
+          params: {
+            username: user.username
+          }
+        });
 
+        const userType = userResponse.data.user.userType;
+        const child = userResponse.data.user.child;
+        if (userType === 'teacher') {
+          axios.get(`${config.baseUrl}/findTeacherId?username=${username}`).then((response) => {
+            if (response.status === 200) {
+              const { teacherId } = response.data;
+              navigation.navigate('Profiles', { teacherId , child});
+            }
+          })
+          
+
+        } else if (userType === 'child') {
+          navigation.navigate('Boards', { profileId: child[0] });
+        } 
+      } catch (error) {
+        console.log("Error fetching user type:", error);
+      }
     }).catch((error) => {
       setInvalidLoginMessage("פרטי התחברות לא נכונים");
       console.log("Status code:", error.response.status);

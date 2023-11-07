@@ -3,11 +3,10 @@ import { View, Text, TouchableOpacity, Modal, TextInput, Button, StyleSheet, Ima
 import axios from 'axios';
 import { useNavigation } from '@react-navigation/native';
 import { Buffer } from 'buffer';
-import * as ImagePicker from 'expo-image-picker';
 import * as Speech from 'expo-speech';
 
 import config from './config';
-
+import { handleImagePicker, addAndUploadData } from './utils';
 
 const WordsScreen = ({ route }) => {
   const { profileId, boardId } = route.params;
@@ -19,7 +18,6 @@ const WordsScreen = ({ route }) => {
 
 
   useEffect(() => {
-    //axios.get(`https://diburnik.onrender.com/boards/${boardId}/words`) // Update the API URL here
     axios.get(`${config.baseUrl}/boards/${boardId}/words`) // 
       .then((response) => {
         const boardWords = response.data;
@@ -34,30 +32,13 @@ const WordsScreen = ({ route }) => {
     // TEXT TO SPEECH
     const reversedWord = word.text.split('').reverse().join('');
     console.log('Word pressed:', reversedWord);
-    // Speak the reversed word in Hebrew
-    Speech.speak(word.text, { language: 'he', rate: 0.75 });
+    Speech.speak(word.text, { language: 'he', rate: 0.85 });
   };
 
-  const handleImagePicker = async () => {
-    const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
-      allowsEditing: true,
-      quality: 0.01,
-    });
 
-    if (!result.canceled) {
-    //    // Resize and compress the selected image
-    //   const resizedImage = await ImageResizer.createResizedImage(
-    //     result.uri,
-    //     400,                                                    // New width 
-    //     400,                                                    // New height 
-    //     undefined,                                              // keep original format
-    //     80,                                                     // Image quality 
-    //     0,                                                      // Rotation (0 means no rotation)
-    // );
-      setNewWordImage(result.assets[0]);
-    }
-  };
+  const handleWordImagePicker = async () => {
+    handleImagePicker(setNewWordImage);
+  }
 
   const handleAddWord = async () => {
     if (newWordText.trim() !== '') {
@@ -66,24 +47,8 @@ const WordsScreen = ({ route }) => {
         formData.append('boardId', boardId); // Change 'category' to 'boardId'
         formData.append('text', newWordText);
   
-        if (newWordImage) {
-          const localUri = newWordImage.uri;
-          const filename = localUri.split('/').pop();
-          const type = `image/${filename.split('.').pop()}`;
-  
-          formData.append('image', {
-            uri: localUri,
-            name: filename,
-            type: type,
-          });
-        }
-  
-        const response = await axios.post(`${config.baseUrl}/words/add`, formData, {
-          headers: {
-            'Content-Type': 'multipart/form-data',
-          },
-        });
-  
+        
+        const response = await addAndUploadData(formData,newWordImage,'words');
         const newWord = response.data;
   
         setWords([...words, newWord]);
@@ -133,7 +98,7 @@ const WordsScreen = ({ route }) => {
             onChangeText={setNewWordText}
             placeholder="Enter a new word"
           />
-          <TouchableOpacity onPress={handleImagePicker}>
+          <TouchableOpacity onPress={handleWordImagePicker}>
             <Text style={styles.selectImageText}>Select Word Image</Text>
           </TouchableOpacity>
           {newWordImage && (
