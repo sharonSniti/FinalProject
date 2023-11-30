@@ -48,23 +48,34 @@ const RegisterScreen = () => {
       formData.append('lastName', lastName);
 }
 
-    const response = await addAndUploadData(formData, newProfileImage, 'users');
 
-    console.log(response.message);
-    if(response.status == 200) {
-      setRegistrationMessage("רישום בוצע בהצלחה");
-      setUsername("");
-      setPassword("");
-      setEmail("");
-      setUserType("");
-      setFirstName("");
-      setLastName("");
-      setTimeout(() => setRegistrationMessage(''), 3000); // Clear message after 3 seconds
-    }
-    else
-    setRegistrationMessage("תקלה ברישום, נסה שוב במועד מאוחר יותר");
+    addAndUploadData(formData, newProfileImage, 'users')
+    .then((response) => {
+      //console.log(response.message);
+      if (response.status === 200) {
+        setRegistrationMessage("רישום בוצע בהצלחה");
+        setUsername("");
+        setPassword("");
+        setEmail("");
+        setUserType("");
+        setFirstName("");
+        setLastName("");
+      } else {
+        setRegistrationMessage("תקלה ברישום");
+      }
+    })
+    .catch((error) => {
+      if (error.response && error.response.status === 400) {
+        setRegistrationMessage(error.response.data.message);
+      } else {
+        console.error("Error during registration:", error);
+        setRegistrationMessage("תקלה ברישום");
+      }
+    });
+    setTimeout(() => setRegistrationMessage(''), 3000); // Clear message after 3 seconds
 
-};
+  }
+    
 
 return (
   <View style={registrationStyles.container}>

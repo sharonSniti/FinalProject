@@ -62,14 +62,14 @@ const LoginScreen = () => {
     <View style={loginStyles.container}>
       <Text style={loginStyles.bigTitle}>Diburnik</Text>
       <TextInput
-        style={[loginStyles.inputUsername, { textAlign: 'right' }]} 
+        style={loginStyles.inputUsername}
         placeholder="שם משתמש"
         value={username} 
         onChangeText={(text) => setUsername(text)} 
         autoCapitalize="none" 
       />
       <TextInput
-        style={[loginStyles.inputPassword, { textAlign: 'right' }]}
+        style={loginStyles.inputPassword}
         placeholder="סיסמה"
         value={password}
         onChangeText={(text) => setPassword(text)}
