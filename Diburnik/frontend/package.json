@@ -16,6 +16,7 @@
     "axios": "^1.4.0",
     "base-64": "^1.0.0",
     "expo": "~49.0.7",
+    "expo-image-manipulator": "~11.3.0",
     "expo-image-picker": "~14.3.2",
     "expo-speech": "~11.3.0",
     "expo-status-bar": "~1.6.0",
@@ -26,6 +27,7 @@
     "react-native-elements": "^3.4.3",
     "react-native-image-picker": "^5.6.0",
     "react-native-image-resizer": "^1.4.5",
+    "react-native-swipeout": "^2.3.6",
     "rn-fetch-blob": "^0.12.0"
   },
   "devDependencies": {

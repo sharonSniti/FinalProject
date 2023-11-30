@@ -14,6 +14,8 @@ const BoardsScreen = ({ route }) => {
   const [newBoardName, setNewBoardName] = useState('');
   const [newBoardImage, setNewBoardImage] = useState('');
   const navigation = useNavigation();
+  const [editMode, setEditMode] = useState(false);
+  const [selectedBoards, setSelectedBoards] = useState([]);
 
   useEffect(() => {
     axios.get(`${config.baseUrl}/children/${profileId}`)
@@ -27,13 +29,35 @@ const BoardsScreen = ({ route }) => {
       });
   }, [profileId]);
 
-  const handleBoardPress = async (boardId) => {
-    try {
-      const response = await axios.get(`${config.baseUrl}/boards/${boardId}`);
-      const updatedWords = response.data.words;
-      navigation.navigate('Words', { boardId, words: updatedWords });
-    } catch (error) {
-      console.log('Error fetching updated words:', error);
+  // const handleBoardPress = async (boardId) => {
+  //   try {
+  //     const response = await axios.get(`${config.baseUrl}/boards/${boardId}`);
+  //     const updatedWords = response.data.words;
+  //     navigation.navigate('Words', { boardId, words: updatedWords });
+  //   } catch (error) {
+  //     console.log('Error fetching updated words:', error);
+  //   }
+  // };
+
+
+  const handleBoardSelect = async (boardId) => {
+    if (!editMode) {
+      try {
+        const response = await axios.get(`${config.baseUrl}/boards/${boardId}`);
+        const updatedWords = response.data.words;
+        navigation.navigate('Words', { boardId, words: updatedWords });
+      } catch (error) {
+        console.log('Error fetching updated words:', error);
+      }
+    } else {
+      const updatedBoards = boards.map((board) =>
+        board._id === boardId
+          ? { ...board, isSelected: !board.isSelected }
+          : board
+      );
+      setBoards(updatedBoards);
+      const selectedBoards = updatedBoards.filter((board) => board.isSelected);
+      setSelectedBoards(selectedBoards);
     }
   };
 
@@ -67,38 +91,95 @@ const BoardsScreen = ({ route }) => {
     }
   };
 
+
+  const handleEdit = () => {
+    setEditMode(!editMode);
+    setSelectedBoards([]); // Clear selected boards when toggling edit mode
+
+    const updatedBoards = boards.map((board) => ({ ...board, isSelected: false }));
+    setBoards(updatedBoards);
+  };
+
+  const handleDeleteBoards = async (boardsIds) => {
+    try {
+      console.log('boardIds to delete:', boardsIds);
+
+      const response = await axios.delete(`${config.baseUrl}/deleteBoards`, {
+        data: { boardsIds },
+      });
+      if (response.status === 200) {
+        const updatedBoards = boards.filter((board) => !boardsIds.includes(board._id));
+        setBoards(updatedBoards);
+        setSelectedBoards([]);
+      } else {
+        console.error('Error deleting boards. Unexpected response:', response.status);
+      }
+    } catch (error) {
+      console.error('Error deleting boards:', error);
+    }
+  };
+
+
+
+
   return (
     <View style={styles.container}>
       <Text style={styles.title}>הלוחות שלי</Text>
       <View style={styles.boardContainer}>
-        {boards.length === 0 ? (
-          <Text>No boards available for this profile.</Text>
-        ) : (
-          boards.map((board) => (
-            <TouchableOpacity
-              key={board._id}
-              style={styles.board}
-              onPress={() => handleBoardPress(board._id)}
-            >
-              {board.image && (
-                <Image
-                  source={{
-                    uri: `data:${board.image.contentType};base64,${Buffer.from(board.image.data).toString('base64')}`,
-                  }}
-                  style={styles.boardImage}
-                />
-              )}
-              <Text style={styles.categoryText}>{board.category}</Text>
-            </TouchableOpacity>
-          ))
-        )}
-      </View>
+      {boards.length === 0 ? (
+      <Text>No boards available for this profile.</Text>
+    ) : (
+      boards.map((board) => (
+        <TouchableOpacity
+          key={board._id}
+          style={[
+            styles.board,
+            editMode && board.isSelected && styles.selectedBoard,
+          ]}
+          onPress={() => handleBoardSelect(board._id)}
+        >
+          {board.image && (
+            <Image
+              source={{
+                uri: `data:${board.image.contentType};base64,${Buffer.from(
+                  board.image.data
+                ).toString('base64')}`,
+              }}
+              style={styles.boardImage}
+            />
+          )}
+          {editMode && (
+            <View style={styles.checkboxContainer}>
+              <View
+                style={[
+                  styles.checkbox,
+                  board.isSelected && styles.checkedCheckbox,
+                ]}
+              />
+            </View>
+          )}
+      <Text style={styles.categoryText}>{board.category}</Text>
+    </TouchableOpacity>
+  ))
+)}
+    </View>
       <TouchableOpacity
         style={styles.addButton}
         onPress={() => setIsModalVisible(true)}
       >
         <Text style={styles.addButtonText}>+</Text>
       </TouchableOpacity>
+      <TouchableOpacity style={styles.editButton} onPress={handleEdit}>
+        <Text style={styles.editButtonText}>{editMode ? '✅' : '✏️'}</Text>
+      </TouchableOpacity>
+      {editMode && selectedBoards.length > 0 && (
+        <TouchableOpacity
+          style={styles.deleteButton}
+          onPress={() => handleDeleteBoards(selectedBoards.map(board => board._id))}
+        >
+          <Text style={styles.deleteButtonText}>🗑️</Text>
+        </TouchableOpacity>
+      )}
       <Modal visible={isModalVisible} animationType="slide">
         <View style={styles.modalContainer}>
           <Text style={styles.title}>Add New Board</Text>
@@ -193,6 +274,56 @@ const styles = StyleSheet.create({
     color: 'blue',
     fontSize: 16,
     marginBottom: 10,
+  },
+  editButton: {
+    position: 'absolute',
+    bottom: 20,
+    right: 100,
+    width: 60,
+    height: 60,
+    backgroundColor: '#5EF18A',
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderRadius: 30,
+  },
+  editButtonText: {
+    fontSize: 30,
+    color: 'white',
+  },
+  deleteButton: {
+    position: 'absolute',
+    bottom: 20,
+    right: 180, 
+    width: 60,
+    height: 60,
+    backgroundColor: 'red',
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderRadius: 30,
+  },
+  
+  deleteButtonText: {
+    fontSize: 20,
+    color: 'white',
+  },
+  checkboxContainer: {
+    position: 'absolute',
+    top: 5,
+    right: 5,
+    backgroundColor: 'white',
+    borderRadius: 5,
+    padding: 5,
+  },
+  checkbox: {
+    width: 20,
+    height: 20,
+    borderRadius: 5,
+    borderWidth: 1,
+    borderColor: 'black',
+  },
+  checkedCheckbox: {
+    backgroundColor: 'blue',
+    borderColor: 'blue',
   },
 });
 

@@ -1,6 +1,9 @@
 import * as ImagePicker from 'expo-image-picker';
 import axios from 'axios';
 import config from './config';
+import * as ImageManipulator from 'expo-image-manipulator';
+
+
 
 
 export const handleImagePicker = async (setFunc) => {
@@ -11,6 +14,9 @@ export const handleImagePicker = async (setFunc) => {
     });
 
     if (!result.canceled) {
+
+        //console.log("result.assets[0]: ",result.assets[0]);
+
         setFunc(result.assets[0]);
     }
 };
@@ -20,13 +26,28 @@ export const handleImagePicker = async (setFunc) => {
     if (newImage) {
         const localUri = newImage.uri;
 
-        const filename = localUri.split('/').pop();
+        //console.log("localUri = ",localUri);
+
+        
+        //Compress image
+        const manipResult = await ImageManipulator.manipulateAsync(localUri, [
+            { resize: { width: 800 } }, // Adjust the width as needed
+          ], {
+            compress: 0.01,
+            format: ImageManipulator.SaveFormat.JPEG,
+          });
+          
+
+        const { uri } = manipResult;
+
+        //const filename = localUri.split('/').pop();
+        const filename = uri.split('/').pop();
         const type = `image/${filename.split('.').pop()}`;
         console.log("Type of image is: ", type);
-        
 
         formData.append('image', {
-            uri: localUri,
+            //uri: localUri,
+            uri: uri,
             name: filename,
             type: type,
         });
@@ -39,6 +60,6 @@ export const handleImagePicker = async (setFunc) => {
             'Content-Type': 'multipart/form-data',
         },
     });
-    
+
     return response;
 }

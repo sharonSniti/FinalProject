@@ -7,6 +7,7 @@ const LocalStrategy = require("passport-local").Strategy;
 require("dotenv").config(); // Load environment variables from .env file
 
 
+
 const app = express();
 const port = process.env.PORT || 8000;
 const cors = require("cors");
@@ -71,6 +72,40 @@ const createToken = (userId) => {
 
 
 
+
+
+
+const deleteChildren = async (childrenIds) => {
+  for(const childId of childrenIds) {
+      try {
+          await Child.findByIdAndRemove(childId);
+      }catch(error) {
+          console.error(`Error deleting child with ID ${childId}:`, error);
+      }
+  }
+}
+
+const deleteBoards = async (boardsIds) => {
+  for(const boardId of boardsIds) {
+      try {
+          await Board.findByIdAndRemove(boardId);
+      }catch(error) {
+          console.error(`Error deleting board with ID ${boardId}:`, error);
+      }
+  }
+}
+
+const deleteWords = async (wordsIds) => {
+  for(const wordId of wordsIds) {
+      try {
+          await Word.findByIdAndRemove(wordId);
+      }catch(error) {
+          console.error(`Error deleting board with ID ${wordId}:`, error);
+      }
+  }
+}
+
+
 /********************************************************* */
 ///////                   app.post                      /////
 /********************************************************* */
@@ -106,6 +141,21 @@ app.post("/users/add", upload.single('image'), async (req, res) => {
       email: email,
       userType: userType
   });
+
+   // Check if the username or email is already in use
+   const existingUser = await User.findOne({ $or: [{ username }, { email }] });
+
+   if (existingUser) {
+    let message;
+    
+    if (existingUser.username === username) {
+      message = "שם משתמש תפוס";
+    } else {
+      message = "אימייל תפוס";
+    }
+  
+    return res.status(400).json({ message });
+  }
 
   const newChild = new Child({
     firstName: firstName,
@@ -392,9 +442,8 @@ app.get("/children", async (req, res) => {
         return res.status(404).json({ message: 'Board not found' });
       }
   
-      // Assuming 'words' is an array of Word IDs in your Board schema,
-      // you can fetch the actual Word documents here.
       const words = await Word.find({ _id: { $in: board.words } });
+
   
       res.status(200).json(words);
     } catch (error) {
@@ -420,6 +469,115 @@ app.get("/children", async (req, res) => {
     }
   });
   
+
+
+
+  
+/********************************************************* */
+///////                   app.delete                    /////
+/********************************************************* */
+
+app.delete('/removeChildFromTeacher/', async (req, res) => {
+  const { profileIds, teacherId } = req.body;
+  console.log("in backend profileIds to delete: ",profileIds);
+
+  try {
+    // Check if the teacher exists
+    const teacher = await User.findById(teacherId);
+    if (!teacher) {
+      return res.status(404).json({ message: 'Teacher not found' });
+    }
+
+    // Update the teacher's children array directly in the database
+    await User.findByIdAndUpdate(teacherId, {
+      $pull: { child: { $in: profileIds } },   // Remove specified profiles from the teacher's children array
+    });
+    //console.log("removed child ${} from teacher ${}")
+
+    res.status(200).json({ message: 'Children removed from teacher successfully' });
+  } catch (error) {
+    console.error('Error removing children from teacher:', error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+});
+
+
+app.delete('/deleteChildren', async (req, res) => {
+  const { childrenIds } = req.body;
+  console.log("childrenIds to delete: ", childrenIds);
+
+try {
+  const children = await Child.find({ _id: { $in: childrenIds } }).populate('boards');
+  
+  for (const child of children) {
+    for (const boardId of child.boards) {
+      deleteWords(boardId.words);  // delete the words in the boards
+    }
+    deleteBoards(child.boards);   // delete the boards
+  }
+
+   await User.updateMany(
+    { children: { $in: childrenIds } },                     // Remove references from user documents
+    { $pull: { children: { $in: childrenIds } } }
+  );
+
+  deleteChildren(childrenIds);  // delete the children
+
+  await User.deleteMany({ child: { $in: childrenIds } });     // Delete the child users
+
+
+  res.status(200).json({ message: 'Children deleted successfully' });
+} catch (error) {
+  console.error('Error deleting children:', error);
+  res.status(500).json({ message: 'Internal server error' });
+}
+
+});
+
+
+
+app.delete('/deleteBoards', async (req, res) => {
+  const { boardsIds } = req.body;
+
+  console.log("boardsIds to delete: ", boardsIds);
+
+  try {
+    const boards = await Board.find({ _id: { $in: boardsIds } }).populate('words');
+    
+    for(const board of boards) {
+      deleteWords(board.words);  //delete the words in the boards
+    }
+      deleteBoards(boardsIds);   // delete the boards
+    
+
+    await Child.updateMany(
+      { boards: { $in: boardsIds } },                     // Remove references from children documents
+      { $pull: { boards: { $in: boardsIds } } }
+    );
+
+
+    res.status(200).json({ message: 'Children deleted successfully' });
+  } catch (error) {
+    console.error('Error deleting children:', error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+})
+
+
+
+
+app.delete('/deleteWords', async (req, res) => {
+  const { wordsIds } = req.body;
+  console.log("wordsIds to delete: ", wordsIds);
+
+  deleteWords(wordsIds);         //delete the words
+
+  await Board.updateMany(
+    { words: { $in: wordsIds } },                     // Remove references from children documents
+    { $pull: { words: { $in: wordsIds } } }
+  );
+  res.status(200).json({ message: 'Words deleted successfully' });
+})
 
 
   

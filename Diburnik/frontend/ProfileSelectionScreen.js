@@ -1,7 +1,9 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, TouchableOpacity, Image, Modal, TextInput, Button, StyleSheet } from 'react-native';
+import { View, Text, TouchableOpacity, Image, Modal, TextInput, Button, StyleSheet ,ScrollView  } from 'react-native';
 import axios from 'axios';
 import config from './config';
+
+
 
 const ProfileSelectionScreen = ({ route, navigation }) => {
   const { teacherId, child } = route.params;
@@ -10,6 +12,9 @@ const ProfileSelectionScreen = ({ route, navigation }) => {
   const [newChildUsername, setNewChildUsername] = useState('');
   const [newChildEmail, setNewChildEmail] = useState('');
   const [errorMessage, setErrorMessage] = useState(''); 
+  const [selectedProfiles, setSelectedProfiles] = useState([]);
+  const [editMode, setEditMode] = useState(false);
+
 
 
   useEffect(() => {
@@ -17,7 +22,7 @@ const ProfileSelectionScreen = ({ route, navigation }) => {
   }, []);
 
   const fetchProfiles = () => {
-    console.log("child is : ", child );
+    //console.log("child is : ", child );
     axios.get(`${config.baseUrl}/children`, {
       params: {
         child: child,
@@ -31,6 +36,7 @@ const ProfileSelectionScreen = ({ route, navigation }) => {
           firstName: child.firstName,
           lastName: child.lastName,
           image: child.image,
+          isSelected: false,
         }));
         setProfiles(childData);
       }
@@ -39,8 +45,21 @@ const ProfileSelectionScreen = ({ route, navigation }) => {
     });
   };
 
+
+
   const handleProfileSelect = (profileId) => {
-    navigation.navigate('Boards', { profileId });
+    if (!editMode) {
+      navigation.navigate('Boards', { profileId });
+    } else {
+      const updatedProfiles = profiles.map((profile) =>
+        profile._id === profileId
+          ? { ...profile, isSelected: !profile.isSelected }
+          : profile
+      );
+      setProfiles(updatedProfiles);
+      const selectedProfiles = updatedProfiles.filter((profile) => profile.isSelected);
+      setSelectedProfiles(selectedProfiles);
+    }
   };
 
   const handleAddProfile = () => {
@@ -50,6 +69,15 @@ const ProfileSelectionScreen = ({ route, navigation }) => {
   const toggleSearchMenu = () => {
     setIsSearchMenuVisible(!isSearchMenuVisible);
   };
+
+  const handleEdit = () => {
+    setEditMode(!editMode);
+    setSelectedProfiles([]); // Clear selected profiles when toggling edit mode
+
+  const updatedProfiles = profiles.map((profile) => ({ ...profile, isSelected: false }));   //update the cleared profiles
+  setProfiles(updatedProfiles);
+  };
+  
 
   const handleSearchChild = () => {
     // Search and add a child 
@@ -61,54 +89,132 @@ const ProfileSelectionScreen = ({ route, navigation }) => {
 
 
     axios.post(`${config.baseUrl}/addChildId`, formData).then((response) => {
+      console.log("response status = ",response.status);
       if (response.status === 200) {
         const newChild = response.data.child; // The child found in the search
         // Add the new child to the profiles
-        setProfiles([...profiles, newChild]);
+        setProfiles([...profiles, { ...newChild, isSelected: false }]);
         toggleSearchMenu();
         //fetchProfiles();
 
       }
-      else if (response.status === 400) {
-        //console.log('Child is already associated with the teacher');
-        const errorMessage = 'Child is already associated with the teacher';
-        setErrorMessage(errorMessage);
-
-      }
 
     }).catch((error) => {
-      console.log('Error adding child to teacher', error);
+      if (error.response && error.response.status === 400) {
+        const errorTxt = 'הילד כבר קיים ברשימה';
+        setErrorMessage(errorTxt);
+    
+        // Show the message for 5 seconds
+        setTimeout(() => {
+          setErrorMessage('');
+        }, 5000);
+      } else {
+        setErrorMessage('Error adding child to teacher. Please try again.');
+      }
+    });
+  }
+    
+
+  const removeChildFromTeacher = (profileIds) => {
+    const data = {
+      teacherId: teacherId,
+      profileIds: profileIds,
+    };
+    console.log("on frontend profileIds to delete: ",profileIds);
+
+  
+    axios.delete(`${config.baseUrl}/removeChildFromTeacher/`, { data: data }).then((response) => {
+      if (response.status === 200) {
+        const updatedProfiles = profiles.filter(profile => !profileIds.includes(profile._id));
+        setProfiles(updatedProfiles);
+      }
+    }).catch((error) => {
+      console.error('Error deleting profile:', error);
     });
   };
+
+
+
+
+  const handleDeleteProfile = async (profileIds) => {
+    try {
+
+      console.log('profileId to delete :', profileIds);
+
+      const response = await axios.delete(`${config.baseUrl}/deleteChildren`, {
+        data: { childrenIds: profileIds } 
+      });
+      // const response = await axios.delete(`${config.baseUrl}/deleteChildren?childrenIds=${profileId}`);
+      if (response.status === 200) {
+        const updatedProfiles = profiles.filter(profile => !profileIds.includes(profile._id));
+        setProfiles(updatedProfiles);
+      } else {
+        console.error('Error deleting profile. Unexpected response:', response.status);
+      }
+    } catch (error) {
+      console.error('Error deleting profile:', error);
+    }
+  };
+  
+
+
+
+
 
   return (
     <View style={styles.container}>
       <Text style={styles.title}>בחר פרופיל</Text>
-      {profiles.map((profile) => (
-        <TouchableOpacity
-          key={profile._id}
-          style={styles.profileItem}
-          onPress={() => handleProfileSelect(profile._id)}
-        >
-          {profile.image && (
-            <Image
-              source={{
-                uri: `data:${profile.image.contentType};base64,${profile.image.data}`,
-              }}
-              style={styles.profileImage}
-            />
-          )}
-          <Text style={styles.profileName}>
-            {profile.firstName} {profile.lastName}
-          </Text>
-        </TouchableOpacity>
-      ))}
-      <TouchableOpacity
-        style={styles.addButton}
-        onPress={handleAddProfile}
-      >
+      <ScrollView>
+        {profiles.map((profile) => (
+          <TouchableOpacity
+            key={profile._id}
+            style={[
+              styles.profileItem,
+              editMode && profile.isSelected && styles.selectedProfileItem,
+            ]}
+            onPress={() => handleProfileSelect(profile._id)}
+          >
+            {editMode && (
+              <View style={styles.checkboxContainer}>
+                <View style={[styles.checkbox, profile.isSelected && styles.checkedCheckbox]} />
+              </View>
+            )}
+            {profile.image && (
+              <Image
+                source={{
+                  uri: `data:${profile.image.contentType};base64,${profile.image.data}`,
+                }}
+                style={styles.profileImage}
+              />
+            )}
+            <Text style={styles.profileName}>
+              {profile.firstName} {profile.lastName}
+            </Text>
+          </TouchableOpacity>
+        ))}
+      </ScrollView>
+      <TouchableOpacity style={styles.addButton} onPress={handleAddProfile}>
         <Text style={styles.addButtonText}>+</Text>
       </TouchableOpacity>
+      <TouchableOpacity style={styles.editButton} onPress={handleEdit}>
+        <Text style={styles.editButtonText}>{editMode ? '✅' : '✏️'}</Text>
+      </TouchableOpacity>
+      {editMode && selectedProfiles.length > 0 && (
+        <>
+          <TouchableOpacity
+            style={styles.deleteButton}
+            onPress={() => handleDeleteProfile(selectedProfiles.map(profile => profile._id))}
+          >
+            <Text style={styles.deleteButtonText}>🗑️</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.removeFromTeacherButton}
+            onPress={() => removeChildFromTeacher(selectedProfiles.map(profile => profile._id))}
+          >
+            <Text style={styles.deleteButtonText}>🚫</Text>
+          </TouchableOpacity>
+        </>
+      )}
       <Modal visible={isSearchMenuVisible} animationType="slide">
         <View style={styles.modalContainer}>
           <Text style={styles.modalTitle}>Search and Add Child</Text>
@@ -123,11 +229,9 @@ const ProfileSelectionScreen = ({ route, navigation }) => {
             placeholder="Child's Username"
             onChangeText={(text) => setNewChildUsername(text)}
           />
-          
           {errorMessage !== '' && (
             <Text style={styles.errorText}>{errorMessage}</Text>
           )}
-          
           <Button title="Search and Add Child" onPress={handleSearchChild} />
           <Button title="Cancel" onPress={toggleSearchMenu} />
         </View>
@@ -206,6 +310,70 @@ const styles = StyleSheet.create({
   },
   errorText: {
     color: 'red',
+  },
+  editButton: {
+    position: 'absolute',
+    bottom: 20,
+    right: 100,
+    width: 60,
+    height: 60,
+    backgroundColor: '#5EF18A',
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderRadius: 30,
+  },
+  editButtonText: {
+    fontSize: 30,
+    color: 'white',
+  },
+  deleteButton: {
+    position: 'absolute',
+    bottom: 20,
+    right: 180, 
+    width: 60,
+    height: 60,
+    backgroundColor: 'red',
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderRadius: 30,
+  },
+  
+  deleteButtonText: {
+    fontSize: 20,
+    color: 'white',
+  },
+  selectedProfileItem: {
+    backgroundColor: 'lightblue',
+  },
+  checkboxContainer: {
+    width: 30,
+    height: 30,
+    marginRight: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  checkbox: {
+    width: 20,
+    height: 20,
+    borderRadius: 5,
+    borderWidth: 1,
+    borderColor: 'black',
+  },
+  checkedCheckbox: {
+    backgroundColor: 'blue',
+    borderColor: 'blue',
+  },
+  removeFromTeacherButton: {
+    position: 'absolute',
+    bottom: 20,
+    right: 250, 
+    width: 60,
+    height: 60,
+    backgroundColor: 'orange',
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderRadius: 30,
+    marginRight: 10, // Add margin to separate buttons
   },
 });
 

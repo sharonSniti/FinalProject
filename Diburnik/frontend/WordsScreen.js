@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, TouchableOpacity, Modal, TextInput, Button, StyleSheet, Image } from 'react-native';
+import { View, Text, TouchableOpacity, Modal, TextInput, Button, StyleSheet, Image, ScrollView } from 'react-native';
 import axios from 'axios';
 import { useNavigation } from '@react-navigation/native';
 import { Buffer } from 'buffer';
@@ -15,6 +15,10 @@ const WordsScreen = ({ route }) => {
   const [newWordText, setNewWordText] = useState('');
   const [newWordImage, setNewWordImage] = useState('');
   const navigation = useNavigation();
+  const [selectedSentence, setSelectedSentence] = useState([]);
+
+  const [editMode, setEditMode] = useState(false);
+  const [selectedWords, setSelectedWords] = useState([]);
 
 
   useEffect(() => {
@@ -28,12 +32,64 @@ const WordsScreen = ({ route }) => {
       });
   }, [boardId]);
 
+
+
+
   const handleWordPress = (word) => {
-    // TEXT TO SPEECH
-    const reversedWord = word.text.split('').reverse().join('');
-    console.log('Word pressed:', reversedWord);
-    Speech.speak(word.text, { language: 'he', rate: 0.85 });
+    if (!editMode) {
+      // TEXT TO SPEECH
+      const reversedWord = word.text.split('').reverse().join('');
+      console.log('Word pressed:', reversedWord);
+      Speech.speak(word.text, { language: 'he', rate: 0.85 });
+
+      handleAddToSentence(word);
+
+
+    } else {
+      const updatedWords = words.map((w) =>
+        w._id === word._id ? { ...w, isSelected: !w.isSelected } : w
+      );
+      setWords(updatedWords);
+  
+      const selectedWords = updatedWords.filter((w) => w.isSelected);
+      setSelectedWords(selectedWords);
+    }
   };
+
+  /*Sentence*/ 
+  const handleSpeakSentence = () => {
+    const sentence = selectedSentence.map((word) => word.text).join(' ');
+    Speech.speak(sentence, { language: 'he', rate: 0.7 });
+  };
+  
+  
+  const handleAddToSentence = (word) => {
+
+    setSelectedSentence((prev) => [
+      ...prev,
+      { text: word.text , index: prev.length},
+    ]);
+    console.log("after add the sentence is: ",selectedSentence);
+
+  };
+
+  const handleRemoveFromSentence = (wordIndex) => {
+    const updatedSentence = selectedSentence.filter(
+      (word) => word.index !== wordIndex
+    );
+  
+    // update indexes for the remaining words
+    const updatedSentenceWithIndexes = updatedSentence.map((word, index) => ({
+      ...word,
+      index,
+    }));
+  
+    setSelectedSentence(updatedSentenceWithIndexes);
+  };
+  /*Sentence*/ 
+
+
+
 
 
   const handleWordImagePicker = async () => {
@@ -61,34 +117,132 @@ const WordsScreen = ({ route }) => {
     }
   };
 
+
+  const handleEdit = () => {
+    setEditMode(!editMode);
+    setSelectedWords([]); // Clear selected words in selected words array when toggling edit mode 
+    setWords((prevWords) =>
+        prevWords.map((word) => ({ ...word, isSelected: false })));// Clear selected words icon when toggling edit mode 
+
+        
+    console.log("selected words: ",selectedWords);
+  };
+
+  const handleDeleteWords = async (wordsIds) => {
+    try {
+      console.log('wordIds to delete:', wordsIds);
+
+      const response = await axios.delete(`${config.baseUrl}/deleteWords`, {
+        data: { wordsIds },
+      });
+
+      if (response.status === 200) {
+        const updatedWords = words.filter((word) => !wordsIds.includes(word._id));
+        setWords(updatedWords);
+        setSelectedWords([]); // Clear selected words after deletion
+
+
+      } else {
+        console.error('Error deleting words. Unexpected response:', response.status);
+      }
+    } catch (error) {
+      console.error('Error deleting words:', error);
+    }
+  };
+
+
+
+
+
+
+
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>המילים שלי</Text>
-      <View style={styles.wordsContainer}>
-        {words?.map((word) => (
+      {/* Sentence Bar and Speaking Icon outside ScrollView */}
+      <View style={[styles.sentenceBar, { flexDirection: 'row-reverse' }]}>
+        {selectedSentence.map((word, index) => (
           <TouchableOpacity
-            key={word._id}
-            style={styles.wordSquare}
-            onPress={() => handleWordPress(word)}
+            key={word.index}
+            style={styles.sentenceWord}
+            onPress={() => handleRemoveFromSentence(word.index)}
           >
-            {word.image && (
-              <Image
-                source={{
-                  uri: `data:${word.image.contentType};base64,${Buffer.from(word.image.data).toString('base64')}`,
-                }}
-                style={styles.wordImage}
-              />
-            )}
-            <Text style={styles.wordText}>{word.text}</Text>
+            <Text style={styles.sentenceWordText}>{word.text}</Text>
           </TouchableOpacity>
         ))}
+        <TouchableOpacity
+          style={styles.speakSentenceButton}
+          onPress={handleSpeakSentence}
+        >
+          <Text style={{ fontSize: 48 }}>📢 </Text>
+        </TouchableOpacity>
       </View>
+
+      {/* ScrollView for Words */}
+      <ScrollView contentContainerStyle={styles.scrollViewContent}>
+        <Text style={styles.title}>המילים שלי</Text>
+        <View style={styles.wordsContainer}>
+          {words?.map((word) => (
+            <TouchableOpacity
+              key={word._id}
+              style={[
+                styles.wordSquare,
+                editMode && word.isSelected && styles.selectedWord,
+              ]}
+              onPress={() => handleWordPress(word)}
+            >
+              {word.image && (
+                <Image
+                  source={{
+                    uri: `data:${word.image.contentType};base64,${Buffer.from(
+                      word.image.data
+                    ).toString('base64')}`,
+                  }}
+                  style={styles.wordImage}
+                />
+              )}
+              {editMode && (
+                <View style={styles.checkboxContainer}>
+                  <View
+                    style={[
+                      styles.checkbox,
+                      word.isSelected && styles.checkedCheckbox,
+                    ]}
+                  />
+                </View>
+              )}
+              <Text style={styles.wordText}>{word.text}</Text>
+            </TouchableOpacity>
+          ))}
+        </View>
+      </ScrollView>
+
+      {/* "Add" button outside ScrollView */}
       <TouchableOpacity
         style={styles.addButton}
         onPress={() => setIsModalVisible(true)}
       >
         <Text style={styles.addButtonText}>+</Text>
       </TouchableOpacity>
+
+      {/* "Edit" button */}
+      <TouchableOpacity
+        style={styles.editButton}
+        onPress={handleEdit}
+      >
+        <Text style={styles.editButtonText}>{editMode ? '✅' : '✏️'}</Text>
+      </TouchableOpacity>
+
+      {/* "Delete" button */}
+      {editMode && selectedWords.length > 0 && (
+        <TouchableOpacity
+          style={styles.deleteButton}
+          onPress={() => handleDeleteWords(selectedWords.map(word => word._id))}
+        >
+          <Text style={styles.deleteButtonText}>🗑️</Text>
+        </TouchableOpacity>
+      )}
+
+      {/* Modal for Adding New Word */}
       <Modal visible={isModalVisible} animationType="slide">
         <View style={styles.modalContainer}>
           <Text style={styles.title}>Add New Word</Text>
@@ -98,12 +252,14 @@ const WordsScreen = ({ route }) => {
             onChangeText={setNewWordText}
             placeholder="Enter a new word"
           />
+          {/* Add the image selection UI */}
           <TouchableOpacity onPress={handleWordImagePicker}>
             <Text style={styles.selectImageText}>Select Word Image</Text>
           </TouchableOpacity>
           {newWordImage && (
             <Image source={{ uri: newWordImage.uri }} style={styles.wordImage} />
           )}
+          {/* End of image selection UI */}
           <Button title="Add" onPress={handleAddWord} />
           <Button title="Close" onPress={() => setIsModalVisible(false)} />
         </View>
@@ -116,17 +272,27 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     padding: 20,
+    marginTop: 20,  // margin to create space for bar above
+    marginBottom: 20,  // Add marginBottom to create space at the bottom
+
   },
   title: {
     fontSize: 20,
     fontWeight: 'bold',
     marginBottom: 20,
+    alignSelf: 'center',  //Center the "my words"
+
+  },
+  scrollViewContent: {
+    paddingBottom: 100, 
   },
   wordsContainer: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     justifyContent: 'center',
     marginBottom: 20,
+    marginTop: 10,  // Add marginTop to create space at the top
+
   },
   wordSquare: {
     width: 140,
@@ -159,6 +325,7 @@ const styles = StyleSheet.create({
   modalContainer: {
     flex: 1,
     justifyContent: 'center',
+    marginTop: 45,
     alignItems: 'center',
   },
   input: {
@@ -179,6 +346,82 @@ const styles = StyleSheet.create({
     color: 'blue',
     fontSize: 16,
     marginBottom: 10,
+  },
+  editButton: {
+    position: 'absolute',
+    bottom: 20,
+    right: 100,
+    width: 60,
+    height: 60,
+    backgroundColor: '#5EF18A',
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderRadius: 30,
+  },
+  editButtonText: {
+    fontSize: 30,
+    color: 'white',
+  },
+  deleteButton: {
+    position: 'absolute',
+    bottom: 20,
+    right: 180, 
+    width: 60,
+    height: 60,
+    backgroundColor: 'red',
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderRadius: 30,
+  },
+  
+  deleteButtonText: {
+    fontSize: 20,
+    color: 'white',
+  },
+  checkboxContainer: {
+    position: 'absolute',
+    top: 5,
+    right: 5,
+    backgroundColor: 'white',
+    borderRadius: 5,
+    padding: 5,
+  },
+  checkbox: {
+    width: 20,
+    height: 20,
+    borderRadius: 5,
+    borderWidth: 1,
+    borderColor: 'black',
+  },
+  checkedCheckbox: {
+    backgroundColor: 'blue',
+    borderColor: 'blue',
+  },
+  sentenceBar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    minHeight: 50,  // Set a minimum height for the sentence bar
+    marginBottom: 20,  //margin create space between the bar and other content
+  },
+  sentenceWord: {
+    backgroundColor: '#E0E0E0',
+    padding: 8,
+    margin: 4,
+    borderRadius: 8,
+    fontSize: 24,
+  },
+  speakSentenceButton: {
+    backgroundColor: '#a09db2',
+    padding: 8,
+    margin: 4,
+    borderRadius: 8,
+    position: 'absolute', // Position the button absolutely
+    down: 5,                 // Position from the buttom
+    right: 50,                // Position from the left
+  },
+  sentenceWordText: {
+    fontSize: 24,
   },
 });
 
