@@ -4,6 +4,9 @@ import axios from 'axios';
 import { useNavigation } from '@react-navigation/native';
 import { Buffer } from 'buffer'; 
 import config from './config';
+import { commonStyles } from './CommonStyles';
+import CommonHeader from './CommonHeader';
+import ProfilePicture from './ProfilePicture';
 
 import { handleImagePicker, addAndUploadData } from './utils';
 
@@ -68,7 +71,10 @@ const BoardsScreen = ({ route }) => {
   };
 
   return (
-    <View style={styles.container}>
+    <View style={commonStyles.container}>
+      {/* CommonHeader - the app logo */}
+      <CommonHeader showProfilePicture={true}/>
+       {/* Circular Profile Picture */}
       <Text style={styles.title}>הלוחות שלי</Text>
       <View style={styles.boardContainer}>
         {boards.length === 0 ? (
@@ -125,12 +131,6 @@ const BoardsScreen = ({ route }) => {
 };
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 20,
-  },
   title: {
     fontSize: 20,
     fontWeight: 'bold',

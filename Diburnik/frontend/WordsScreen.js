@@ -8,6 +8,9 @@ import * as Speech from 'expo-speech';
 import config from './config';
 import { handleImagePicker, addAndUploadData } from './utils';
 
+import { commonStyles } from './CommonStyles';
+import CommonHeader from './CommonHeader';
+
 const WordsScreen = ({ route }) => {
   const { profileId, boardId } = route.params;
   const [words, setWords] = useState([]);
@@ -62,7 +65,8 @@ const WordsScreen = ({ route }) => {
   };
 
   return (
-    <View style={styles.container}>
+    <View style={commonStyles.container}>
+      <CommonHeader />
       <Text style={styles.title}>המילים שלי</Text>
       <View style={styles.wordsContainer}>
         {words?.map((word) => (

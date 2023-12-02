@@ -5,6 +5,8 @@ import { useNavigation } from '@react-navigation/native';
 import axios from 'axios';
 import config from './config';
 import { handleImagePicker, addAndUploadData } from './utils';
+import { commonStyles } from './CommonStyles';
+import CommonHeader from './CommonHeader';
 
 
 const RegisterScreen = () => {
@@ -67,8 +69,10 @@ const RegisterScreen = () => {
 };
 
 return (
-  <View style={registrationStyles.container}>
-    <Text style={registrationStyles.bigTitle}>Diburnik Registration</Text>
+  <View style={commonStyles.container}>
+    {/* CommonHeader - the app logo */}
+    <CommonHeader showProfilePicture={false} />
+    <Text style={commonStyles.bigTitle}>הרשמה</Text>
     <TextInput
       style={[registrationStyles.inputField, { textAlign: 'right' }]}
       placeholder="שם משתמש"
@@ -133,6 +137,23 @@ return (
     {registrationMessage ? (
       <Text style={registrationStyles.registrationMessage}>{registrationMessage}</Text>
     ) : null}
+
+<Image
+      source={require('./assets/appImages/registrationAvatar.png')}
+      style={{
+        width: 120,
+        height: 170,
+        resizeMode: 'cover',
+        position: 'absolute',
+        top: '70%',  // Adjust the top position to your preference
+        left: '10%',  // Adjust the left position to your preference
+        zIndex: 1,  // Ensure the image is above other elements
+      }}
+    />
+        {/* Fixed image at the left-bottom corner */}
+        <Image source={require('./assets/appImages/bgLeftFlowers.png')} style={registrationStyles.fixedImageLeft} />
+        {/* Fixed image at the right-bottom corner */}
+        <Image source={require('./assets/appImages/bgRightFlowers.png')} style={registrationStyles.fixedImageRight} />
   </View>
 );
 };
@@ -184,6 +205,20 @@ const registrationStyles = StyleSheet.create({
     alignItems: 'center',
     width: '50%',
   },
+  fixedImageLeft: {
+    position: 'absolute',
+    left: 0, // Adjust the left property to set the distance from the left
+    bottom: 0,
+    width: 120, // Set the width to your preferred size
+    height: 90, // Set the height to your preferred size
+  },
+  fixedImageRight: {
+    position: 'absolute',
+    right: 0, // Adjust the right property to set the distance from the right
+    bottom: 0, // Adjust the bottom property to set the distance from the bottom
+    width: 200, // Set the width to your preferred size
+    height: 200, // Set the height to your preferred size
+  }
 
 });
 

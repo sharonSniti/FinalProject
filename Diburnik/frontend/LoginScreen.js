@@ -1,19 +1,23 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet ,Image } from 'react-native';
 import { useNavigation } from '@react-navigation/native'; 
 import axios from 'axios';
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import config from './config';
+import { commonStyles } from './CommonStyles';
+import CommonHeader from './CommonHeader';
 
-
+//Define a functional component 
 const LoginScreen = () => {
   const [username, setUsername] = useState(''); 
   const [password, setPassword] = useState('');
   const [invalidLoginMessage, setInvalidLoginMessage] = useState('');
 
+  //The 'useNavigation' hook allows to navigate between screens
   const navigation = useNavigation(); 
+  
 
-
+  //handleLogin - function that handles the login logic
   const handleLogin = async () => {
     const user = {
       username: username,
@@ -58,9 +62,14 @@ const LoginScreen = () => {
     });
   };
 
+  //contains JSX (JavaScript XML) code for the UI of the login screen
   return (
-    <View style={loginStyles.container}>
-      <Text style={loginStyles.bigTitle}>Diburnik</Text>
+    <View style={commonStyles.container}>
+      {/* CommonHeader - the app logo */}
+      <CommonHeader showProfilePicture={false} />
+       <View style={loginStyles.logoContainer}>
+        <Image source={require('./assets/appImages/loginMainPic.png')} style={loginStyles.logoImg} resizeMode="contain" />
+      </View>
       <TextInput
         style={[loginStyles.inputUsername, { textAlign: 'right' }]} 
         placeholder="שם משתמש"
@@ -90,18 +99,15 @@ const LoginScreen = () => {
           <Text style={{ color: "blue" }}>הירשם עכשיו</Text>
         </Text>
       </TouchableOpacity>
+        {/* Fixed image at the left-bottom corner */}
+        <Image source={require('./assets/appImages/bgLeftFlowers.png')} style={loginStyles.fixedImageLeft} />
+      {/* Fixed image at the right-bottom corner */}
+      <Image source={require('./assets/appImages/bgRightFlowers.png')} style={loginStyles.fixedImageRight} />
     </View>
   );
 };
 
 const loginStyles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: 'top',
-    alignItems: 'center',
-    padding: 10,
-    backgroundColor: '#b8e7d3',
-  },
   bigTitle: {
     fontSize: 72,
     fontWeight: 'bold',
@@ -129,7 +135,7 @@ const loginStyles = StyleSheet.create({
     backgroundColor: '#ffffff',
   },
   button: {
-    backgroundColor: '#007BFF',
+    backgroundColor: '#38BAD7',
     paddingVertical: 10,
     paddingHorizontal: 20,
     borderRadius: 5,
@@ -146,6 +152,35 @@ const loginStyles = StyleSheet.create({
     marginTop: 10,
     textAlign: 'center',
   },
+  logoImg: {
+    width: 800, // Set the width to your preferred smaller size
+    height:120, // Set the height to your preferred smaller size
+    marginBottom: 30, // Add margin at the bottom to create space
+  },
+  logo: {
+    position: 'absolute',
+    top: 0,
+    right: 0,
+    width: 200,
+    height: 50,
+    marginTop: 10,
+    marginRight: 10,
+  },
+  fixedImageLeft: {
+    position: 'absolute',
+    left: 0, // Adjust the left property to set the distance from the left
+    bottom: 0, // Adjust the bottom property to set the distance from the bottom
+    width: 120, // Set the width to your preferred size
+    height: 90, // Set the height to your preferred size
+  },
+  fixedImageRight: {
+    position: 'absolute',
+    right: 0, // Adjust the right property to set the distance from the right
+    bottom: 0, // Adjust the bottom property to set the distance from the bottom
+    width: 200, // Set the width to your preferred size
+    height: 200, // Set the height to your preferred size
+  }
 });
+
 
 export default LoginScreen;
