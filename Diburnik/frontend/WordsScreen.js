@@ -8,6 +8,9 @@ import * as Speech from 'expo-speech';
 import config from './config';
 import { handleImagePicker, addAndUploadData } from './utils';
 
+import { commonStyles } from './CommonStyles';
+import CommonHeader from './CommonHeader';
+
 const WordsScreen = ({ route }) => {
   const { profileId, boardId } = route.params;
   const [words, setWords] = useState([]);
@@ -157,10 +160,18 @@ const WordsScreen = ({ route }) => {
 
 
   return (
+<<<<<<< HEAD
     <View style={styles.container}>
       {/* Sentence Bar and Speaking Icon outside ScrollView */}
       <View style={[styles.sentenceBar, { flexDirection: 'row-reverse' }]}>
         {selectedSentence.map((word, index) => (
+=======
+    <View style={commonStyles.container}>
+      <CommonHeader />
+      <Text style={styles.title}>המילים שלי</Text>
+      <View style={styles.wordsContainer}>
+        {words?.map((word) => (
+>>>>>>> Sharon
           <TouchableOpacity
             key={word.index}
             style={styles.sentenceWord}
