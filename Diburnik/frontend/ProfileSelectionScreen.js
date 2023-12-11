@@ -2,7 +2,10 @@ import React, { useEffect, useState } from 'react';
 import { View, Text, TouchableOpacity, Image, Modal, TextInput, Button, StyleSheet ,ScrollView  } from 'react-native';
 import axios from 'axios';
 import config from './config';
+import { fetchData } from './utils';
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
+import NetInfo from '@react-native-community/netinfo';
 
 
 const ProfileSelectionScreen = ({ route, navigation }) => {
@@ -15,40 +18,40 @@ const ProfileSelectionScreen = ({ route, navigation }) => {
   const [selectedProfiles, setSelectedProfiles] = useState([]);
   const [editMode, setEditMode] = useState(false);
 
+  const isOnline  = NetInfo.fetch().then((state) => state.isConnected);
 
 
   useEffect(() => {
-    fetchProfiles(); // Fetch profiles on component mount
-  }, []);
+    (async () => {
+      try {
+        const data = await fetchData(`offlineProfiles`, `${teacherId}`, 'children', { child: child });
 
-  const fetchProfiles = () => {
-    //console.log("child is : ", child );
-    axios.get(`${config.baseUrl}/children`, {
-      params: {
-        child: child,
-      },
-    })
-      .then((response) => {
-        //console.log("response from children data = ",response.data);
-      if (response.status === 200) {
-        const childData = response.data.map((child) => ({
-          _id: child._id,
-          firstName: child.firstName,
-          lastName: child.lastName,
-          image: child.image,
-          isSelected: false,
-        }));
-        setProfiles(childData);
+        if (data) {
+          const profilesData = data.map((child) => ({
+            _id: child._id,
+            firstName: child.firstName,
+            lastName: child.lastName,
+            image: child.image,
+            isSelected: false,
+          }));
+          setProfiles(profilesData);
+        }
+      } catch (error) {
+        console.log('Error fetching profiles:', error);
       }
-    }).catch((error) => {
-      console.log('Error fetching profiles:', error);
-    });
-  };
-
+    })();
+  }, [child]);
 
 
   const handleProfileSelect = (profileId) => {
     if (!editMode) {
+
+    // Save the selected child's image to AsyncStorage to display as profile picture
+    const selectedChild = profiles.find((child) => child._id === profileId);
+    if (selectedChild && selectedChild.image) {
+      AsyncStorage.setItem('profilePicture', JSON.stringify(selectedChild.image.data));
+    }
+
       navigation.navigate('Boards', { profileId });
     } else {
       const updatedProfiles = profiles.map((profile) =>
@@ -193,10 +196,16 @@ const ProfileSelectionScreen = ({ route, navigation }) => {
           </TouchableOpacity>
         ))}
       </ScrollView>
-      <TouchableOpacity style={styles.addButton} onPress={handleAddProfile}>
+      <TouchableOpacity 
+        style={[styles.addButton, !isOnline && styles.disabledButton]}
+        onPress={() => isOnline && handleAddProfile()}
+        >
         <Text style={styles.addButtonText}>+</Text>
       </TouchableOpacity>
-      <TouchableOpacity style={styles.editButton} onPress={handleEdit}>
+      <TouchableOpacity 
+        style={[styles.editButton, !isOnline && styles.disabledButton]}
+        onPress={() => isOnline && handleEdit()}
+      >
         <Text style={styles.editButtonText}>{editMode ? '✅' : '✏️'}</Text>
       </TouchableOpacity>
       {editMode && selectedProfiles.length > 0 && (
@@ -374,6 +383,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     borderRadius: 30,
     marginRight: 10, // Add margin to separate buttons
+  },
+  disabledButton: {
+    opacity: 0.5, // Set the opacity for disabled buttons
+    backgroundColor: '#CCCCCC', // Set a grey background color for disabled buttons
   },
 });
 

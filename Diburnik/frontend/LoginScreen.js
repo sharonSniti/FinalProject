@@ -1,11 +1,17 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet ,Image } from 'react-native';
+
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, Image } from 'react-native';
+
 import { useNavigation } from '@react-navigation/native'; 
 import axios from 'axios';
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import config from './config';
+import NetInfo from '@react-native-community/netinfo';
+
 import { commonStyles } from './CommonStyles';
 import CommonHeader from './CommonHeader';
+
+
 
 //Define a functional component 
 const LoginScreen = () => {
@@ -17,59 +23,89 @@ const LoginScreen = () => {
   const navigation = useNavigation(); 
   
 
-  //handleLogin - function that handles the login logic
+
+
+    //handleLogin - function that handles the login logic
+
   const handleLogin = async () => {
+    const isOnline  = NetInfo.fetch().then((state) => state.isConnected);
     const user = {
       username: username,
       password: password,
     };
-  
-    axios.post(`${config.baseUrl}/login`, user).then(async (res) => {
-      console.log("response: " + res);
-      const token = res.data.token;
-      AsyncStorage.setItem("authToken", token);
-  
-      try {
+
+    try {
+      let token ='';
+
+      if (isOnline) {                                                       //Online
+        const res = await axios.post(`${config.baseUrl}/login`, user);
+        //console.log("response: " + res);
+        token = res.data.token;
+        AsyncStorage.setItem("authToken", token);
+
+
+
         const userResponse = await axios.get(`${config.baseUrl}/user`, {
           params: {
-            username: user.username
-          }
+            username: user.username,
+          },
         });
+
 
         const userType = userResponse.data.user.userType;
         const child = userResponse.data.user.child;
+        const profilePicture = userResponse.data.profilePicture;
+
+        AsyncStorage.setItem("userType", userType);
+        AsyncStorage.setItem("child", JSON.stringify(child));
+
+        AsyncStorage.setItem('profilePicture', JSON.stringify(profilePicture));
+
+
+
         if (userType === 'teacher') {
           axios.get(`${config.baseUrl}/findTeacherId?username=${username}`).then((response) => {
             if (response.status === 200) {
               const { teacherId } = response.data;
-              navigation.navigate('Profiles', { teacherId , child});
+              AsyncStorage.setItem("teacherId", teacherId);
+              navigation.navigate('Profiles', { teacherId, child });
             }
-          })
-          
-
+          });
         } else if (userType === 'child') {
           navigation.navigate('Boards', { profileId: child[0] });
-        } 
-      } catch (error) {
-        console.log("Error fetching user type:", error);
+        }
+      } else {                                                              //Offline
+        const token = await AsyncStorage.getItem("authToken");
+        if (token) {
+          const storedUserType = await AsyncStorage.getItem("userType");
+          const storedChild = JSON.parse(await AsyncStorage.getItem("child"));
+          const storedTeacherId = await AsyncStorage.getItem("teacherId");
+
+          if (storedUserType === 'teacher') {
+            // get teacherId
+            navigation.navigate('Profiles', { teacherId: storedTeacherId , child: storedChild });
+          } else if (storedUserType === 'child') {
+            navigation.navigate('Boards', { profileId: storedChild[0] });
+          }
+        } else {
+          setInvalidLoginMessage("חיבור ראשוני חייב להתבצע בחיבור לאינטרנט");
+        }
       }
-    }).catch((error) => {
+    } catch (error) {
       setInvalidLoginMessage("פרטי התחברות לא נכונים");
-      console.log("Status code:", error.response.status);
-      if (error.response) {
-        console.log("Error message:", error.response.data.message);
-      }
-    });
+      console.log("Error during login:", error);
+    }
   };
 
-  //contains JSX (JavaScript XML) code for the UI of the login screen
+
+
+
   return (
     <View style={commonStyles.container}>
       {/* CommonHeader - the app logo */}
       <CommonHeader showProfilePicture={false} />
-       <View style={loginStyles.logoContainer}>
         <Image source={require('./assets/appImages/loginMainPic.png')} style={loginStyles.logoImg} resizeMode="contain" />
-      </View>
+
       <TextInput
         style={loginStyles.inputUsername}
         placeholder="שם משתמש"
@@ -99,8 +135,10 @@ const LoginScreen = () => {
           <Text style={{ color: "blue" }}>הירשם עכשיו</Text>
         </Text>
       </TouchableOpacity>
-        {/* Fixed image at the left-bottom corner */}
-        <Image source={require('./assets/appImages/bgLeftFlowers.png')} style={loginStyles.fixedImageLeft} />
+
+       {/* Fixed image at the left-bottom corner */}
+       <Image source={require('./assets/appImages/bgLeftFlowers.png')} style={loginStyles.fixedImageLeft} />
+
       {/* Fixed image at the right-bottom corner */}
       <Image source={require('./assets/appImages/bgRightFlowers.png')} style={loginStyles.fixedImageRight} />
     </View>
@@ -157,15 +195,8 @@ const loginStyles = StyleSheet.create({
     height:120, // Set the height to your preferred smaller size
     marginBottom: 30, // Add margin at the bottom to create space
   },
-  logo: {
-    position: 'absolute',
-    top: 0,
-    right: 0,
-    width: 200,
-    height: 50,
-    marginTop: 10,
-    marginRight: 10,
-  },
+
+
   fixedImageLeft: {
     position: 'absolute',
     left: 0, // Adjust the left property to set the distance from the left

@@ -1,14 +1,19 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, TouchableOpacity, Modal, TextInput, Button, StyleSheet ,Image } from 'react-native';
+import { View, Text, TouchableOpacity, Modal, TextInput, Button, StyleSheet ,Image, ActivityIndicator } from 'react-native';
 import axios from 'axios';
 import { useNavigation } from '@react-navigation/native';
 import { Buffer } from 'buffer'; 
 import config from './config';
+
+import NetInfo from '@react-native-community/netinfo';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
+
 import { commonStyles } from './CommonStyles';
 import CommonHeader from './CommonHeader';
-import ProfilePicture from './ProfilePicture';
 
-import { handleImagePicker, addAndUploadData } from './utils';
+
+import { handleImagePicker, addAndUploadData, fetchData } from './utils';
 
 const BoardsScreen = ({ route }) => {
   const { profileId } = route.params;
@@ -19,36 +24,55 @@ const BoardsScreen = ({ route }) => {
   const navigation = useNavigation();
   const [editMode, setEditMode] = useState(false);
   const [selectedBoards, setSelectedBoards] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  const isOnline  = NetInfo.fetch().then((state) => state.isConnected);
 
   useEffect(() => {
-    axios.get(`${config.baseUrl}/children/${profileId}`)
-      .then((response) => {
-        const childBoards = response.data.boards; 
-        setBoards(childBoards);
-        console.log("board image: ",childBoards[4]);
-      })
-      .catch((error) => {
-        console.log('Error fetching child:', error);
-      });
+    (async () => {
+      try {
+        // change url according to : `${config.baseUrl}/${url}`part
+        const data = await fetchData(`offlineBoards`, `${profileId}`, `children/${profileId}`);
+        setLoading(false); // Move setLoading inside the try block
+        if (data) {
+          // Assuming data is an array
+          setBoards(data.boards);
+        }
+      } catch (error) {
+        console.log('Error fetching data for profile:', error);
+      }
+    })();
   }, [profileId]);
-
-  // const handleBoardPress = async (boardId) => {
-  //   try {
-  //     const response = await axios.get(`${config.baseUrl}/boards/${boardId}`);
-  //     const updatedWords = response.data.words;
-  //     navigation.navigate('Words', { boardId, words: updatedWords });
-  //   } catch (error) {
-  //     console.log('Error fetching updated words:', error);
-  //   }
-  // };
-
+  
 
   const handleBoardSelect = async (boardId) => {
     if (!editMode) {
       try {
-        const response = await axios.get(`${config.baseUrl}/boards/${boardId}`);
-        const updatedWords = response.data.words;
-        navigation.navigate('Words', { boardId, words: updatedWords });
+        const isConnected = check
+  
+        // Check if there is a network connection
+        if (isConnected) {
+          // Make the API request
+          const response = await axios.get(`${config.baseUrl}/boards/${boardId}`);
+          const updatedWords = response.data.words;
+  
+          // Save the parameters to AsyncStorage with a key specific to the board
+          const storageKey = `offlineNavigation_${boardId}`;
+          await AsyncStorage.setItem(storageKey, JSON.stringify({ boardId, words: updatedWords }));
+  
+          // Navigate to 'Words' screen
+          navigation.navigate('Words', { boardId, words: updatedWords });
+        } else {
+          // No network connection, attempt to retrieve offline data from AsyncStorage
+          const storageKey = `offlineNavigation_${boardId}`;
+          const offlineData = await AsyncStorage.getItem(storageKey);
+          if (offlineData) {
+            const { boardId, words } = JSON.parse(offlineData);
+            navigation.navigate('Words', { boardId, words });
+          } else {
+            console.error('No offline data available');
+          }
+        }
       } catch (error) {
         console.log('Error fetching updated words:', error);
       }
@@ -123,93 +147,118 @@ const BoardsScreen = ({ route }) => {
   };
 
 
-
-
   return (
-    <View style={commonStyles.container}>
-      {/* CommonHeader - the app logo */}
-      <CommonHeader showProfilePicture={true}/>
-       {/* Circular Profile Picture */}
-      <Text style={styles.title}>הלוחות שלי</Text>
-      <View style={styles.boardContainer}>
-      {boards.length === 0 ? (
-      <Text>No boards available for this profile.</Text>
-    ) : (
-      boards.map((board) => (
+    <View style={styles.container}>
+      <View style={commonStyles.container}>
+        {/* CommonHeader - the app logo */}
+        <CommonHeader showProfilePicture={true} />
+  
+        <Text style={styles.title}>הלוחות שלי</Text>
+  
+        {loading ? (
+          <ActivityIndicator size="large" color="#0000ff" />
+        ) : (
+          <View style={styles.boardContainer}>
+            {boards.length === 0 ? (
+              <Text>לא נמצאו לוחות עבור פרופיל זה</Text>
+            ) : (
+              boards.map((board) => (
+                <TouchableOpacity
+                  key={board._id}
+                  style={[
+                    styles.board,
+                    editMode && board.isSelected && styles.selectedBoard,
+                  ]}
+                  onPress={() => handleBoardSelect(board._id)}
+                >
+                  {board.image && (
+                    <Image
+                      source={{
+                        uri: `data:${board.image.contentType};base64,${Buffer.from(
+                          board.image.data
+                        ).toString('base64')}`,
+                      }}
+                      style={styles.boardImage}
+                    />
+                  )}
+                  {editMode && (
+                    <View style={styles.checkboxContainer}>
+                      <View
+                        style={[
+                          styles.checkbox,
+                          board.isSelected && styles.checkedCheckbox,
+                        ]}
+                      />
+                    </View>
+                  )}
+                  <Text style={styles.categoryText}>{board.category}</Text>
+                </TouchableOpacity>
+              ))
+            )}
+          </View>
+        )}
+  
+        {/* Add button */}
+
         <TouchableOpacity
-          key={board._id}
-          style={[
-            styles.board,
-            editMode && board.isSelected && styles.selectedBoard,
-          ]}
-          onPress={() => handleBoardSelect(board._id)}
+        style={[styles.addButton, !isOnline && styles.disabledButton]}
+        onPress={() => isOnline && setIsModalVisible(true)}
         >
-          {board.image && (
-            <Image
-              source={{
-                uri: `data:${board.image.contentType};base64,${Buffer.from(
-                  board.image.data
-                ).toString('base64')}`,
-              }}
-              style={styles.boardImage}
-            />
-          )}
-          {editMode && (
-            <View style={styles.checkboxContainer}>
-              <View
-                style={[
-                  styles.checkbox,
-                  board.isSelected && styles.checkedCheckbox,
-                ]}
-              />
-            </View>
-          )}
-      <Text style={styles.categoryText}>{board.category}</Text>
-    </TouchableOpacity>
-  ))
-)}
-    </View>
-      <TouchableOpacity
-        style={styles.addButton}
-        onPress={() => setIsModalVisible(true)}
-      >
-        <Text style={styles.addButtonText}>+</Text>
-      </TouchableOpacity>
-      <TouchableOpacity style={styles.editButton} onPress={handleEdit}>
-        <Text style={styles.editButtonText}>{editMode ? '✅' : '✏️'}</Text>
-      </TouchableOpacity>
-      {editMode && selectedBoards.length > 0 && (
-        <TouchableOpacity
-          style={styles.deleteButton}
-          onPress={() => handleDeleteBoards(selectedBoards.map(board => board._id))}
-        >
-          <Text style={styles.deleteButtonText}>🗑️</Text>
+          <Text style={styles.addButtonText}>+</Text>
         </TouchableOpacity>
-      )}
-      <Modal visible={isModalVisible} animationType="slide">
-        <View style={styles.modalContainer}>
-          <Text style={styles.title}>Add New Board</Text>
-          <TextInput
-            style={styles.input}
-            value={newBoardName}
-            onChangeText={setNewBoardName}
-            placeholder="Enter a new board name"
-          />
-          {/* Add the image selection UI */}
-          <TouchableOpacity onPress={handleBoardImagePicker}>
-            <Text style={styles.selectImageText}>Select Board Image</Text>
+  
+        {/* Edit button */}
+        <TouchableOpacity 
+        style={[styles.editButton, !isOnline && styles.disabledButton]}
+        onPress={() => isOnline && handleEdit()}
+        >
+          <Text style={styles.editButtonText}>{editMode ? '✅' : '✏️'}</Text>
+        </TouchableOpacity>
+  
+        {editMode && selectedBoards.length > 0 && (
+          <TouchableOpacity
+            style={styles.deleteButton}
+            onPress={() =>
+              handleDeleteBoards(selectedBoards.map((board) => board._id))
+            }
+          >
+            <Text style={styles.deleteButtonText}>🗑️</Text>
           </TouchableOpacity>
-          {newBoardImage && (
-            <Image source={{ uri: newBoardImage.uri }} style={styles.boardImage} />
-          )}
-          {/* End of image selection UI */}
-          <Button title="Add" onPress={handleAddBoard} />
-          <Button title="Close" onPress={() => setIsModalVisible(false)} />
-        </View>
-      </Modal>
+        )}
+  
+        <Modal visible={isModalVisible} animationType="slide">
+          <View style={styles.modalContainer}>
+            <Text style={styles.title}>Add New Board</Text>
+  
+            <TextInput
+              style={styles.input}
+              value={newBoardName}
+              onChangeText={setNewBoardName}
+              placeholder="Enter a new board name"
+            />
+  
+            {/* Add the image selection UI */}
+            <TouchableOpacity onPress={handleBoardImagePicker}>
+              <Text style={styles.selectImageText}>Select Board Image</Text>
+            </TouchableOpacity>
+  
+            {newBoardImage && (
+              <Image
+                source={{ uri: newBoardImage.uri }}
+                style={styles.boardImage}
+              />
+            )}
+            {/* End of image selection UI */}
+  
+            <Button title="Add" onPress={handleAddBoard} />
+            <Button title="Close" onPress={() => setIsModalVisible(false)} />
+          </View>
+        </Modal>
+      </View>
     </View>
   );
 };
+  
 
 const styles = StyleSheet.create({
   title: {
@@ -324,6 +373,10 @@ const styles = StyleSheet.create({
   checkedCheckbox: {
     backgroundColor: 'blue',
     borderColor: 'blue',
+  },
+  disabledButton: {
+    opacity: 0.5, // Set the opacity for disabled buttons
+    backgroundColor: '#CCCCCC', // Set a grey background color for disabled buttons
   },
 });
 
