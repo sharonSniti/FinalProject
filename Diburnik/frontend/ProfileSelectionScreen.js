@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { View, Text, TouchableOpacity, Image, Modal, TextInput, Button, StyleSheet ,ScrollView  } from 'react-native';
 import axios from 'axios';
 import config from './config';
+import { fetchData } from './utils';
 
 
 
@@ -18,33 +19,25 @@ const ProfileSelectionScreen = ({ route, navigation }) => {
 
 
   useEffect(() => {
-    fetchProfiles(); // Fetch profiles on component mount
-  }, []);
-
-  const fetchProfiles = () => {
-    //console.log("child is : ", child );
-    axios.get(`${config.baseUrl}/children`, {
-      params: {
-        child: child,
-      },
-    })
-      .then((response) => {
-        //console.log("response from children data = ",response.data);
-      if (response.status === 200) {
-        const childData = response.data.map((child) => ({
-          _id: child._id,
-          firstName: child.firstName,
-          lastName: child.lastName,
-          image: child.image,
-          isSelected: false,
-        }));
-        setProfiles(childData);
+    (async () => {
+      try {
+        const data = await fetchData(`offlineProfiles`, `${teacherId}`, 'children', { child: child });
+  
+        if (data) {
+          const profilesData = data.map((child) => ({
+            _id: child._id,
+            firstName: child.firstName,
+            lastName: child.lastName,
+            image: child.image,
+            isSelected: false,
+          }));
+          setProfiles(profilesData);
+        }
+      } catch (error) {
+        console.log('Error fetching profiles:', error);
       }
-    }).catch((error) => {
-      console.log('Error fetching profiles:', error);
-    });
-  };
-
+    })();
+  }, [child]);
 
 
   const handleProfileSelect = (profileId) => {

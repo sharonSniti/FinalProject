@@ -2,6 +2,8 @@ import * as ImagePicker from 'expo-image-picker';
 import axios from 'axios';
 import config from './config';
 import * as ImageManipulator from 'expo-image-manipulator';
+import NetInfo from '@react-native-community/netinfo';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 
 
@@ -63,3 +65,52 @@ export const handleImagePicker = async (setFunc) => {
 
     return response;
 }
+
+export const fetchData = async (key,parentTypeId,url,params = null) => {
+  try {
+    // Check for internet connection
+    const isConnected = await NetInfo.fetch().then((state) => state.isConnected);
+    //isConnected = false;
+    let res;
+    if (isConnected) {
+      // Fetch data from the server if there is an internet connection
+      console.log("Connected to the internet");
+      res = await fetchWordsFromServer(key,parentTypeId,url,params);
+    } else {
+      console.log("Not connected to the internet");
+      // Load words for the specific board from AsyncStorage if offline
+      res = await AsyncStorage.getItem(`${key}_${parentTypeId}`);
+      console.log("res = ",res);
+      res = res ? JSON.parse(res) : null; // Parse the JSON if it exists
+    }
+
+////////////////////// For offline testing - uncomment//////////////////////
+
+    // res = await AsyncStorage.getItem(`${key}_${parentTypeId}Id`);
+    // console.log(`getting item from: ${key}_${parentTypeId}Id`);
+    // res = res ? JSON.parse(res) : null; // Parse the JSON if it exists
+    
+////////////////////// For offline testing uncomment//////////////////////
+
+
+    return res;
+  } catch (error) {
+    console.log(`Error fetching ${parentTypeId} data:`, error);
+  }
+};
+
+const fetchWordsFromServer = async (key,parentTypeId,url,params = null) => {
+  try {
+    const response = await axios.get(`${config.baseUrl}/${url}`, {
+      params,
+    });
+    const res = response.data;
+
+    // Save the fetched data to AsyncStorage for offline use
+    await AsyncStorage.setItem(`${key}_${parentTypeId}`, JSON.stringify(res));
+    console.log(`setting item to: ${key}_${parentTypeId}`);
+    return res;
+  } catch (error) {
+    console.log('Error fetching words from server:', error);
+  }
+};

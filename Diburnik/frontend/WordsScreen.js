@@ -1,12 +1,11 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, TouchableOpacity, Modal, TextInput, Button, StyleSheet, Image, ScrollView } from 'react-native';
+import { View, Text, TouchableOpacity, Modal, TextInput, Button, StyleSheet, Image, ScrollView,} from 'react-native';
 import axios from 'axios';
 import { useNavigation } from '@react-navigation/native';
 import { Buffer } from 'buffer';
 import * as Speech from 'expo-speech';
-
 import config from './config';
-import { handleImagePicker, addAndUploadData } from './utils';
+import { handleImagePicker, addAndUploadData, fetchData } from './utils';
 
 const WordsScreen = ({ route }) => {
   const { profileId, boardId } = route.params;
@@ -16,23 +15,24 @@ const WordsScreen = ({ route }) => {
   const [newWordImage, setNewWordImage] = useState('');
   const navigation = useNavigation();
   const [selectedSentence, setSelectedSentence] = useState([]);
-
   const [editMode, setEditMode] = useState(false);
   const [selectedWords, setSelectedWords] = useState([]);
 
 
   useEffect(() => {
-    axios.get(`${config.baseUrl}/boards/${boardId}/words`) // 
-      .then((response) => {
-        const boardWords = response.data;
-        setWords(boardWords);
-      })
-      .catch((error) => {
-        console.log('Error fetching words:', error);
-      });
+    (async () => {
+      try {
+        // change url according to : `${config.baseUrl}/${url}`part
+        const data = await fetchData(`offlineWords`,`${boardId}`, `boards/${boardId}/words`);
+  
+        if (data) {
+          setWords(data);
+        }
+      } catch (error) {
+        console.log('Error fetching data for board:', error);
+      }
+    })();
   }, [boardId]);
-
-
 
 
   const handleWordPress = (word) => {
@@ -153,22 +153,25 @@ const WordsScreen = ({ route }) => {
 
 
 
-
-
+  
 
   return (
     <View style={styles.container}>
       {/* Sentence Bar and Speaking Icon outside ScrollView */}
-      <View style={[styles.sentenceBar, { flexDirection: 'row-reverse' }]}>
-        {selectedSentence.map((word, index) => (
-          <TouchableOpacity
-            key={word.index}
-            style={styles.sentenceWord}
-            onPress={() => handleRemoveFromSentence(word.index)}
-          >
-            <Text style={styles.sentenceWordText}>{word.text}</Text>
-          </TouchableOpacity>
-        ))}
+      <View style={styles.sentenceAndSpeakContainer}>
+        {/* Sentence Bar */}
+        <View style={styles.sentenceBar}>
+          {selectedSentence.map((word, index) => (
+            <TouchableOpacity
+              key={word.index}
+              style={styles.sentenceWord}
+              onPress={() => handleRemoveFromSentence(word.index)}
+            >
+              <Text style={styles.sentenceWordText}>{word.text}</Text>
+            </TouchableOpacity>
+          ))}
+        </View>
+        {/* Speaking Icon */}
         <TouchableOpacity
           style={styles.speakSentenceButton}
           onPress={handleSpeakSentence}
@@ -397,13 +400,30 @@ const styles = StyleSheet.create({
     backgroundColor: 'blue',
     borderColor: 'blue',
   },
+  sentenceAndSpeakContainer: {
+    flexDirection: 'row-reverse',
+    minHeight: 50,
+    marginBottom: 20,
+    justifyContent: 'space-between',
+  },
   sentenceBar: {
-    flexDirection: 'row',
+    flexDirection: 'row-reverse',
+    justifyContent: 'flex-start',
+    flexWrap: 'wrap',
+    minHeight: 50,
+    flexGrow: 1,
+    marginRight: 65,        // Add space between speaker icon and sentence
+  },
+  speakSentenceButton: {
+    backgroundColor: '#a09db2',
+    borderRadius: 8,
+    width: 65,
+    height: 65,
+    marginLeft: 'auto', // Push the speaker button to the left
     alignItems: 'center',
     justifyContent: 'center',
-    minHeight: 50,  // Set a minimum height for the sentence bar
-    marginBottom: 20,  //margin create space between the bar and other content
   },
+  
   sentenceWord: {
     backgroundColor: '#E0E0E0',
     padding: 8,
@@ -411,18 +431,11 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     fontSize: 24,
   },
-  speakSentenceButton: {
-    backgroundColor: '#a09db2',
-    padding: 8,
-    margin: 4,
-    borderRadius: 8,
-    position: 'absolute', // Position the button absolutely
-    down: 5,                 // Position from the buttom
-    right: 50,                // Position from the left
-  },
   sentenceWordText: {
     fontSize: 24,
   },
 });
 
 export default WordsScreen;
+
+
