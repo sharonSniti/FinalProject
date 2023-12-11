@@ -48,10 +48,9 @@ const BoardsScreen = ({ route }) => {
   const handleBoardSelect = async (boardId) => {
     if (!editMode) {
       try {
-        const isConnected = check
   
         // Check if there is a network connection
-        if (isConnected) {
+        if (isOnline) {
           // Make the API request
           const response = await axios.get(`${config.baseUrl}/boards/${boardId}`);
           const updatedWords = response.data.words;
@@ -261,6 +260,12 @@ const BoardsScreen = ({ route }) => {
   
 
 const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
   title: {
     fontSize: 20,
     fontWeight: 'bold',
