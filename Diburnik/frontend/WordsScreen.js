@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, TouchableOpacity, Modal, TextInput, Button, StyleSheet, Image, ScrollView,} from 'react-native';
+import { View, Text, TouchableOpacity, Modal, TextInput, Button, StyleSheet, Image, ScrollView, ActivityIndicator} from 'react-native';
 import axios from 'axios';
 import { useNavigation } from '@react-navigation/native';
 import { Buffer } from 'buffer';
@@ -8,7 +8,6 @@ import config from './config';
 import { handleImagePicker, addAndUploadData, fetchData } from './utils';
 import NetInfo from '@react-native-community/netinfo';
 
-import { commonStyles } from './CommonStyles';
 import CommonHeader from './CommonHeader';
 
 
@@ -24,6 +23,8 @@ const WordsScreen = ({ route }) => {
   const [selectedSentence, setSelectedSentence] = useState([]);
   const [editMode, setEditMode] = useState(false);
   const [selectedWords, setSelectedWords] = useState([]);
+  const [loading, setLoading] = useState(true);
+
 
   const isOnline  = NetInfo.fetch().then((state) => state.isConnected);
 
@@ -33,7 +34,7 @@ const WordsScreen = ({ route }) => {
       try {
         // change url according to : `${config.baseUrl}/${url}`part
         const data = await fetchData(`offlineWords`,`${boardId}`, `boards/${boardId}/words`);
-  
+        setLoading(false);
         if (data) {
           setWords(data);
         }
@@ -193,6 +194,10 @@ const WordsScreen = ({ route }) => {
       {/* ScrollView for Words */}
       <ScrollView contentContainerStyle={styles.scrollViewContent}>
         <Text style={styles.title}>המילים שלי</Text>
+
+        {loading ? (
+        <ActivityIndicator size="large" color="#0000ff" />
+      ) : (
         <View style={styles.wordsContainer}>
           {words?.map((word) => (
             <TouchableOpacity
@@ -227,6 +232,7 @@ const WordsScreen = ({ route }) => {
             </TouchableOpacity>
           ))}
         </View>
+        )}
       </ScrollView>
 
       {/* "Add" button outside ScrollView */}

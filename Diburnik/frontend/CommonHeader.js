@@ -53,7 +53,6 @@ const headerStyles = StyleSheet.create({
     alignItems: 'center',
     width: '100%',
     paddingHorizontal: 5,
-
     marginBottom: 20,
     marginTop: -10,
   },
