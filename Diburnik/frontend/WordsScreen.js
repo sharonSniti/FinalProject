@@ -6,6 +6,13 @@ import { Buffer } from 'buffer';
 import * as Speech from 'expo-speech';
 import config from './config';
 import { handleImagePicker, addAndUploadData, fetchData } from './utils';
+import NetInfo from '@react-native-community/netinfo';
+
+import { commonStyles } from './CommonStyles';
+import CommonHeader from './CommonHeader';
+
+
+
 
 const WordsScreen = ({ route }) => {
   const { profileId, boardId } = route.params;
@@ -17,6 +24,8 @@ const WordsScreen = ({ route }) => {
   const [selectedSentence, setSelectedSentence] = useState([]);
   const [editMode, setEditMode] = useState(false);
   const [selectedWords, setSelectedWords] = useState([]);
+
+  const isOnline  = NetInfo.fetch().then((state) => state.isConnected);
 
 
   useEffect(() => {
@@ -157,6 +166,7 @@ const WordsScreen = ({ route }) => {
 
   return (
     <View style={styles.container}>
+     <CommonHeader />
       {/* Sentence Bar and Speaking Icon outside ScrollView */}
       <View style={styles.sentenceAndSpeakContainer}>
         {/* Sentence Bar */}
@@ -221,16 +231,16 @@ const WordsScreen = ({ route }) => {
 
       {/* "Add" button outside ScrollView */}
       <TouchableOpacity
-        style={styles.addButton}
-        onPress={() => setIsModalVisible(true)}
+        style={[styles.addButton, !isOnline && styles.disabledButton]}
+        onPress={() => isOnline && setIsModalVisible(true)}
       >
         <Text style={styles.addButtonText}>+</Text>
       </TouchableOpacity>
 
       {/* "Edit" button */}
       <TouchableOpacity
-        style={styles.editButton}
-        onPress={handleEdit}
+        style={[styles.editButton, !isOnline && styles.disabledButton]}
+        onPress={() => isOnline && handleEdit()}
       >
         <Text style={styles.editButtonText}>{editMode ? '✅' : '✏️'}</Text>
       </TouchableOpacity>
@@ -433,6 +443,10 @@ const styles = StyleSheet.create({
   },
   sentenceWordText: {
     fontSize: 24,
+  },
+  disabledButton: {
+    opacity: 0.5, // Set the opacity for disabled buttons
+    backgroundColor: '#CCCCCC', // Set a grey background color for disabled buttons
   },
 });
 

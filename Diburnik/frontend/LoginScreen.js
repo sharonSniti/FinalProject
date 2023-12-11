@@ -1,12 +1,17 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, Image } from 'react-native';
 import { useNavigation } from '@react-navigation/native'; 
 import axios from 'axios';
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import config from './config';
 import NetInfo from '@react-native-community/netinfo';
 
+import { commonStyles } from './CommonStyles';
+import CommonHeader from './CommonHeader';
 
+
+
+//Define a functional component 
 const LoginScreen = () => {
   const [username, setUsername] = useState(''); 
   const [password, setPassword] = useState('');
@@ -14,13 +19,11 @@ const LoginScreen = () => {
 
   const navigation = useNavigation(); 
 
-  const checkOnlineStatus = async () => {
-    const state = await NetInfo.fetch();
-    return state.isConnected;
-  };
 
+
+    //handleLogin - function that handles the login logic
   const handleLogin = async () => {
-    const isOnline = await checkOnlineStatus();
+    const isOnline  = NetInfo.fetch().then((state) => state.isConnected);
     const user = {
       username: username,
       password: password,
@@ -31,20 +34,29 @@ const LoginScreen = () => {
 
       if (isOnline) {                                                       //Online
         const res = await axios.post(`${config.baseUrl}/login`, user);
-        console.log("response: " + res);
+        //console.log("response: " + res);
         token = res.data.token;
         AsyncStorage.setItem("authToken", token);
+
+
+
         const userResponse = await axios.get(`${config.baseUrl}/user`, {
           params: {
             username: user.username,
           },
         });
 
+
         const userType = userResponse.data.user.userType;
         const child = userResponse.data.user.child;
+        const profilePicture = userResponse.data.profilePicture;
 
         AsyncStorage.setItem("userType", userType);
         AsyncStorage.setItem("child", JSON.stringify(child));
+
+        AsyncStorage.setItem('profilePicture', JSON.stringify(profilePicture));
+
+
 
         if (userType === 'teacher') {
           axios.get(`${config.baseUrl}/findTeacherId?username=${username}`).then((response) => {
@@ -82,8 +94,10 @@ const LoginScreen = () => {
 
 
   return (
-    <View style={loginStyles.container}>
-      <Text style={loginStyles.bigTitle}>Diburnik</Text>
+    <View style={commonStyles.container}>
+      {/* CommonHeader - the app logo */}
+      <CommonHeader showProfilePicture={false} />
+        <Image source={require('./assets/appImages/loginMainPic.png')} style={loginStyles.logoImg} resizeMode="contain" />
       <TextInput
         style={loginStyles.inputUsername}
         placeholder="שם משתמש"
@@ -113,6 +127,10 @@ const LoginScreen = () => {
           <Text style={{ color: "blue" }}>הירשם עכשיו</Text>
         </Text>
       </TouchableOpacity>
+       {/* Fixed image at the left-bottom corner */}
+       <Image source={require('./assets/appImages/bgLeftFlowers.png')} style={loginStyles.fixedImageLeft} />
+      {/* Fixed image at the right-bottom corner */}
+      <Image source={require('./assets/appImages/bgRightFlowers.png')} style={loginStyles.fixedImageRight} />
     </View>
   );
 };
@@ -152,7 +170,7 @@ const loginStyles = StyleSheet.create({
     backgroundColor: '#ffffff',
   },
   button: {
-    backgroundColor: '#007BFF',
+    backgroundColor: '#38BAD7',
     paddingVertical: 10,
     paddingHorizontal: 20,
     borderRadius: 5,
@@ -169,6 +187,25 @@ const loginStyles = StyleSheet.create({
     marginTop: 10,
     textAlign: 'center',
   },
+  logoImg: {
+    width: 800, // Set the width to your preferred smaller size
+    height:120, // Set the height to your preferred smaller size
+    marginBottom: 30, // Add margin at the bottom to create space
+  },
+  fixedImageLeft: {
+    position: 'absolute',
+    left: 0, // Adjust the left property to set the distance from the left
+    bottom: 0, // Adjust the bottom property to set the distance from the bottom
+    width: 120, // Set the width to your preferred size
+    height: 90, // Set the height to your preferred size
+  },
+  fixedImageRight: {
+    position: 'absolute',
+    right: 0, // Adjust the right property to set the distance from the right
+    bottom: 0, // Adjust the bottom property to set the distance from the bottom
+    width: 200, // Set the width to your preferred size
+    height: 200, // Set the height to your preferred size
+  }
 });
 
 export default LoginScreen;

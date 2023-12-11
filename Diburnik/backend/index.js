@@ -113,6 +113,8 @@ const deleteWords = async (wordsIds) => {
 app.post("/login",(req,res)=>{
     const {username,password} = req.body;
 
+
+
     if(!username || !password){
         return res.status(400).json({message:"username or password are required"})
     }
@@ -347,10 +349,19 @@ app.get("/user", async (req, res) => {
   try {
     const username = req.query.username;
 
+
     const user = await User.findOne({ username: username });
+    let profilePicture;
 
     if (user) {
-      res.status(200).json({ user });
+      const firstChildId = user.child[0];                                     //For children - get their child id
+      const firstChild = await Child.findById(firstChildId);                  //Find the actual user
+
+      if (firstChild) {
+        profilePicture = firstChild.image.data.toString('base64');
+      }
+
+      res.status(200).json({ user , profilePicture });
     } else {
       res.status(404).json({ message: "User not found" });
     }
