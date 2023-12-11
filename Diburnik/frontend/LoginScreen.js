@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
+
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, Image } from 'react-native';
+
 import { useNavigation } from '@react-navigation/native'; 
 import axios from 'axios';
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -17,11 +19,14 @@ const LoginScreen = () => {
   const [password, setPassword] = useState('');
   const [invalidLoginMessage, setInvalidLoginMessage] = useState('');
 
+  //The 'useNavigation' hook allows to navigate between screens
   const navigation = useNavigation(); 
+  
 
 
 
     //handleLogin - function that handles the login logic
+
   const handleLogin = async () => {
     const isOnline  = NetInfo.fetch().then((state) => state.isConnected);
     const user = {
@@ -93,11 +98,14 @@ const LoginScreen = () => {
   };
 
 
+
+
   return (
     <View style={commonStyles.container}>
       {/* CommonHeader - the app logo */}
       <CommonHeader showProfilePicture={false} />
         <Image source={require('./assets/appImages/loginMainPic.png')} style={loginStyles.logoImg} resizeMode="contain" />
+
       <TextInput
         style={loginStyles.inputUsername}
         placeholder="שם משתמש"
@@ -127,8 +135,10 @@ const LoginScreen = () => {
           <Text style={{ color: "blue" }}>הירשם עכשיו</Text>
         </Text>
       </TouchableOpacity>
+
        {/* Fixed image at the left-bottom corner */}
        <Image source={require('./assets/appImages/bgLeftFlowers.png')} style={loginStyles.fixedImageLeft} />
+
       {/* Fixed image at the right-bottom corner */}
       <Image source={require('./assets/appImages/bgRightFlowers.png')} style={loginStyles.fixedImageRight} />
     </View>
@@ -136,13 +146,6 @@ const LoginScreen = () => {
 };
 
 const loginStyles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: 'top',
-    alignItems: 'center',
-    padding: 10,
-    backgroundColor: '#b8e7d3',
-  },
   bigTitle: {
     fontSize: 72,
     fontWeight: 'bold',
@@ -192,6 +195,8 @@ const loginStyles = StyleSheet.create({
     height:120, // Set the height to your preferred smaller size
     marginBottom: 30, // Add margin at the bottom to create space
   },
+
+
   fixedImageLeft: {
     position: 'absolute',
     left: 0, // Adjust the left property to set the distance from the left
@@ -207,5 +212,6 @@ const loginStyles = StyleSheet.create({
     height: 200, // Set the height to your preferred size
   }
 });
+
 
 export default LoginScreen;

@@ -26,12 +26,14 @@ const CommonHeader = ({ showProfilePicture = true }) => {
     fetchProfilePicture();
   }, []);
   
+
   return (
     <View style={headerStyles.container}>
       {showProfilePicture && (
         <ProfilePicture
         source={{ uri: `data:image/jpeg;base64,${profilePicture}` }}
         size={80}
+
         />
       )}
       <View style={headerStyles.logoContainer}>
@@ -51,6 +53,7 @@ const headerStyles = StyleSheet.create({
     alignItems: 'center',
     width: '100%',
     paddingHorizontal: 5,
+
     marginBottom: 20,
     marginTop: -10,
   },

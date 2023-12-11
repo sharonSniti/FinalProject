@@ -4,8 +4,10 @@ import axios from 'axios';
 import { useNavigation } from '@react-navigation/native';
 import { Buffer } from 'buffer'; 
 import config from './config';
+
 import NetInfo from '@react-native-community/netinfo';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+
 
 import { commonStyles } from './CommonStyles';
 import CommonHeader from './CommonHeader';
@@ -197,6 +199,7 @@ const BoardsScreen = ({ route }) => {
         )}
   
         {/* Add button */}
+
         <TouchableOpacity
         style={[styles.addButton, !isOnline && styles.disabledButton]}
         onPress={() => isOnline && setIsModalVisible(true)}
@@ -258,12 +261,6 @@ const BoardsScreen = ({ route }) => {
   
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 20,
-  },
   title: {
     fontSize: 20,
     fontWeight: 'bold',
