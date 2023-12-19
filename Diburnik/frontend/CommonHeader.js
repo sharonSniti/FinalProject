@@ -1,11 +1,18 @@
 import React, { useEffect, useState } from 'react';
-import { View, Image, StyleSheet } from 'react-native';
+import { View, Image, StyleSheet, TouchableOpacity ,Text, FlatList} from 'react-native';
 import ProfilePicture from './ProfilePicture'; 
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useNavigation } from '@react-navigation/native'; 
 
 const CommonHeader = ({ showProfilePicture = true }) => {
 
   const [profilePicture, setProfilePicture] = useState('');
+  const [menuVisible, setMenuVisible] = useState(false);
+
+  const signOut = 'Sign out';
+  const menuItems = [`${signOut}`];           // Add more menu items here
+
+  const navigation = useNavigation(); 
 
 
   useEffect(() => {
@@ -25,17 +32,51 @@ const CommonHeader = ({ showProfilePicture = true }) => {
     };
     fetchProfilePicture();
   }, []);
+
+  const handleProfilePicturePress = () => {
+    setMenuVisible(!menuVisible);
+  };
+
+  const handleMenuItemPress = async (menuItem) => {
+    if (menuItem === `${signOut}`) {                  //remove all data when sign out
+      const keys = await AsyncStorage.getAllKeys();
+      await AsyncStorage.multiRemove(keys);
+      navigation.navigate('Login');
+    }
+      // Close the menu
+    setMenuVisible(false);
+  };
+
+
+  const renderMenuItem = ({ item }) => (
+    <TouchableOpacity
+      style={headerStyles.menuItem}
+      onPress={() => handleMenuItemPress(item)}
+    >
+      <Text>{item}</Text>
+    </TouchableOpacity>
+  );
+
   
 
   return (
     <View style={headerStyles.container}>
       {showProfilePicture && (
-        <ProfilePicture
-        source={{ uri: `data:image/jpeg;base64,${profilePicture}` }}
-        size={80}
-
-        />
+        <TouchableOpacity onPress={handleProfilePicturePress}>
+          <ProfilePicture source={{ uri: `data:image/jpeg;base64,${profilePicture}` }} size={80} />
+        </TouchableOpacity>
       )}
+
+      {menuVisible && (
+        <View style={headerStyles.menuContainer}>
+          <FlatList
+            data={menuItems}
+            renderItem={renderMenuItem}
+            keyExtractor={(item) => item}
+          />
+        </View>
+      )}
+
       <View style={headerStyles.logoContainer}>
         <Image
           source={require('./assets/appImages/logo.png')}
@@ -63,6 +104,16 @@ const headerStyles = StyleSheet.create({
   logo: {
     width: 200,
     height: 100,
+  },
+
+  menuItem: {
+    paddingVertical: 10,
+  },
+  menuContainer: {
+    backgroundColor: 'white',
+    borderRadius: 5,
+    elevation: 5,
+    padding: 10,
   },
 });
 

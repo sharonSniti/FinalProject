@@ -4,6 +4,8 @@ import config from './config';
 import * as ImageManipulator from 'expo-image-manipulator';
 import NetInfo from '@react-native-community/netinfo';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import * as FileSystem from 'expo-file-system';
+
 
 
 
@@ -56,7 +58,7 @@ export const handleImagePicker = async (setFunc) => {
     }
     //console.log("formData in utils= ",formData)
         
-        // Send a POST request with the form data to create a new board
+        // Send a POST request with the form data to create a new data
     const response = await axios.post(`${config.baseUrl}/${url}/add`, formData, {
         headers: {
             'Content-Type': 'multipart/form-data',
@@ -66,51 +68,89 @@ export const handleImagePicker = async (setFunc) => {
     return response;
 }
 
-export const fetchData = async (key,parentTypeId,url,params = null) => {
+export const fetchOfflineData = async (key,parentTypeId) => {
   try {
-    // Check for internet connection
-    const isConnected = await NetInfo.fetch().then((state) => state.isConnected);
-    //isConnected = false;
     let res;
-    if (isConnected) {
-      // Fetch data from the server if there is an internet connection
-      console.log("Connected to the internet");
-      res = await fetchWordsFromServer(key,parentTypeId,url,params);
-    } else {
-      console.log("Not connected to the internet");
-      // Load words for the specific board from AsyncStorage if offline
-      res = await AsyncStorage.getItem(`${key}_${parentTypeId}`);
-      console.log("res = ",res);
-      res = res ? JSON.parse(res) : null; // Parse the JSON if it exists
-    }
-
-////////////////////// For offline testing - uncomment//////////////////////
-
-    // res = await AsyncStorage.getItem(`${key}_${parentTypeId}Id`);
-    // console.log(`getting item from: ${key}_${parentTypeId}Id`);
-    // res = res ? JSON.parse(res) : null; // Parse the JSON if it exists
-    
-////////////////////// For offline testing uncomment//////////////////////
+    // Load data from AsyncStorage
+    res = await AsyncStorage.getItem(`${key}_${parentTypeId}`);
+    //console.log(`getting item: ${key}_${parentTypeId}`);
+    res = res ? JSON.parse(res) : null; // Parse the JSON if it exists
 
 
-    return res;
+  return res;
   } catch (error) {
     console.log(`Error fetching ${parentTypeId} data:`, error);
   }
 };
 
-const fetchWordsFromServer = async (key,parentTypeId,url,params = null) => {
+export const fetchOnlineData = async (key,parentTypeId,url,params = null) => {
   try {
     const response = await axios.get(`${config.baseUrl}/${url}`, {
       params,
     });
     const res = response.data;
 
-    // Save the fetched data to AsyncStorage for offline use
+    // Save the fetched data to AsyncStorage 
     await AsyncStorage.setItem(`${key}_${parentTypeId}`, JSON.stringify(res));
-    console.log(`setting item to: ${key}_${parentTypeId}`);
+    //console.log(`setting item to: ${key}_${parentTypeId}`);
     return res;
   } catch (error) {
     console.log('Error fetching words from server:', error);
+  }
+};
+
+
+
+
+///////////////////Pictograms ////////////////////
+export const fetchPictogramsIds = async (searchText) => {
+  try {
+    const response = await axios.get(`https://api.arasaac.org/v1/pictograms/he/search/${encodeURIComponent(searchText)}`);
+    const pictogramsIds = response.data.map(item => item._id);
+    console.log("returning  pictogramsIds = ",pictogramsIds);
+    return pictogramsIds || [];
+  } catch (error) {
+    console.log('Error fetching pictograms:', error);
+    return [];
+  }
+};
+
+export const pictogramSearch = async (text) => {
+  if (text.trim() !== '') {
+    try {
+      const pictogramIds = await fetchPictogramsIds(text);
+      if (pictogramIds.length > 0) {
+        const pictogramBaseURL = 'https://api.arasaac.org/v1/pictograms/';
+        const pictograms = pictogramIds.map(id => `${pictogramBaseURL}${id}`);
+        return pictograms;
+      }
+    } catch (error) {
+      console.error('Error handling search:', error);
+    }
+  }
+};
+
+export const downloadImage = async (imageUrl) => {
+  try {
+    const { uri } = await FileSystem.downloadAsync(
+      imageUrl,
+      `${FileSystem.documentDirectory}${Date.now()}.jpg`
+    );
+    const fileContent = await FileSystem.readAsStringAsync(uri, { encoding: FileSystem.EncodingType.Base64 });
+    return uri;
+  } catch (error) {
+    console.error('Error downloading image:', error);
+    throw error;
+  }
+};
+
+export const deleteLocalImage = async (imageUri) => {
+  if (imageUri && imageUri.startsWith('file://')) {
+    try {
+      await FileSystem.deleteAsync(imageUri);
+      console.log('Local image deleted');
+    } catch (error) {
+      console.error('Error deleting local image:', error);
+    }
   }
 };
