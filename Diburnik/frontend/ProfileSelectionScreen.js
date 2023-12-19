@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { View, Text, TouchableOpacity, Image, Modal, TextInput, Button, StyleSheet ,ScrollView  } from 'react-native';
 import axios from 'axios';
 import config from './config';
-import { fetchData } from './utils';
+import { fetchOfflineData, fetchOnlineData } from './utils';
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
 import NetInfo from '@react-native-community/netinfo';
@@ -24,10 +24,13 @@ const ProfileSelectionScreen = ({ route, navigation }) => {
   useEffect(() => {
     (async () => {
       try {
-        const data = await fetchData(`offlineProfiles`, `${teacherId}`, 'children', { child: child });
+        //const data = await fetchData(`offlineProfiles`, `${teacherId}`, 'children', { child: child });
 
-        if (data) {
-          const profilesData = data.map((child) => ({
+        const offlineData = await fetchOfflineData(`offlineProfiles`, `${teacherId}`);
+        let onlineData;
+
+        if (offlineData) {
+          const profilesData = offlineData.map((child) => ({
             _id: child._id,
             firstName: child.firstName,
             lastName: child.lastName,
@@ -36,6 +39,21 @@ const ProfileSelectionScreen = ({ route, navigation }) => {
           }));
           setProfiles(profilesData);
         }
+
+        if(isOnline)
+          onlineData = await fetchOnlineData(`offlineProfiles`, `${teacherId}`, 'children', { child: child });
+        if (onlineData) {
+          const profilesData = onlineData.map((child) => ({
+            _id: child._id,
+            firstName: child.firstName,
+            lastName: child.lastName,
+            image: child.image,
+            isSelected: false,
+          }));
+          setProfiles(profilesData);
+        }
+
+
       } catch (error) {
         console.log('Error fetching profiles:', error);
       }

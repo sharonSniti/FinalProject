@@ -13,7 +13,7 @@ import { commonStyles } from './CommonStyles';
 import CommonHeader from './CommonHeader';
 
 
-import { handleImagePicker, addAndUploadData, fetchData } from './utils';
+import { handleImagePicker, addAndUploadData, fetchOfflineData, fetchOnlineData } from './utils';
 
 const BoardsScreen = ({ route }) => {
   const { profileId } = route.params;
@@ -32,11 +32,20 @@ const BoardsScreen = ({ route }) => {
     (async () => {
       try {
         // change url according to : `${config.baseUrl}/${url}`part
-        const data = await fetchData(`offlineBoards`, `${profileId}`, `children/${profileId}`);
-        setLoading(false); // Move setLoading inside the try block
-        if (data) {
-          // Assuming data is an array
-          setBoards(data.boards);
+        //const data = await fetchData(`offlineBoards`, `${profileId}`, `children/${profileId}`);
+
+        const offlineData = await fetchOfflineData(`offlineBoards`, `${profileId}`);
+        let onlineData;
+
+        if (offlineData) {
+          setLoading(false);
+          setBoards(offlineData.boards);
+        }
+        if(isOnline)
+          onlineData = await fetchOnlineData(`offlineBoards`, `${profileId}`, `children/${profileId}`);
+        if (onlineData) {
+          setLoading(false);
+          setBoards(onlineData.boards);
         }
       } catch (error) {
         console.log('Error fetching data for profile:', error);
@@ -48,33 +57,30 @@ const BoardsScreen = ({ route }) => {
   const handleBoardSelect = async (boardId) => {
     if (!editMode) {
       try {
-  
-        // Check if there is a network connection
-        if (isOnline) {
-          // Make the API request
-          const response = await axios.get(`${config.baseUrl}/boards/${boardId}`);
-          const updatedWords = response.data.words;
-  
-          // Save the parameters to AsyncStorage with a key specific to the board
-          const storageKey = `offlineNavigation_${boardId}`;
-          await AsyncStorage.setItem(storageKey, JSON.stringify({ boardId, words: updatedWords }));
-  
-          // Navigate to 'Words' screen
-          navigation.navigate('Words', { boardId, words: updatedWords });
+        // Attempt to retrieve data from AsyncStorage
+        const storageKey = `offlineNavigation_${boardId}`;
+        const offlineData = await AsyncStorage.getItem(storageKey);
+        if (offlineData) {
+          const { boardId, words } = JSON.parse(offlineData);
+          navigation.navigate('Words', { boardId, words });
         } else {
-          // No network connection, attempt to retrieve offline data from AsyncStorage
-          const storageKey = `offlineNavigation_${boardId}`;
-          const offlineData = await AsyncStorage.getItem(storageKey);
-          if (offlineData) {
-            const { boardId, words } = JSON.parse(offlineData);
-            navigation.navigate('Words', { boardId, words });
-          } else {
-            console.error('No offline data available');
+          // Check if there is a network connection
+          if (isOnline) {
+            // Make the API request
+            const response = await axios.get(`${config.baseUrl}/boards/${boardId}`);      
+            const updatedWords = response.data.words;
+            // Save the parameters to AsyncStorage with a key specific to the board
+            const storageKey = `offlineNavigation_${boardId}`;
+            await AsyncStorage.setItem(storageKey, JSON.stringify({ boardId, words: updatedWords }));
+    
+            // Navigate to 'Words' screen
+            navigation.navigate('Words', { boardId, words: updatedWords });
           }
         }
+
       } catch (error) {
         console.log('Error fetching updated words:', error);
-      }
+        }
     } else {
       const updatedBoards = boards.map((board) =>
         board._id === boardId

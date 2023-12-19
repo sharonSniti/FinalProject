@@ -1,11 +1,12 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, TouchableOpacity, Modal, TextInput, Button, StyleSheet, Image, ScrollView, ActivityIndicator} from 'react-native';
+import { View, Text, TouchableOpacity, Modal, TextInput, Button, StyleSheet, Image, ScrollView, ActivityIndicator, FlatList, useWindowDimensions  } from 'react-native';
 import axios from 'axios';
 import { useNavigation } from '@react-navigation/native';
 import { Buffer } from 'buffer';
 import * as Speech from 'expo-speech';
 import config from './config';
-import { handleImagePicker, addAndUploadData, fetchData } from './utils';
+import { handleImagePicker, addAndUploadData, fetchOnlineData, fetchOfflineData } from './utils';
+import { pictogramSearch, downloadImage, deleteLocalImage } from './utils';
 import NetInfo from '@react-native-community/netinfo';
 
 import CommonHeader from './CommonHeader';
@@ -25,6 +26,11 @@ const WordsScreen = ({ route }) => {
   const [selectedWords, setSelectedWords] = useState([]);
   const [loading, setLoading] = useState(true);
 
+  const [searchResults, setSearchResults] = useState([]);
+
+  const { width } = useWindowDimensions();
+  const numColumns = Math.floor(width / 200); // Number of columns according to screen width
+
 
   const isOnline  = NetInfo.fetch().then((state) => state.isConnected);
 
@@ -33,10 +39,20 @@ const WordsScreen = ({ route }) => {
     (async () => {
       try {
         // change url according to : `${config.baseUrl}/${url}`part
-        const data = await fetchData(`offlineWords`,`${boardId}`, `boards/${boardId}/words`);
-        setLoading(false);
-        if (data) {
-          setWords(data);
+        //const data = await fetchData(`offlineWords`,`${boardId}`, `boards/${boardId}/words`);
+
+        const offlineData = await fetchOfflineData(`offlineWords`,`${boardId}`);
+        let onlineData;
+        
+        if (offlineData) {
+          setLoading(false);
+          setWords(offlineData);
+        }
+        if(isOnline)
+           onlineData = await fetchOnlineData(`offlineWords`,`${boardId}`, `boards/${boardId}/words`);
+        if (onlineData) {
+          setLoading(false);
+          setWords(onlineData);
         }
       } catch (error) {
         console.log('Error fetching data for board:', error);
@@ -110,12 +126,15 @@ const WordsScreen = ({ route }) => {
     if (newWordText.trim() !== '') {
       try {
         const formData = new FormData();
-        formData.append('boardId', boardId); // Change 'category' to 'boardId'
+        formData.append('boardId', boardId); 
         formData.append('text', newWordText);
   
-        
-        const response = await addAndUploadData(formData,newWordImage,'words');
+        console.log("{ uri: newWordImage } = ",{ uri: newWordImage });
+        const response = await addAndUploadData(formData,{ uri: newWordImage },'words');
         const newWord = response.data;
+
+        // Delete the local copy of the image
+        deleteLocalImage(newWordImage);
   
         setWords([...words, newWord]);
         setNewWordText('');
@@ -126,6 +145,9 @@ const WordsScreen = ({ route }) => {
       }
     }
   };
+
+
+  
 
 
   const handleEdit = () => {
@@ -162,8 +184,10 @@ const WordsScreen = ({ route }) => {
 
 
 
-
-  
+  // Search for a matching pictogram
+  const handleSearch = async () => {
+    setSearchResults(await pictogramSearch(newWordText));
+  };
 
   return (
     <View style={styles.container}>
@@ -263,26 +287,65 @@ const WordsScreen = ({ route }) => {
 
       {/* Modal for Adding New Word */}
       <Modal visible={isModalVisible} animationType="slide">
-        <View style={styles.modalContainer}>
-          <Text style={styles.title}>Add New Word</Text>
-          <TextInput
-            style={styles.input}
-            value={newWordText}
-            onChangeText={setNewWordText}
-            placeholder="Enter a new word"
-          />
-          {/* Add the image selection UI */}
-          <TouchableOpacity onPress={handleWordImagePicker}>
-            <Text style={styles.selectImageText}>Select Word Image</Text>
-          </TouchableOpacity>
-          {newWordImage && (
-            <Image source={{ uri: newWordImage.uri }} style={styles.wordImage} />
+      <View style={styles.modalContainer}>
+        <Text style={styles.searchPictogramTitle}>חיפוש תמונה למילה</Text>
+        <TextInput
+          style={styles.input}
+          value={newWordText}
+          onChangeText={setNewWordText}
+          placeholder=" הכנס מילה לחיפוש"
+          placeholderTextColor="gray" 
+
+        />
+        
+        <Button title="Search" onPress={handleSearch} />
+
+        {/* Display search results */}
+        {searchResults.length > 0 && (
+        <FlatList
+          style={styles.searchResultsContainer}
+          contentContainerStyle={styles.searchResultsContent}
+          data={searchResults}
+          keyExtractor={(item, index) => index.toString()}
+          renderItem={({ item }) => (
+            <TouchableOpacity
+              style={styles.searchResultItem}
+              onPress={() => {
+                downloadImage(item).then((uri) => {
+                  setNewWordImage(uri);
+                  console.log("newWordImage = ", uri);
+                  setSearchResults([]);
+                }).catch((error) => {
+                  console.error('Error downloading image:', error);
+                });
+              }}
+            >
+              <Image
+                source={{ uri: item }}
+                style={styles.searchResultImage}
+              />
+            </TouchableOpacity>
           )}
-          {/* End of image selection UI */}
-          <Button title="Add" onPress={handleAddWord} />
-          <Button title="Close" onPress={() => setIsModalVisible(false)} />
-        </View>
-      </Modal>
+          numColumns={numColumns}  // Set the number of columns in the grid
+        />
+      )}
+
+        {/* Add the image selection UI */}
+        {newWordImage && (
+          <Image source={{ uri: newWordImage }} style={styles.wordImage} />
+        )}
+        {/* End of image selection UI */}
+        <Button title="Add" onPress={handleAddWord} />
+        <Button title="Close" onPress={() => {
+        setSearchResults([]); // Clear the search results
+        setNewWordText(''); // Clear the input field
+        setNewWordImage('');
+        setIsModalVisible(false);
+        deleteLocalImage(newWordImage);
+  }}
+/>
+      </View>
+    </Modal>
     </View>
   );
 };
@@ -301,6 +364,12 @@ const styles = StyleSheet.create({
     marginBottom: 20,
     alignSelf: 'center',  //Center the "my words"
 
+  },
+  searchPictogramTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    marginBottom: 20,
+    alignSelf: 'center',  
   },
   scrollViewContent: {
     paddingBottom: 100, 
@@ -346,14 +415,18 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     marginTop: 45,
     alignItems: 'center',
+    marginBottom: 20,
   },
   input: {
     marginBottom: 10,
-    padding: 10,
-    borderWidth: 1,
-    borderColor: 'gray',
-    borderRadius: 5,
+    padding: 15, // Increased padding for more space
+    borderWidth: 2, // Increased border width
+    borderColor: '#3498db', // Blue color for the border
+    borderRadius: 8, // Rounded corners
+    fontSize: 16, 
+    color: '#2c3e50', 
   },
+  
   wordImage: {
     width: 140,
     height: 140,
@@ -454,6 +527,25 @@ const styles = StyleSheet.create({
     opacity: 0.5, // Set the opacity for disabled buttons
     backgroundColor: '#CCCCCC', // Set a grey background color for disabled buttons
   },
+
+  searchResultsContainer: {
+    marginTop: 10,
+  },
+
+  searchResultItem: {
+    margin: 5,
+  },
+  searchResultImage: {
+    width: 200,
+    height: 200,
+    resizeMode: 'cover',
+    borderRadius: 10,
+  },
+  searchResultsContent: {
+    flexGrow: 1,
+    justifyContent: 'center',
+  },
+  
 });
 
 export default WordsScreen;
