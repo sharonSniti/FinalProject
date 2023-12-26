@@ -9,6 +9,9 @@ const wordSchema = new mongoose.Schema({
     data: Buffer, // Store binary image data
     contentType: String, // Store content type (e.g., image/jpeg, image/png, etc.)
   },
+  partOfSpeech: {
+    type: String,
+  },
 });
 
 const Word = mongoose.model('Word', wordSchema);
