@@ -5,11 +5,12 @@ import { useNavigation } from '@react-navigation/native';
 import { Buffer } from 'buffer';
 import * as Speech from 'expo-speech';
 import config from './config';
-import { handleImagePicker, addAndUploadData, fetchOnlineData, fetchOfflineData } from './utils';
-import { pictogramSearch, downloadImage, deleteLocalImage } from './utils';
+import { handleImagePicker, addAndUploadData, fetchOnlineData, fetchOfflineData,  } from './utils';
+import { pictogramSearch, downloadImage, deleteLocalImage,pictogramPartOfSpeech } from './utils';
 import NetInfo from '@react-native-community/netinfo';
-
 import CommonHeader from './CommonHeader';
+import Color from 'color';
+import DropDownPicker from 'react-native-dropdown-picker';
 
 
 
@@ -20,12 +21,14 @@ const WordsScreen = ({ route }) => {
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [newWordText, setNewWordText] = useState('');
   const [newWordImage, setNewWordImage] = useState('');
+  const [partOfSpeechTag, setPartOfSpeechTag] = useState('');
   const navigation = useNavigation();
   const [selectedSentence, setSelectedSentence] = useState([]);
   const [editMode, setEditMode] = useState(false);
   const [selectedWords, setSelectedWords] = useState([]);
   const [loading, setLoading] = useState(true);
 
+  const [isPartOfSpeechPickerOpen, setIsPartOfSpeechPickerOpen] = useState(false);
   const [searchResults, setSearchResults] = useState([]);
 
   const { width } = useWindowDimensions();
@@ -128,8 +131,9 @@ const WordsScreen = ({ route }) => {
         const formData = new FormData();
         formData.append('boardId', boardId); 
         formData.append('text', newWordText);
+        formData.append('partOfSpeech',partOfSpeechTag);
   
-        console.log("{ uri: newWordImage } = ",{ uri: newWordImage });
+        console.log("in handleAddWord partOfSpeechTag = ",partOfSpeechTag);
         const response = await addAndUploadData(formData,{ uri: newWordImage },'words');
         const newWord = response.data;
 
@@ -189,6 +193,20 @@ const WordsScreen = ({ route }) => {
     setSearchResults(await pictogramSearch(newWordText));
   };
 
+
+  const getBackgroundColor = (partOfSpeech) => {
+    // You can customize this function to return different colors based on the partOfSpeech value
+    switch (partOfSpeech) {
+      case 'adjective':
+        return 'lightgreen';
+      case 'verb':
+        return '#FFCCCC'; // light red
+      // Add more cases for other partOfSpeech values
+      default:
+        return '#FFFFFF'; // default color, white
+      }
+  };
+
   return (
     <View style={styles.container}>
      <CommonHeader />
@@ -229,6 +247,9 @@ const WordsScreen = ({ route }) => {
               style={[
                 styles.wordSquare,
                 editMode && word.isSelected && styles.selectedWord,
+                { backgroundColor: getBackgroundColor(word.partOfSpeech),
+                  borderColor: Color(getBackgroundColor(word.partOfSpeech)).darken(0.2).hex(),
+                }, // dynamic background color
               ]}
               onPress={() => handleWordPress(word)}
             >
@@ -295,13 +316,13 @@ const WordsScreen = ({ route }) => {
           onChangeText={setNewWordText}
           placeholder=" הכנס מילה לחיפוש"
           placeholderTextColor="gray" 
-
         />
+
         
         <Button title="Search" onPress={handleSearch} />
 
         {/* Display search results */}
-        {searchResults.length > 0 && (
+        {searchResults?.length > 0 && (
         <FlatList
           style={styles.searchResultsContainer}
           contentContainerStyle={styles.searchResultsContent}
@@ -310,10 +331,14 @@ const WordsScreen = ({ route }) => {
           renderItem={({ item }) => (
             <TouchableOpacity
               style={styles.searchResultItem}
-              onPress={() => {
-                downloadImage(item).then((uri) => {
+              onPress={async() => {
+                const id = item.substring(item.lastIndexOf('/') + 1); // Extract ID from the URL
+                console.log("id = ", id);
+                setPartOfSpeechTag(await pictogramPartOfSpeech(id));
+                console.log("partOfSpeechTag = ", partOfSpeechTag);
+
+                downloadImage(item).then((uri) => {     
                   setNewWordImage(uri);
-                  console.log("newWordImage = ", uri);
                   setSearchResults([]);
                 }).catch((error) => {
                   console.error('Error downloading image:', error);
@@ -330,13 +355,34 @@ const WordsScreen = ({ route }) => {
         />
       )}
 
-        {/* Add the image selection UI */}
-        {newWordImage && (
-          <Image source={{ uri: newWordImage }} style={styles.wordImage} />
-        )}
-        {/* End of image selection UI */}
-        <Button title="Add" onPress={handleAddWord} />
-        <Button title="Close" onPress={() => {
+    {/* Add the image selection UI */}
+    {newWordImage && (
+      <>
+        <Image source={{ uri: newWordImage }} style={styles.wordImage} />
+        <DropDownPicker
+          open={isPartOfSpeechPickerOpen}
+          value={partOfSpeechTag}
+          items={[
+            { label: 'שם עצם', value: 'noun', color: 'lightgreen' },
+            { label: 'פועל', value: 'verb', color: '#FFCCCC' },
+            { label: 'שם תואר', value: 'adjective', color: '#FFFFFF' },
+          ]}
+          setOpen={setIsPartOfSpeechPickerOpen}
+          setValue={setPartOfSpeechTag}
+          setItems={() => {}}
+          selectedItemContainerStyle={{
+            backgroundColor: "grey"
+         }}
+         style={styles.partOfSpeechPicker}
+
+        />
+      </>
+    )}
+    {/* End of image selection UI */}
+    <Button title="Add" onPress={handleAddWord} />
+    <Button
+      title="Close"
+      onPress={() => {
         setSearchResults([]); // Clear the search results
         setNewWordText(''); // Clear the input field
         setNewWordImage('');
@@ -380,20 +426,32 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     marginBottom: 20,
     marginTop: 10,  // Add marginTop to create space at the top
-
+  },
+  wordImage: {
+    width: 110,
+    height: 110,
+    resizeMode: 'cover',
+    borderRadius: 10,
+    marginTop: 23,
   },
   wordSquare: {
-    width: 140,
-    height: 140,
-    backgroundColor: 'lightblue',
+    width: 150,
+    height: 150,
     justifyContent: 'center',
     alignItems: 'center',
     margin: 10,
-    borderRadius: 10,
+    borderRadius: 20,
+    borderWidth: 4,
+    shadowColor: '#000',
+    shadowOffset: { width: 2, height: 2 },
+    shadowOpacity: 0.5,
+    shadowRadius: 2,
+    elevation: 2, // This property is for Android shadow
   },
+  
   wordText: {
-    fontSize: 16,
-    marginTop: 5,
+    fontSize: 28,
+    paddingBottom: 18,
   },
   addButton: {
     position: 'absolute',
@@ -427,13 +485,6 @@ const styles = StyleSheet.create({
     color: '#2c3e50', 
   },
   
-  wordImage: {
-    width: 140,
-    height: 140,
-    resizeMode: 'cover',
-    borderRadius: 10,
-    marginTop: 23,
-  },
   selectImageText: {
     color: 'blue',
     fontSize: 16,
@@ -544,6 +595,13 @@ const styles = StyleSheet.create({
   searchResultsContent: {
     flexGrow: 1,
     justifyContent: 'center',
+  },
+  partOfSpeechPicker: {
+    textAlign: 'right',
+    width: 200,
+    height: 40,
+    alignSelf: 'center', // Center the picker horizontally
+    marginBottom: 10,
   },
   
 });

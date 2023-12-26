@@ -38,7 +38,7 @@ export const handleImagePicker = async (setFunc) => {
             { resize: { width: 800 } }, // Adjust the width as needed
           ], {
             compress: 0.01,
-            format: ImageManipulator.SaveFormat.JPEG,
+            format: ImageManipulator.SaveFormat.PNG,
           });
           
 
@@ -105,7 +105,7 @@ export const fetchOnlineData = async (key,parentTypeId,url,params = null) => {
 ///////////////////Pictograms ////////////////////
 export const fetchPictogramsIds = async (searchText) => {
   try {
-    const response = await axios.get(`https://api.arasaac.org/v1/pictograms/he/search/${encodeURIComponent(searchText)}`);
+    const response = await axios.get(`${config.pictogramBaseURL}he/search/${encodeURIComponent(searchText)}`); // Change to read from config
     const pictogramsIds = response.data.map(item => item._id);
     console.log("returning  pictogramsIds = ",pictogramsIds);
     return pictogramsIds || [];
@@ -120,8 +120,7 @@ export const pictogramSearch = async (text) => {
     try {
       const pictogramIds = await fetchPictogramsIds(text);
       if (pictogramIds.length > 0) {
-        const pictogramBaseURL = 'https://api.arasaac.org/v1/pictograms/';
-        const pictograms = pictogramIds.map(id => `${pictogramBaseURL}${id}`);
+        const pictograms = pictogramIds.map(id => `${config.pictogramBaseURL}${id}`);
         return pictograms;
       }
     } catch (error) {
@@ -130,11 +129,23 @@ export const pictogramSearch = async (text) => {
   }
 };
 
+export const pictogramPartOfSpeech = async (id) => {
+  try {
+  const response = await axios.get(`https://api.arasaac.org/v1/pictograms/he/${id}`);
+  const { tags } = response.data;
+  const partOfSpeechTag = tags.find(tag => ['adjective', 'verb', 'noun'].includes(tag)) || 'noun';      // If no tag is found, return noun
+  console.log(`partOfSpeechTag = `,partOfSpeechTag);
+  return partOfSpeechTag;
+  } catch (error) {
+    console.error('Error finding part of speech:', error);
+  }
+}
+
 export const downloadImage = async (imageUrl) => {
   try {
     const { uri } = await FileSystem.downloadAsync(
       imageUrl,
-      `${FileSystem.documentDirectory}${Date.now()}.jpg`
+      `${FileSystem.documentDirectory}${Date.now()}.png`
     );
     const fileContent = await FileSystem.readAsStringAsync(uri, { encoding: FileSystem.EncodingType.Base64 });
     return uri;
