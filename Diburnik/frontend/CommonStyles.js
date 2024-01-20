@@ -1,4 +1,6 @@
 import { StyleSheet } from 'react-native';
+import * as Font from 'expo-font';
+
 
 export const commonStyles = StyleSheet.create({
   container: {
@@ -9,7 +11,7 @@ export const commonStyles = StyleSheet.create({
     backgroundColor: '#b8e7d3',
   },
   bigTitle: {
-    fontSize: 44, // Adjust the font size as needed
+    fontSize: 38, // Adjust the font size as needed
     color: '#646663',
     marginBottom: 10, // Add margin if needed
   },

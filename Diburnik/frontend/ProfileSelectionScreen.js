@@ -7,6 +7,8 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 
 import NetInfo from '@react-native-community/netinfo';
 
+import { commonStyles } from './CommonStyles';
+import CommonHeader from './CommonHeader';
 
 const ProfileSelectionScreen = ({ route, navigation }) => {
   const { teacherId, child } = route.params;
@@ -184,15 +186,18 @@ const ProfileSelectionScreen = ({ route, navigation }) => {
 
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>בחר פרופיל</Text>
-      <ScrollView>
+    <View style={commonStyles.container}>
+      {/* CommonHeader - the app logo */}
+      <CommonHeader showProfilePicture={true} />
+      <Text style={commonStyles.bigTitle}>בחר פרופיל משתמש</Text>
+      <View style={{ flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between' }}>
         {profiles.map((profile) => (
           <TouchableOpacity
             key={profile._id}
             style={[
               styles.profileItem,
               editMode && profile.isSelected && styles.selectedProfileItem,
+              { marginRight: 29 }
             ]}
             onPress={() => handleProfileSelect(profile._id)}
           >
@@ -214,7 +219,7 @@ const ProfileSelectionScreen = ({ route, navigation }) => {
             </Text>
           </TouchableOpacity>
         ))}
-      </ScrollView>
+        </View>
       <TouchableOpacity 
         style={[styles.addButton, !isOnline && styles.disabledButton]}
         onPress={() => isOnline && handleAddProfile()}
@@ -281,29 +286,24 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   profileItem: {
-    flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: 10,
-    paddingHorizontal: 20,
-    backgroundColor: 'white',
-    borderRadius: 10,
-    marginBottom: 10,
-    shadowColor: 'black',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 3,
-    elevation: 3,
+    borderRadius: 80,
+    marginBottom: 40,
+    borderWidth: 7, // Add white border
+    borderColor: '#FBB8A5', // Set border color to white
+    width:150,
+    height:150,
   },
   profileImage: {
-    width: 40,
-    height: 40,
-    borderRadius: 20, // Make it a circle
-    marginRight: 15,
+    width: '100%',
+    height: '100%',
+    borderRadius: 80,
   },
   profileName: {
     fontSize: 18,
     fontWeight: 'bold',
     color: '#333',
+    marginTop: 14,
   },
   addButton: {
     position: 'absolute',
