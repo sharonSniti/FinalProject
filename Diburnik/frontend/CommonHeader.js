@@ -4,18 +4,17 @@ import ProfilePicture from './ProfilePicture';
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useNavigation } from '@react-navigation/native'; 
 
-const CommonHeader = ({ showProfilePicture = true }) => {
+const CommonHeader = ({ showProfilePicture = true, showSettingsIcon = false }) => {
 
   const [profilePicture, setProfilePicture] = useState('');
   const [menuVisible, setMenuVisible] = useState(false);
-  const [lastLoginInfo, setLastLoginInfo] = useState('');
+  const [settingsMenuVisible, setSettingsMenuVisible] = useState(false);
 
-  const signOut = 'התנתק';
-  const [menuItems, setMenuItems] = useState([`${signOut}`]);
+  const signOut = 'Sign out';
+  const menuItems = [`${signOut}`];           // Add more menu items here
 
-
-  const changeProfile = 'שנה פרופיל';
-
+  const enterEditMode = 'היכנס למצב עריכה';
+  const settingsMenuItems = [`${enterEditMode}`];  
 
   const navigation = useNavigation(); 
 
@@ -26,21 +25,11 @@ const CommonHeader = ({ showProfilePicture = true }) => {
         const storedProfilePictureString = await AsyncStorage.getItem('profilePicture');
         const storedProfilePicture = JSON.parse(storedProfilePictureString);
 
+        //console.log("storedProfilePictureString = ",storedProfilePictureString);
+        //console.log("storedProfilePicture = ",storedProfilePicture);
+
         // Update the state with the retrieved profile picture
         setProfilePicture(storedProfilePicture || '');
-
-
-        //Also fetch last login details
-        const lastLoginInfoString = await AsyncStorage.getItem(`lastLogin`);
-        const lastLoginInfo = JSON.parse(lastLoginInfoString);
-        setLastLoginInfo(lastLoginInfo);
-
-        // Dynamically update the menu based on userType
-        if (lastLoginInfo.userType === 'teacher') {
-          setMenuItems([...menuItems, `${changeProfile}`]);
-}
-
-
       } catch (error) {
         console.log('Error fetching profile picture:', error);
       }
@@ -52,18 +41,24 @@ const CommonHeader = ({ showProfilePicture = true }) => {
     setMenuVisible(!menuVisible);
   };
 
+  const handleSettingsIconPress = () => {
+    setSettingsMenuVisible(!settingsMenuVisible);
+  };
+
   const handleMenuItemPress = async (menuItem) => {
     if (menuItem === `${signOut}`) {                  //remove all data when sign out
       const keys = await AsyncStorage.getAllKeys();
       await AsyncStorage.multiRemove(keys);
       navigation.navigate('Login');
     }
-
-    if (menuItem === `${changeProfile}` && lastLoginInfo.userType === 'teacher') {
-        navigation.navigate('Profiles', { teacherId: lastLoginInfo.teacherId, child: lastLoginInfo.child });
-    }
       // Close the menu
     setMenuVisible(false);
+  };
+
+  const handleSettingsMenuItemPress = async (settingsMenuItem) => {
+    if (settingsMenuItem === `${enterEditMode}`) { 
+      document.body.style.backgroundColor = '#ADD8E6';
+      }
   };
 
 
@@ -71,6 +66,15 @@ const CommonHeader = ({ showProfilePicture = true }) => {
     <TouchableOpacity
       style={headerStyles.menuItem}
       onPress={() => handleMenuItemPress(item)}
+    >
+      <Text>{item}</Text>
+    </TouchableOpacity>
+  );
+
+  const renderSettingsMenuItem = ({ item }) => (
+    <TouchableOpacity
+      style={headerStyles.menuItem}
+      onPress={() => handleSettingsMenuItemPress(item)}
     >
       <Text>{item}</Text>
     </TouchableOpacity>
@@ -86,6 +90,14 @@ const CommonHeader = ({ showProfilePicture = true }) => {
         </TouchableOpacity>
       )}
 
+      {showSettingsIcon && (
+        <TouchableOpacity onPress={handleSettingsIconPress}>
+                <Image
+                  source={require('./assets/appImages/settings.png')}
+                  style={{ width: 40, height: 40 }}/>
+                 </TouchableOpacity>
+            )}
+
       {menuVisible && (
         <View style={headerStyles.menuContainer}>
           <FlatList
@@ -96,6 +108,18 @@ const CommonHeader = ({ showProfilePicture = true }) => {
         </View>
       )}
 
+      {settingsMenuVisible && (
+           <View style={headerStyles.settingsMenuContainer}>
+           <FlatList
+             data={settingsMenuItems}
+             renderItem={renderSettingsMenuItem}
+             keyExtractor={(item) => item}
+           />
+         </View>
+      )}
+      <View>
+        
+      </View>
       <View style={headerStyles.logoContainer}>
         <Image
           source={require('./assets/appImages/logo.png')}
@@ -104,6 +128,7 @@ const CommonHeader = ({ showProfilePicture = true }) => {
         />
       </View>
     </View>
+   
   );
 };
 
@@ -134,6 +159,17 @@ const headerStyles = StyleSheet.create({
     elevation: 5,
     padding: 10,
   },
+  settingsMenuContainer: {
+    backgroundColor: 'rgba(146, 164, 156, 0.78)', //gray transperent background to settings menu
+    borderRadius: 5,
+    width: 200, // Set the desired width
+    height: 40, // Set the desired height
+    alignItems: 'center',
+    marginLeft: -15, 
+    marginTop: 35, 
+  },
 });
+
+
 
 export default CommonHeader;
