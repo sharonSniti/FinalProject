@@ -158,7 +158,7 @@ const BoardsScreen = ({ route }) => {
         {/* CommonHeader - the app logo */}
         <CommonHeader showProfilePicture={true} />
   
-        <Text style={styles.title}>הלוחות שלי</Text>
+        <Text style={commonStyles.bigTitle}>הלוחות שלי</Text>
   
         {loading ? (
           <ActivityIndicator size="large" color="#0000ff" />
@@ -196,7 +196,10 @@ const BoardsScreen = ({ route }) => {
                       />
                     </View>
                   )}
+                  
+                  <View style={styles.buttomOfBoard}>
                   <Text style={styles.categoryText}>{board.category}</Text>
+                  </View>
                 </TouchableOpacity>
               ))
             )}
@@ -280,21 +283,33 @@ const styles = StyleSheet.create({
   boardContainer: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    justifyContent: 'center',
+    justifyContent: 'flex-end',
     marginBottom: 20,
   },
+   // The base of the board , the image and title will add on it
   board: {
     width: 140,
     height: 140,
     backgroundColor: 'lightblue',
-    justifyContent: 'center',
-    alignItems: 'center',
-    margin: 10,
+    margin: 23,
     borderRadius: 10,
+    borderWidth: 3,
+    borderColor: '#B9C4D1', 
+  },
+  buttomOfBoard: {
+    position: 'absolute',
+    bottom: 0,
+    width: '100%',
+    height: 35,
+    backgroundColor: '#6EC5F8',
+    borderBottomLeftRadius: 8,  
+    borderBottomRightRadius: 8,
   },
   categoryText: {
-    fontSize: 16,
-    marginTop: 5,
+  fontSize: 17,
+  marginTop: 'auto',  // Set marginTop to 'auto' to push it to the bottom
+  width: 130,
+  textAlign: 'center', 
   },
   addButton: {
     position: 'absolute',
@@ -324,11 +339,11 @@ const styles = StyleSheet.create({
     borderRadius: 5,
   },
   boardImage: {
-    width: 140,
-    height: 140,
-    resizeMode: 'cover',
-    borderRadius: 10,
-    marginTop: 23,
+    position: 'absolute',
+    width: '100%',
+    height: 99,
+    borderTopLeftRadius: 8,  
+    borderTopRightRadius: 8,  
   },
   selectImageText: {
     color: 'blue',

@@ -36,7 +36,7 @@ const RegisterScreen = () => {
 
     const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailPattern.test(email)) {
-      setRegistrationMessage("כתות מייל לא חוקית");
+      setRegistrationMessage("כתובת מייל לא חוקית");
       return;
     }
 
