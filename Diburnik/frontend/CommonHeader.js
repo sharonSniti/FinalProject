@@ -8,9 +8,14 @@ const CommonHeader = ({ showProfilePicture = true }) => {
 
   const [profilePicture, setProfilePicture] = useState('');
   const [menuVisible, setMenuVisible] = useState(false);
+  const [lastLoginInfo, setLastLoginInfo] = useState('');
 
-  const signOut = 'Sign out';
-  const menuItems = [`${signOut}`];           // Add more menu items here
+  const signOut = 'התנתק';
+  const [menuItems, setMenuItems] = useState([`${signOut}`]);
+
+
+  const changeProfile = 'שנה פרופיל';
+
 
   const navigation = useNavigation(); 
 
@@ -21,11 +26,21 @@ const CommonHeader = ({ showProfilePicture = true }) => {
         const storedProfilePictureString = await AsyncStorage.getItem('profilePicture');
         const storedProfilePicture = JSON.parse(storedProfilePictureString);
 
-        //console.log("storedProfilePictureString = ",storedProfilePictureString);
-        //console.log("storedProfilePicture = ",storedProfilePicture);
-
         // Update the state with the retrieved profile picture
         setProfilePicture(storedProfilePicture || '');
+
+
+        //Also fetch last login details
+        const lastLoginInfoString = await AsyncStorage.getItem(`lastLogin`);
+        const lastLoginInfo = JSON.parse(lastLoginInfoString);
+        setLastLoginInfo(lastLoginInfo);
+
+        // Dynamically update the menu based on userType
+        if (lastLoginInfo.userType === 'teacher') {
+          setMenuItems([...menuItems, `${changeProfile}`]);
+}
+
+
       } catch (error) {
         console.log('Error fetching profile picture:', error);
       }
@@ -42,6 +57,10 @@ const CommonHeader = ({ showProfilePicture = true }) => {
       const keys = await AsyncStorage.getAllKeys();
       await AsyncStorage.multiRemove(keys);
       navigation.navigate('Login');
+    }
+
+    if (menuItem === `${changeProfile}` && lastLoginInfo.userType === 'teacher') {
+        navigation.navigate('Profiles', { teacherId: lastLoginInfo.teacherId, child: lastLoginInfo.child });
     }
       // Close the menu
     setMenuVisible(false);

@@ -5,12 +5,13 @@ import { useNavigation } from '@react-navigation/native';
 import { Buffer } from 'buffer';
 import * as Speech from 'expo-speech';
 import config from './config';
-import { handleImagePicker, addAndUploadData, fetchOnlineData, fetchOfflineData,  } from './utils';
+import { handleImagePicker, addAndUploadData, fetchOnlineData, fetchOfflineData, checkOnlineStatus } from './utils';
 import { pictogramSearch, downloadImage, deleteLocalImage,pictogramPartOfSpeech } from './utils';
 import NetInfo from '@react-native-community/netinfo';
 import CommonHeader from './CommonHeader';
 import Color from 'color';
 import DropDownPicker from 'react-native-dropdown-picker';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 
 
@@ -27,15 +28,12 @@ const WordsScreen = ({ route }) => {
   const [editMode, setEditMode] = useState(false);
   const [selectedWords, setSelectedWords] = useState([]);
   const [loading, setLoading] = useState(true);
-
+  const [isOnline, setIsOnline] = useState(false);
   const [isPartOfSpeechPickerOpen, setIsPartOfSpeechPickerOpen] = useState(false);
   const [searchResults, setSearchResults] = useState([]);
-
   const { width } = useWindowDimensions();
   const numColumns = Math.floor(width / 200); // Number of columns according to screen width
-
-
-  const isOnline  = NetInfo.fetch().then((state) => state.isConnected);
+  const [errorMessage, setErrorMessage] = useState('');
 
 
   useEffect(() => {
@@ -51,6 +49,8 @@ const WordsScreen = ({ route }) => {
           setLoading(false);
           setWords(offlineData);
         }
+        checkOnlineStatus().then((status) => {setIsOnline(status);});         //Check online status and keep it updated
+
         if(isOnline)
            onlineData = await fetchOnlineData(`offlineWords`,`${boardId}`, `boards/${boardId}/words`);
         if (onlineData) {
@@ -61,7 +61,7 @@ const WordsScreen = ({ route }) => {
         console.log('Error fetching data for board:', error);
       }
     })();
-  }, [boardId]);
+  }, [boardId,isOnline]);
 
 
   const handleWordPress = (word) => {
@@ -132,9 +132,8 @@ const WordsScreen = ({ route }) => {
         formData.append('boardId', boardId); 
         formData.append('text', newWordText);
         formData.append('partOfSpeech',partOfSpeechTag);
-  
-        console.log("in handleAddWord partOfSpeechTag = ",partOfSpeechTag);
         const response = await addAndUploadData(formData,{ uri: newWordImage },'words');
+
         const newWord = response.data;
 
         // Delete the local copy of the image
@@ -177,6 +176,8 @@ const WordsScreen = ({ route }) => {
         setWords(updatedWords);
         setSelectedWords([]); // Clear selected words after deletion
 
+        //Save updated words to async storage
+        await AsyncStorage.setItem(`offlineWords_${boardId}`,JSON.stringify(updatedWords) );
 
       } else {
         console.error('Error deleting words. Unexpected response:', response.status);
@@ -190,7 +191,19 @@ const WordsScreen = ({ route }) => {
 
   // Search for a matching pictogram
   const handleSearch = async () => {
-    setSearchResults(await pictogramSearch(newWordText));
+    const searchResult = await pictogramSearch(newWordText)
+    if(searchResult.length > 0)
+      setSearchResults(searchResult);
+    else {
+      //console.error('No pictograms found');
+      setErrorMessage('לא נמצאו תמונות עבור החיפוש');
+
+      setTimeout(() => {
+        setErrorMessage('');
+      }, 3000);
+    }
+
+
   };
 
 
@@ -307,7 +320,7 @@ const WordsScreen = ({ route }) => {
       )}
 
       {/* Modal for Adding New Word */}
-      <Modal visible={isModalVisible} animationType="slide">
+      <Modal visible={isModalVisible} animationType="slide" transparent>
       <View style={styles.modalContainer}>
         <Text style={styles.searchPictogramTitle}>חיפוש תמונה למילה</Text>
         <TextInput
@@ -319,7 +332,7 @@ const WordsScreen = ({ route }) => {
         />
 
         
-        <Button title="Search" onPress={handleSearch} />
+        <Button title="חפש" onPress={handleSearch} />
 
         {/* Display search results */}
         {searchResults?.length > 0 && (
@@ -379,9 +392,9 @@ const WordsScreen = ({ route }) => {
       </>
     )}
     {/* End of image selection UI */}
-    <Button title="Add" onPress={handleAddWord} />
+    <Button title="הוסף" onPress={handleAddWord} />
     <Button
-      title="Close"
+      title="סגור"
       onPress={() => {
         setSearchResults([]); // Clear the search results
         setNewWordText(''); // Clear the input field
@@ -390,6 +403,9 @@ const WordsScreen = ({ route }) => {
         deleteLocalImage(newWordImage);
   }}
 />
+    {errorMessage  ? (
+      <Text style={styles.errorMessageText}>{errorMessage}</Text>
+    ) : null}
       </View>
     </Modal>
     </View>
@@ -469,6 +485,7 @@ const styles = StyleSheet.create({
     color: 'white',
   },
   modalContainer: {
+    backgroundColor: 'rgba(255, 255, 255, 0.93)', // Use an off-white color with some transparency
     flex: 1,
     justifyContent: 'center',
     marginTop: 45,
@@ -602,6 +619,10 @@ const styles = StyleSheet.create({
     height: 40,
     alignSelf: 'center', // Center the picker horizontally
     marginBottom: 10,
+  },
+  errorMessageText: {
+    color: 'red',
+    fontSize: 16,
   },
   
 });

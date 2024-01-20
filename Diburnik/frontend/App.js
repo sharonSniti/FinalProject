@@ -1,4 +1,5 @@
 import React from 'react';
+import LoadingScreen from './LoadingScreen';
 import LoginScreen from './LoginScreen';
 import RegisterScreen from './RegisterScreen';
 import Boards from './BoardsScreen';
@@ -18,18 +19,19 @@ const App = () => {
   return (
     <NavigationContainer>
       <Stack.Navigator 
-      initialRouteName="Login"
+      initialRouteName="Loading"
       screenOptions={{
         //cardStyle: { backgroundColor: '#b8e7d3' }, // background color
         contentStyle: { backgroundColor: '#b8e7d3' }, // background color
-
+        gestureEnabled: false,
       }}
     >
-        <Stack.Screen name="Login" component={LoginScreen}/>
-        <Stack.Screen name="Boards" component={Boards}/>
-        <Stack.Screen name="Profiles" component={Profiles}/>
-        <Stack.Screen name="Register" component={RegisterScreen}/>
-        <Stack.Screen name="Words" component={WordsScreen}/>
+        <Stack.Screen name="Loading" component={LoadingScreen}/>
+        <Stack.Screen name="Login" component={LoginScreen} options={{ headerShown: false }} />
+        <Stack.Screen name="Boards" component={Boards} options={{ headerShown: false }} />
+        <Stack.Screen name="Profiles" component={Profiles} options={{ headerShown: false }} />
+        <Stack.Screen name="Register" component={RegisterScreen}  options={{ headerShown: false }}/>
+        <Stack.Screen name="Words" component={WordsScreen} options={{ title: 'מילים' }}/>
         {/* add more screens here */}
       </Stack.Navigator>
     </NavigationContainer>

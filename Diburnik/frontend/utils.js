@@ -7,7 +7,45 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as FileSystem from 'expo-file-system';
 
 
+export const checkOnlineStatus = async () => {
+  const state = await NetInfo.fetch();
+  return state.isConnected;
+};
 
+
+export const checkLastLogin = async (navigation) => {
+  try {
+    // Get the last logged-in user's information
+
+    //const lastLoginInfoString = await AsyncStorage.getItem(`lastLogin_${username}`);
+    const lastLoginInfoString = await AsyncStorage.getItem(`lastLogin`);
+
+    const lastLoginInfo = JSON.parse(lastLoginInfoString);
+
+    // Get the stored token for the last logged-in user
+    //const storedToken = await AsyncStorage.getItem(`authToken_${username}`);
+    const storedToken = await AsyncStorage.getItem(`authToken`);
+
+    // Check if the stored token matches the current user's token
+    const isTokenValid = storedToken !== null && storedToken !== undefined;
+
+    // If we got a login auth token, login to the user matching the token
+    if (isTokenValid) {
+      // Token is valid, navigate based on user type
+      if (lastLoginInfo.userType === 'teacher') {
+        navigation.navigate('Profiles', { teacherId: lastLoginInfo.teacherId, child: lastLoginInfo.child });
+      } else if (lastLoginInfo.userType === 'child') {
+        navigation.navigate('Boards', { profileId: lastLoginInfo.child[0] });
+      }
+    } else {
+      console.log("first login");
+      navigation.navigate('Login');
+    }
+  } catch (error) {
+    // Handle errors
+    console.error("Error checking last login:", error);
+  }
+};
 
 
 export const handleImagePicker = async (setFunc) => {
@@ -27,11 +65,11 @@ export const handleImagePicker = async (setFunc) => {
 
   export const addAndUploadData = async (formData, newImage, url) => {
     // If you have an image to upload, add it to the form data
-    if (newImage) {
+    //if (newImage) {
+      console.log("newImage = ",newImage);
+
+      if (newImage && newImage.uri !== '') {
         const localUri = newImage.uri;
-
-        //console.log("localUri = ",localUri);
-
         
         //Compress image
         const manipResult = await ImageManipulator.manipulateAsync(localUri, [
@@ -44,20 +82,17 @@ export const handleImagePicker = async (setFunc) => {
 
         const { uri } = manipResult;
 
-        //const filename = localUri.split('/').pop();
         const filename = uri.split('/').pop();
         const type = `image/${filename.split('.').pop()}`;
         console.log("Type of image is: ", type);
 
         formData.append('image', {
-            //uri: localUri,
             uri: uri,
             name: filename,
             type: type,
         });
-    }
-    //console.log("formData in utils= ",formData)
-        
+    }         
+
         // Send a POST request with the form data to create a new data
     const response = await axios.post(`${config.baseUrl}/${url}/add`, formData, {
         headers: {
@@ -105,7 +140,7 @@ export const fetchOnlineData = async (key,parentTypeId,url,params = null) => {
 ///////////////////Pictograms ////////////////////
 export const fetchPictogramsIds = async (searchText) => {
   try {
-    const response = await axios.get(`${config.pictogramBaseURL}he/search/${encodeURIComponent(searchText)}`); // Change to read from config
+    const response = await axios.get(`${config.pictogramBaseURL}he/search/${encodeURIComponent(searchText)}`); 
     const pictogramsIds = response.data.map(item => item._id);
     console.log("returning  pictogramsIds = ",pictogramsIds);
     return pictogramsIds || [];
@@ -123,6 +158,8 @@ export const pictogramSearch = async (text) => {
         const pictograms = pictogramIds.map(id => `${config.pictogramBaseURL}${id}`);
         return pictograms;
       }
+      else
+        return [];
     } catch (error) {
       console.error('Error handling search:', error);
     }
