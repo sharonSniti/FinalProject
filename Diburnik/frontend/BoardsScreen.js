@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, TouchableOpacity, Modal, TextInput, Button, StyleSheet ,Image, ActivityIndicator } from 'react-native';
+import { View, Text, TouchableOpacity, Modal, TextInput, Button, StyleSheet ,Image, ActivityIndicator,ScrollView } from 'react-native';
 import axios from 'axios';
 import { useNavigation } from '@react-navigation/native';
 import { Buffer } from 'buffer'; 
@@ -13,7 +13,7 @@ import { commonStyles } from './CommonStyles';
 import CommonHeader from './CommonHeader';
 
 
-import { handleImagePicker, addAndUploadData, fetchOfflineData, fetchOnlineData } from './utils';
+import { handleImagePicker, addAndUploadData, fetchOfflineData, fetchOnlineData, checkOnlineStatus } from './utils';
 
 const BoardsScreen = ({ route }) => {
   const { profileId } = route.params;
@@ -25,8 +25,7 @@ const BoardsScreen = ({ route }) => {
   const [editMode, setEditMode] = useState(false);
   const [selectedBoards, setSelectedBoards] = useState([]);
   const [loading, setLoading] = useState(true);
-
-  const isOnline  = NetInfo.fetch().then((state) => state.isConnected);
+  const [isOnline, setIsOnline] = useState(false);
 
   useEffect(() => {
     (async () => {
@@ -41,6 +40,8 @@ const BoardsScreen = ({ route }) => {
           setLoading(false);
           setBoards(offlineData.boards);
         }
+        checkOnlineStatus().then((status) => {setIsOnline(status);});         //Check online status and keep it updated
+      
         if(isOnline)
           onlineData = await fetchOnlineData(`offlineBoards`, `${profileId}`, `children/${profileId}`);
         if (onlineData) {
@@ -51,7 +52,7 @@ const BoardsScreen = ({ route }) => {
         console.log('Error fetching data for profile:', error);
       }
     })();
-  }, [profileId]);
+  }, [profileId,isOnline]);
   
 
   const handleBoardSelect = async (boardId) => {
@@ -143,6 +144,10 @@ const BoardsScreen = ({ route }) => {
         const updatedBoards = boards.filter((board) => !boardsIds.includes(board._id));
         setBoards(updatedBoards);
         setSelectedBoards([]);
+
+        //Save updated boards to async storage
+        await AsyncStorage.setItem(`offlineBoards_${profileId}`,JSON.stringify(updatedBoards) );
+
       } else {
         console.error('Error deleting boards. Unexpected response:', response.status);
       }
@@ -158,8 +163,8 @@ const BoardsScreen = ({ route }) => {
         {/* CommonHeader - the app logo */}
         <CommonHeader showProfilePicture={true} />
   
-        <Text style={commonStyles.bigTitle}>הלוחות שלי</Text>
-  
+        <Text style={styles.title}>הלוחות שלי</Text>
+        <ScrollView contentContainerStyle={styles.scrollContent}>
         {loading ? (
           <ActivityIndicator size="large" color="#0000ff" />
         ) : (
@@ -205,6 +210,8 @@ const BoardsScreen = ({ route }) => {
             )}
           </View>
         )}
+        </ScrollView>
+
   
         {/* Add button */}
 
@@ -234,20 +241,20 @@ const BoardsScreen = ({ route }) => {
           </TouchableOpacity>
         )}
   
-        <Modal visible={isModalVisible} animationType="slide">
+        <Modal visible={isModalVisible} animationType="slide" transparent>
           <View style={styles.modalContainer}>
-            <Text style={styles.title}>Add New Board</Text>
+            <Text style={styles.title}>הוסף לוח חדש</Text>
   
             <TextInput
               style={styles.input}
               value={newBoardName}
               onChangeText={setNewBoardName}
-              placeholder="Enter a new board name"
+              placeholder=" הכנס שם לוח"
             />
   
             {/* Add the image selection UI */}
             <TouchableOpacity onPress={handleBoardImagePicker}>
-              <Text style={styles.selectImageText}>Select Board Image</Text>
+              <Text style={styles.selectImageText}>בחר תמונה</Text>
             </TouchableOpacity>
   
             {newBoardImage && (
@@ -258,8 +265,8 @@ const BoardsScreen = ({ route }) => {
             )}
             {/* End of image selection UI */}
   
-            <Button title="Add" onPress={handleAddBoard} />
-            <Button title="Close" onPress={() => setIsModalVisible(false)} />
+            <Button title="הוסף" onPress={handleAddBoard} />
+            <Button title="סגור" onPress={() => setIsModalVisible(false)} />
           </View>
         </Modal>
       </View>
@@ -273,7 +280,7 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    padding: 20,
+    paddingTop: 40,
   },
   title: {
     fontSize: 20,
@@ -327,16 +334,19 @@ const styles = StyleSheet.create({
     color: 'white',
   },
   modalContainer: {
+    backgroundColor: 'rgba(255, 255, 255, 0.9)', // Use an off-white color with some transparency
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
   },
   input: {
     marginBottom: 10,
-    padding: 10,
-    borderWidth: 1,
-    borderColor: 'gray',
-    borderRadius: 5,
+    padding: 15, // Increased padding for more space
+    borderWidth: 2, // Increased border width
+    borderColor: '#3498db', // Blue color for the border
+    borderRadius: 8, // Rounded corners
+    fontSize: 16, 
+    color: '#2c3e50', 
   },
   boardImage: {
     position: 'absolute',
@@ -403,6 +413,9 @@ const styles = StyleSheet.create({
   disabledButton: {
     opacity: 0.5, // Set the opacity for disabled buttons
     backgroundColor: '#CCCCCC', // Set a grey background color for disabled buttons
+  },
+  scrollContent: {
+    paddingBottom: 100, 
   },
 });
 

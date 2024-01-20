@@ -3,9 +3,9 @@ const bodyParser = require("body-parser");
 const mongoose = require("mongoose");
 const passport = require("passport");
 const multer = require('multer');
+const crypto = require('crypto');
 const LocalStrategy = require("passport-local").Strategy;
 require("dotenv").config(); // Load environment variables from .env file
-
 
 
 const app = express();
@@ -58,8 +58,6 @@ app.listen(port, () => {
 
 
 
-
-
 //Create toekn
 const createToken = (userId) => {
     const payload = {
@@ -72,6 +70,18 @@ const createToken = (userId) => {
 
 
 
+// Hash password and generate a random salt
+const hashPassword = async (password) => {
+   // Generate a random salt
+  const salt = crypto.randomBytes(16).toString('hex');
+
+  // Hash the password with the generated salt
+  const hashedPassword = crypto
+  .createHash('sha256')
+  .update(password + salt)
+  .digest('hex');
+  return { hashedPassword, salt };
+}
 
 
 
@@ -112,9 +122,6 @@ const deleteWords = async (wordsIds) => {
 
 app.post("/login",(req,res)=>{
     const {username,password} = req.body;
-
-
-
     if(!username || !password){
         return res.status(400).json({message:"username or password are required"})
     }
@@ -122,7 +129,19 @@ app.post("/login",(req,res)=>{
         if(!user){
             return res.status(404).json({message:"user not found"})
         }
-        if(user.password !== password){
+         // Retrieve hashed password and salt from the database based on the provided username
+        const storedHashedPassword = user.password;
+
+        // Combine the received password from the login screen, with the stored salt
+        const saltedPassword = password + user.salt;
+
+         // Hash the combined password and salt
+         const hashedPassword = crypto
+            .createHash('sha256')
+            .update(saltedPassword)
+            .digest('hex');
+
+        if(hashedPassword !== storedHashedPassword){
             return res.status(401).json({message:"wrong password"})
         }
         const token = createToken(user._id);
@@ -136,10 +155,14 @@ app.post("/login",(req,res)=>{
 
 app.post("/users/add", upload.single('image'), async (req, res) => {
   const { username, password, email, userType, firstName, lastName } = req.body;
- //console.log("req.body = ",req.body);
+  const { hashedPassword, salt } = await hashPassword(password);
+  //console.log("hashedPassword = ",hashedPassword);
+  //console.log("salt = ",salt);
+
   const newUser = new User({
       username: username,
-      password: password,
+      password: hashedPassword,
+      salt: salt,
       email: email,
       userType: userType
   });

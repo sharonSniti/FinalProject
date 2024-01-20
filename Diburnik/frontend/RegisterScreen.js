@@ -77,6 +77,20 @@ const RegisterScreen = () => {
     setTimeout(() => setRegistrationMessage(''), 3000); // Clear message after 3 seconds
 
   }
+
+
+  const handleCancel = () => {
+    // Handle cancellation - reset the form and navigate back
+    navigation.navigate("Login");
+    setUsername('');
+    setPassword('');
+    setEmail('');
+    setUserType('');
+    setFirstName('');
+    setLastName('');
+    setNewProfileImage('');
+    setRegistrationMessage('');
+  };
     
 
 return (
@@ -145,6 +159,9 @@ return (
     <TouchableOpacity style={registrationStyles.button} onPress={handleRegistration}>
       <Text style={registrationStyles.buttonText}>הירשם</Text>
     </TouchableOpacity>
+    <TouchableOpacity style={registrationStyles.cancelButton} onPress={handleCancel}>
+        <Text style={registrationStyles.cancelButtonText}>ביטול</Text>
+      </TouchableOpacity>
     {registrationMessage ? (
       <Text style={registrationStyles.registrationMessage}>{registrationMessage}</Text>
     ) : null}
@@ -229,7 +246,20 @@ const registrationStyles = StyleSheet.create({
     bottom: 0, // Adjust the bottom property to set the distance from the bottom
     width: 200, // Set the width to your preferred size
     height: 200, // Set the height to your preferred size
-  }
+  },
+  cancelButton: {
+    backgroundColor: 'red',
+    marginTop: 10,
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 5,
+  },
+  cancelButtonText: {
+    color: '#fff',
+    fontSize: 18,
+    fontWeight: 'bold',
+    textAlign: 'center',
+  },
 
 });
 

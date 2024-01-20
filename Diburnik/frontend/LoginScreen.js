@@ -11,6 +11,7 @@ import NetInfo from '@react-native-community/netinfo';
 import { commonStyles } from './CommonStyles';
 import CommonHeader from './CommonHeader';
 
+import { checkOnlineStatus, checkLastLogin } from './utils';
 
 
 //Define a functional component 
@@ -18,52 +19,24 @@ const LoginScreen = () => {
   const [username, setUsername] = useState(''); 
   const [password, setPassword] = useState('');
   const [invalidLoginMessage, setInvalidLoginMessage] = useState('');
+  const [isOnline, setIsOnline] = useState(false);
 
   //The 'useNavigation' hook allows to navigate between screens
   const navigation = useNavigation(); 
-  
-
 
   useEffect(() => {
-    const checkLastLogin = async () => {
-      try {
-        // Get the last logged-in user's information
-        const lastLoginInfoString = await AsyncStorage.getItem(`lastLogin_${username}`);
-        const lastLoginInfo = JSON.parse(lastLoginInfoString);
-  
-        // Get the stored token for the last logged-in user
-        const storedToken = await AsyncStorage.getItem(`authToken_${username}`);
-        // Check if the stored token matches the current user's token
-        const isTokenValid = storedToken !== null && storedToken !== undefined;
-  
-        // If we got a login auth token, login to the user matching the token
-        if (isTokenValid) {
-          // Token is valid, navigate based on user type
-          if (lastLoginInfo.userType === 'teacher') {
-            navigation.navigate('Profiles', { teacherId: lastLoginInfo.teacherId, child: lastLoginInfo.child });
-          } else if (lastLoginInfo.userType === 'child') {
-            navigation.navigate('Boards', { profileId: lastLoginInfo.child[0] });
-          }
-        } else {
-          console.log("first login");
-        }
-      } catch (error) {
-        // Handle errors
-        console.error("Error checking last login:", error);
-      }
-    };
-  
-    // Call checkLastLogin when the component mounts
-    checkLastLogin();
 
-  }, []); // Runs once when the component mounts
- // }, ); // Runs every time the component renders
+    checkOnlineStatus().then((status) => {setIsOnline(status);});         //Check online status and keep it updated
+
+  }, [isOnline]); 
 
 
 
   //handleLogin - function that handles the login logic
   const handleLogin = async () => {
-    const isOnline  = NetInfo.fetch().then((state) => state.isConnected);
+    //const isOnline  = NetInfo.fetch().then((state) => state.isConnected);
+    checkOnlineStatus().then((status) => {setIsOnline(status);});         //Check online status and keep it updated
+
     const user = {
       username: username,
       password: password,
@@ -73,8 +46,10 @@ const LoginScreen = () => {
       if(isOnline) {
       const res = await axios.post(`${config.baseUrl}/login`, user);
       const token = res.data.token;
-      await AsyncStorage.setItem(`authToken_${user.username}`, token);  // Store user-specific token
-      console.log(`storing the auth token: authToken_${user.username} = `,token);
+      //await AsyncStorage.setItem(`authToken_${user.username}`, token);  // Store user-specific token
+      await AsyncStorage.setItem(`authToken`, token);  // Store user-specific token
+
+      console.log(`storing the auth token: authToken = `,token);
 
       const userResponse = await axios.get(`${config.baseUrl}/user`, {
         params: {
@@ -82,7 +57,7 @@ const LoginScreen = () => {
         },
       });
 
-      // Store last login information
+      // Store last login information for future feature of remember login
       const lastLoginInfo = {
       userType: userResponse.data.user.userType,
       child: userResponse.data.user.child,
@@ -96,22 +71,32 @@ const LoginScreen = () => {
 
 
       const profilePicture = userResponse.data.profilePicture;
-      AsyncStorage.setItem('profilePicture', JSON.stringify(profilePicture));     //store profile picture 
+      await AsyncStorage.setItem('profilePicture', JSON.stringify(profilePicture));     //store profile picture 
 
-      await AsyncStorage.setItem(`lastLogin_${user.username}`, JSON.stringify(lastLoginInfo));
+      //await AsyncStorage.setItem(`lastLogin_${user.username}`, JSON.stringify(lastLoginInfo));
+      await AsyncStorage.setItem(`lastLogin`, JSON.stringify(lastLoginInfo));
+
   
       // Navigate based on user type
       if (lastLoginInfo.userType === 'teacher') {
         navigation.navigate('Profiles', { teacherId: lastLoginInfo.teacherId, child: lastLoginInfo.child });
       } else if (lastLoginInfo.userType === 'child') {
         navigation.navigate('Boards', { profileId: lastLoginInfo.child[0] });
-      } else {
-        console.log("Offline");
-      }
+      } 
+      //Delete entered login details
+      setUsername('');
+      setPassword('');
+      
+    } else {
+      console.log("Offline");
     }
   } catch (error) {
       setInvalidLoginMessage("פרטי התחברות לא נכונים");
       console.log("Error during login:", error);
+
+      setTimeout(() => {
+        setInvalidLoginMessage('');
+      }, 3000);
     }
   };
 
@@ -210,7 +195,7 @@ const loginStyles = StyleSheet.create({
   logoImg: {
     width: 800, // Set the width to your preferred smaller size
     height:120, // Set the height to your preferred smaller size
-    marginBottom: 30, // Add margin at the bottom to create space
+    marginBottom: 10, // Add margin at the bottom to create space
   },
 
 

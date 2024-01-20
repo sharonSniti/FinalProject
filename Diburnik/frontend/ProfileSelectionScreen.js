@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { View, Text, TouchableOpacity, Image, Modal, TextInput, Button, StyleSheet ,ScrollView  } from 'react-native';
 import axios from 'axios';
 import config from './config';
-import { fetchOfflineData, fetchOnlineData } from './utils';
+import { fetchOfflineData, fetchOnlineData, checkOnlineStatus } from './utils';
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
 import NetInfo from '@react-native-community/netinfo';
@@ -19,8 +19,8 @@ const ProfileSelectionScreen = ({ route, navigation }) => {
   const [errorMessage, setErrorMessage] = useState(''); 
   const [selectedProfiles, setSelectedProfiles] = useState([]);
   const [editMode, setEditMode] = useState(false);
+  const [isOnline, setIsOnline] = useState(false);
 
-  const isOnline  = NetInfo.fetch().then((state) => state.isConnected);
 
 
   useEffect(() => {
@@ -41,6 +41,7 @@ const ProfileSelectionScreen = ({ route, navigation }) => {
           }));
           setProfiles(profilesData);
         }
+        checkOnlineStatus().then((status) => {setIsOnline(status);});         //Check online status and keep it updated
 
         if(isOnline)
           onlineData = await fetchOnlineData(`offlineProfiles`, `${teacherId}`, 'children', { child: child });
@@ -60,7 +61,7 @@ const ProfileSelectionScreen = ({ route, navigation }) => {
         console.log('Error fetching profiles:', error);
       }
     })();
-  }, [child]);
+  }, [child,isOnline]);
 
 
   const handleProfileSelect = (profileId) => {
@@ -247,7 +248,7 @@ const ProfileSelectionScreen = ({ route, navigation }) => {
           </TouchableOpacity>
         </>
       )}
-      <Modal visible={isSearchMenuVisible} animationType="slide">
+      <Modal visible={isSearchMenuVisible} animationType="slide" transparent>
         <View style={styles.modalContainer}>
           <Text style={styles.modalTitle}>Search and Add Child</Text>
           {/* Add search input fields for child's email or username */}
@@ -275,7 +276,8 @@ const ProfileSelectionScreen = ({ route, navigation }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 20,
+    paddingTop: 40,
+    paddingHorizontal : 10,
   },
   title: {
     fontSize: 24,
@@ -319,6 +321,7 @@ const styles = StyleSheet.create({
     color: 'white',
   },
   modalContainer: {
+    backgroundColor: 'rgba(255, 255, 255, 0.93)', // Use an off-white color with some transparency
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
