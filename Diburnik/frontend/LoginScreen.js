@@ -57,7 +57,7 @@ const LoginScreen = () => {
         },
       });
 
-      // Store last login information for future feature of remember login
+      // Store last login information for remember login
       const lastLoginInfo = {
       userType: userResponse.data.user.userType,
       child: userResponse.data.user.child,
@@ -68,10 +68,12 @@ const LoginScreen = () => {
         if (teacherIdResponse.status === 200) 
           lastLoginInfo.teacherId = teacherIdResponse.data.teacherId;
       }
-
-
-      const profilePicture = userResponse.data.profilePicture;
-      await AsyncStorage.setItem('profilePicture', JSON.stringify(profilePicture));     //store profile picture 
+ 
+      else { 
+        const profilePicture = userResponse.data.profilePicture;
+        // console.log('profilePicture in storage is ', await AsyncStorage.getItem('profilePicture'));
+        await AsyncStorage.setItem('profilePicture', JSON.stringify(profilePicture));     //store profile picture 
+      }
 
       //await AsyncStorage.setItem(`lastLogin_${user.username}`, JSON.stringify(lastLoginInfo));
       await AsyncStorage.setItem(`lastLogin`, JSON.stringify(lastLoginInfo));
@@ -163,6 +165,7 @@ const loginStyles = StyleSheet.create({
     marginBottom: 10,
     paddingHorizontal: 10,
     backgroundColor: '#ffffff',
+    textAlign: 'left', 
   },
   inputPassword: {
     width: '50%',
@@ -173,6 +176,8 @@ const loginStyles = StyleSheet.create({
     marginBottom: 15,
     paddingHorizontal: 10,
     backgroundColor: '#ffffff',
+    textAlign: 'left', 
+
   },
   button: {
     backgroundColor: '#38BAD7',
@@ -193,25 +198,25 @@ const loginStyles = StyleSheet.create({
     textAlign: 'center',
   },
   logoImg: {
-    width: 800, // Set the width to your preferred smaller size
-    height:120, // Set the height to your preferred smaller size
+    width: 800, 
+    height:120, 
     marginBottom: 10, // Add margin at the bottom to create space
   },
 
 
   fixedImageLeft: {
     position: 'absolute',
-    left: 0, // Adjust the left property to set the distance from the left
-    bottom: 0, // Adjust the bottom property to set the distance from the bottom
-    width: 120, // Set the width to your preferred size
-    height: 90, // Set the height to your preferred size
+    left: 0, 
+    bottom: 0, 
+    width: 120, 
+    height: 90, 
   },
   fixedImageRight: {
     position: 'absolute',
-    right: 0, // Adjust the right property to set the distance from the right
-    bottom: 0, // Adjust the bottom property to set the distance from the bottom
-    width: 200, // Set the width to your preferred size
-    height: 200, // Set the height to your preferred size
+    right: 0, 
+    bottom: 0, 
+    width: 200, 
+    height: 200, 
   }
 });
 

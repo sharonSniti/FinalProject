@@ -4,8 +4,7 @@ import axios from 'axios';
 import { useNavigation } from '@react-navigation/native';
 import { Buffer } from 'buffer'; 
 import config from './config';
-
-import NetInfo from '@react-native-community/netinfo';
+import { RFPercentage, RFValue } from "react-native-responsive-fontsize";
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 
@@ -230,7 +229,7 @@ const BoardsScreen = ({ route }) => {
           <Text style={styles.editButtonText}>{editMode ? '✅' : '✏️'}</Text>
         </TouchableOpacity>
   
-        {editMode && selectedBoards.length > 0 && (
+        {editMode && selectedBoards?.length > 0 && (
           <TouchableOpacity
             style={styles.deleteButton}
             onPress={() =>
@@ -260,7 +259,7 @@ const BoardsScreen = ({ route }) => {
             {newBoardImage && (
               <Image
                 source={{ uri: newBoardImage.uri }}
-                style={styles.boardImage}
+                style={styles.boardImagePreview}
               />
             )}
             {/* End of image selection UI */}
@@ -280,7 +279,7 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    paddingTop: 40,
+    paddingTop: 20,
   },
   title: {
     fontSize: 20,
@@ -290,15 +289,19 @@ const styles = StyleSheet.create({
   boardContainer: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    justifyContent: 'flex-end',
+    justifyContent: 'center', 
     marginBottom: 20,
   },
    // The base of the board , the image and title will add on it
   board: {
-    width: 140,
-    height: 140,
+    // width: 140,
+    // height: 140,
+    width: RFValue(100),
+    height: RFValue(100),
+    //width: RFPercentage(15),
+    //height: RFPercentage(15),
     backgroundColor: 'lightblue',
-    margin: 23,
+    margin: RFValue(10),
     borderRadius: 10,
     borderWidth: 3,
     borderColor: '#B9C4D1', 
@@ -307,16 +310,15 @@ const styles = StyleSheet.create({
     position: 'absolute',
     bottom: 0,
     width: '100%',
-    height: 35,
+    height: RFPercentage(3),
     backgroundColor: '#6EC5F8',
     borderBottomLeftRadius: 8,  
     borderBottomRightRadius: 8,
   },
   categoryText: {
-  fontSize: 17,
-  marginTop: 'auto',  // Set marginTop to 'auto' to push it to the bottom
-  width: 130,
-  textAlign: 'center', 
+    fontSize: RFValue(15),
+    marginTop: 'auto',  // Set marginTop to 'auto' to push it to the bottom
+    textAlign: 'center', 
   },
   addButton: {
     position: 'absolute',
@@ -351,9 +353,16 @@ const styles = StyleSheet.create({
   boardImage: {
     position: 'absolute',
     width: '100%',
-    height: 99,
+    height: '85%',
     borderTopLeftRadius: 8,  
     borderTopRightRadius: 8,  
+  },
+  boardImagePreview: {
+    width: 140,
+    height: 140,
+    resizeMode: 'cover',
+    borderRadius: 10,
+    marginTop: 23,
   },
   selectImageText: {
     color: 'blue',

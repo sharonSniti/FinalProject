@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, Image } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, Image, ScrollView } from 'react-native';
 import { CheckBox } from 'react-native-elements';
 import { useNavigation } from '@react-navigation/native';
 import axios from 'axios';
@@ -48,7 +48,11 @@ const RegisterScreen = () => {
     if (userType === 'child') {
       formData.append('firstName', firstName);
       formData.append('lastName', lastName);
-}
+    } else {                                              // Also prevents non related to teacher data to add to the form 
+      formData.append('firstName', '');
+      formData.append('lastName', '');
+      setNewProfileImage('');
+    }
 
 
     addAndUploadData(formData, newProfileImage, 'users')
@@ -93,97 +97,94 @@ const RegisterScreen = () => {
   };
     
 
-return (
-  <View style={commonStyles.container}>
-    {/* CommonHeader - the app logo */}
-    <CommonHeader showProfilePicture={false} />
-    <Text style={commonStyles.bigTitle}>הרשמה</Text>
-    <TextInput
-      style={[registrationStyles.inputField, { textAlign: 'right' }]}
-      placeholder="שם משתמש"
-      value={username}
-      onChangeText={(text) => setUsername(text)}
-      autoCapitalize="none"
-    />
-    <TextInput
-      style={[registrationStyles.inputField, { textAlign: 'right' }]}
-      placeholder="סיסמה"
-      value={password}
-      onChangeText={(text) => setPassword(text)}
-      secureTextEntry
-    />
-    <TextInput
-      style={[registrationStyles.inputField, { textAlign: 'right' }]}
-      placeholder="אימייל"
-      value={email}
-      onChangeText={(text) => setEmail(text)}
-      autoCapitalize="none"
-    />
-    <CheckBox
-      title="מורה"
-      checked={userType === 'teacher'}
-      onPress={() => setUserType('teacher')}
-      containerStyle={registrationStyles.checkboxContainer}
-    />
-    <CheckBox
-      title="ילד"
-      checked={userType === 'child'}
-      onPress={() => setUserType('child')}
-      containerStyle={registrationStyles.checkboxContainer}
-    />
-    {userType === 'child' && (
-      <>
-        <TextInput
-          style={[registrationStyles.inputField, { textAlign: 'right' }]}
-          placeholder="שם פרטי"
-          value={firstName}
-          onChangeText={(text) => setFirstName(text)}
-        />
-        <TextInput
-          style={[registrationStyles.inputField, { textAlign: 'right' }]}
-          placeholder="שם משפחה"
-          value={lastName}
-          onChangeText={(text) => setLastName(text)}
-        />
-        <TouchableOpacity onPress={handleProfileImagePicker}>
-          <Text style={[registrationStyles.selectProfileImageText, { color: 'blue' }]}>בחר תמונת פרופיל</Text>
-        </TouchableOpacity>
-        {newProfileImage && ( // Check if newProfileImage is not null
-          <Image
-            source={{ uri: newProfileImage.uri }}
-            style={{ width: 100, height: 100, marginBottom: 10 }}
+  return (
+    <ScrollView contentContainerStyle={registrationStyles.scrollContainer} >
+      <CommonHeader showProfilePicture={false} />
+      <Text style={registrationStyles.bigTitle}>הרשמה</Text>
+      <TextInput
+        style={[registrationStyles.inputField, { textAlign: 'right' }]}
+        placeholder="שם משתמש"
+        value={username}
+        onChangeText={(text) => setUsername(text)}
+        autoCapitalize="none"
+      />
+      <TextInput
+        style={[registrationStyles.inputField, { textAlign: 'right' }]}
+        placeholder="סיסמה"
+        value={password}
+        onChangeText={(text) => setPassword(text)}
+        secureTextEntry
+      />
+      <TextInput
+        style={[registrationStyles.inputField, { textAlign: 'right' }]}
+        placeholder="אימייל"
+        value={email}
+        onChangeText={(text) => setEmail(text)}
+        autoCapitalize="none"
+      />
+      <CheckBox
+        title="מורה"
+        checked={userType === 'teacher'}
+        onPress={() => setUserType('teacher')}
+        containerStyle={registrationStyles.checkboxContainer}
+      />
+      <CheckBox
+        title="ילד"
+        checked={userType === 'child'}
+        onPress={() => setUserType('child')}
+        containerStyle={registrationStyles.checkboxContainer}
+      />
+      {userType === 'child' && (
+        <>
+          <TextInput
+            style={[registrationStyles.inputField, { textAlign: 'right' }]}
+            placeholder="שם פרטי"
+            value={firstName}
+            onChangeText={(text) => setFirstName(text)}
           />
-        )}
-      </>
-    )}
-    <TouchableOpacity style={registrationStyles.button} onPress={handleRegistration}>
-      <Text style={registrationStyles.buttonText}>הירשם</Text>
-    </TouchableOpacity>
-    <TouchableOpacity style={registrationStyles.cancelButton} onPress={handleCancel}>
+          <TextInput
+            style={[registrationStyles.inputField, { textAlign: 'right' }]}
+            placeholder="שם משפחה"
+            value={lastName}
+            onChangeText={(text) => setLastName(text)}
+          />
+          <TouchableOpacity onPress={handleProfileImagePicker}>
+            <Text style={[registrationStyles.selectProfileImageText, { color: 'blue' }]}>
+              בחר תמונת פרופיל
+            </Text>
+          </TouchableOpacity>
+          {newProfileImage && (
+            <Image
+              source={{ uri: newProfileImage.uri }}
+              style={registrationStyles.uploadedImageContainer}
+            />
+          )}
+        </>
+      )}
+      <TouchableOpacity style={registrationStyles.button} onPress={handleRegistration}>
+        <Text style={registrationStyles.buttonText}>הירשם</Text>
+      </TouchableOpacity>
+      <TouchableOpacity style={registrationStyles.cancelButton} onPress={handleCancel}>
         <Text style={registrationStyles.cancelButtonText}>ביטול</Text>
       </TouchableOpacity>
-    {registrationMessage ? (
-      <Text style={registrationStyles.registrationMessage}>{registrationMessage}</Text>
-    ) : null}
-
-<Image
-      source={require('./assets/appImages/registrationAvatar.png')}
-      style={{
-        width: 120,
-        height: 170,
-        resizeMode: 'cover',
-        position: 'absolute',
-        top: '70%',  // Adjust the top position to your preference
-        left: '10%',  // Adjust the left position to your preference
-        zIndex: 1,  // Ensure the image is above other elements
-      }}
-    />
-        {/* Fixed image at the left-bottom corner */}
-        <Image source={require('./assets/appImages/bgLeftFlowers.png')} style={registrationStyles.fixedImageLeft} />
-        {/* Fixed image at the right-bottom corner */}
-        <Image source={require('./assets/appImages/bgRightFlowers.png')} style={registrationStyles.fixedImageRight} />
-  </View>
-);
+      {registrationMessage ? (
+        <Text style={registrationStyles.registrationMessage}>{registrationMessage}</Text>
+      ) : null}
+      <Image
+        source={require('./assets/appImages/registrationAvatar.png')}
+        style={registrationStyles.registrationLogo}
+      />
+      <Image
+        source={require('./assets/appImages/bgLeftFlowers.png')}
+        style={registrationStyles.fixedImageLeft}
+      />
+      <Image
+        source={require('./assets/appImages/bgRightFlowers.png')}
+        style={registrationStyles.fixedImageRight}
+      />
+    </ScrollView>
+  );
+  
 };
 
 
@@ -196,12 +197,15 @@ const registrationStyles = StyleSheet.create({
     backgroundColor: '#b8e7d3',
   },
   bigTitle: {
-    fontSize: 30,
-    fontWeight: 'bold',
-    marginBottom: 20,
-    color: '#fcc1ae',
+    fontSize: 38, 
+    color: '#646663',
+    marginBottom: 10, 
+    textAlign: 'center', // Center the text
+
   },
   inputField: {
+    marginLeft: 'auto',
+    marginRight: 'auto',
     width: '50%',
     height: 40,
     borderColor: '#ccc',
@@ -214,7 +218,9 @@ const registrationStyles = StyleSheet.create({
   button: {
     backgroundColor: '#007BFF',
     paddingVertical: 10,
-    paddingHorizontal: 20,
+    marginLeft: 'auto',
+    marginRight: 'auto',
+    width : '20%' ,
     borderRadius: 5,
   },
   buttonText: {
@@ -232,6 +238,9 @@ const registrationStyles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     width: '50%',
+    marginLeft: 'auto',
+    marginRight: 'auto',
+    justifyContent: 'center',
   },
   fixedImageLeft: {
     position: 'absolute',
@@ -251,7 +260,9 @@ const registrationStyles = StyleSheet.create({
     backgroundColor: 'red',
     marginTop: 10,
     paddingVertical: 10,
-    paddingHorizontal: 20,
+    marginLeft: 'auto',
+    marginRight: 'auto',
+    width : '20%' ,
     borderRadius: 5,
   },
   cancelButtonText: {
@@ -260,7 +271,32 @@ const registrationStyles = StyleSheet.create({
     fontWeight: 'bold',
     textAlign: 'center',
   },
-
+  registrationLogo: {
+    width: 120,
+    height: 170,
+    resizeMode: 'cover',
+    position: 'absolute',
+    top: '70%',  // Adjust the top position to your preference
+    left: '10%',  // Adjust the left position to your preference
+    zIndex: 1,  // Ensure the image is above other elements
+  },
+  scrollContainer: {
+    flexGrow: 1,
+    paddingBottom: 20, 
+  },
+  selectProfileImageText: {
+    color: 'blue',
+    textAlign: 'center',
+    fontSize: 16,
+    marginTop: 10, // Adjust the marginTop as needed
+  },
+  uploadedImageContainer: {
+    marginLeft: 'auto',
+    marginRight: 'auto',
+    marginBottom: 10,
+    width: 100,
+    height: 100,
+  },
 });
 
 export default RegisterScreen;
