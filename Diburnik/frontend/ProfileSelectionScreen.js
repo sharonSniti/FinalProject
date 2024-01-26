@@ -187,6 +187,7 @@ const ProfileSelectionScreen = ({ route, navigation }) => {
   return (
     <View style={commonStyles.container}>
       {/* CommonHeader - the app logo */}
+      <CommonHeader showProfilePicture={false} showSettingsIcon={true}/>
       <Text style={commonStyles.bigTitle}>בחר פרופיל משתמש</Text>
       <View style={{ flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between' }}>
         {profiles.map((profile) => (
