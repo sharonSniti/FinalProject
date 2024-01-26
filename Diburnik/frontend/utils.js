@@ -73,7 +73,7 @@ export const handleImagePicker = async (setFunc) => {
         
         //Compress image
         const manipResult = await ImageManipulator.manipulateAsync(localUri, [
-            { resize: { width: 800 } }, // Adjust the width as needed
+            { resize: { width: 200 } }, // Adjust the width as needed
           ], {
             compress: 0.01,
             format: ImageManipulator.SaveFormat.PNG,

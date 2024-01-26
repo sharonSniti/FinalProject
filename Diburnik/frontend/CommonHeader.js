@@ -3,6 +3,7 @@ import { View, Image, StyleSheet, TouchableOpacity ,Text, FlatList} from 'react-
 import ProfilePicture from './ProfilePicture'; 
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useNavigation } from '@react-navigation/native'; 
+import { RFPercentage, RFValue } from "react-native-responsive-fontsize";
 
 const CommonHeader = ({ showProfilePicture = true }) => {
 
@@ -15,7 +16,7 @@ const CommonHeader = ({ showProfilePicture = true }) => {
 
 
   const changeProfile = 'שנה פרופיל';
-
+ 
 
   const navigation = useNavigation(); 
 
@@ -23,30 +24,31 @@ const CommonHeader = ({ showProfilePicture = true }) => {
   useEffect(() => {
     const fetchProfilePicture = async () => {
       try {
-        const storedProfilePictureString = await AsyncStorage.getItem('profilePicture');
-        const storedProfilePicture = JSON.parse(storedProfilePictureString);
+        if (showProfilePicture) {
+          const storedProfilePictureString = await AsyncStorage.getItem('profilePicture');
+          const storedProfilePicture = JSON.parse(storedProfilePictureString);
 
-        // Update the state with the retrieved profile picture
-        setProfilePicture(storedProfilePicture || '');
+          // Update the state with the retrieved profile picture
+          setProfilePicture(storedProfilePicture || '');
 
+          // Also fetch last login details
+          const lastLoginInfoString = await AsyncStorage.getItem(`lastLogin`);
+          const lastLoginInfo = JSON.parse(lastLoginInfoString);
+          setLastLoginInfo(lastLoginInfo);
+          //console.log("Header is fetching profile picture");
 
-        //Also fetch last login details
-        const lastLoginInfoString = await AsyncStorage.getItem(`lastLogin`);
-        const lastLoginInfo = JSON.parse(lastLoginInfoString);
-        setLastLoginInfo(lastLoginInfo);
-
-        // Dynamically update the menu based on userType
-        if (lastLoginInfo.userType === 'teacher') {
-          setMenuItems([...menuItems, `${changeProfile}`]);
-}
-
-
+          // update the menu based on userType
+          if (lastLoginInfo.userType === 'teacher') {
+            setMenuItems([...menuItems, `${changeProfile}`]);
+          }
+        }
       } catch (error) {
         console.log('Error fetching profile picture:', error);
       }
     };
     fetchProfilePicture();
-  }, []);
+  }, [showProfilePicture]); 
+
 
   const handleProfilePicturePress = () => {
     setMenuVisible(!menuVisible);
@@ -56,6 +58,7 @@ const CommonHeader = ({ showProfilePicture = true }) => {
     if (menuItem === `${signOut}`) {                  //remove all data when sign out
       const keys = await AsyncStorage.getAllKeys();
       await AsyncStorage.multiRemove(keys);
+      //setProfilePicture('');
       navigation.navigate('Login');
     }
 
@@ -121,8 +124,8 @@ const headerStyles = StyleSheet.create({
     alignItems: 'flex-end',
   },
   logo: {
-    width: 200,
-    height: 100,
+    width: RFValue(150),
+    height: RFValue(100),
   },
 
   menuItem: {

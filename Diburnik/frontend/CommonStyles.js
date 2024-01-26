@@ -11,8 +11,9 @@ export const commonStyles = StyleSheet.create({
     backgroundColor: '#b8e7d3',
   },
   bigTitle: {
-    fontSize: 38, // Adjust the font size as needed
+    paddingTop: 50,
+    fontSize: 38, 
     color: '#646663',
-    marginBottom: 10, // Add margin if needed
+    marginBottom: 10, 
   },
 });

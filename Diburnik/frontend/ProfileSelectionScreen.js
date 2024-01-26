@@ -4,8 +4,7 @@ import axios from 'axios';
 import config from './config';
 import { fetchOfflineData, fetchOnlineData, checkOnlineStatus } from './utils';
 import AsyncStorage from "@react-native-async-storage/async-storage";
-
-import NetInfo from '@react-native-community/netinfo';
+import { RFPercentage, RFValue } from "react-native-responsive-fontsize";
 
 import { commonStyles } from './CommonStyles';
 import CommonHeader from './CommonHeader';
@@ -188,7 +187,6 @@ const ProfileSelectionScreen = ({ route, navigation }) => {
   return (
     <View style={commonStyles.container}>
       {/* CommonHeader - the app logo */}
-      <CommonHeader showProfilePicture={true} />
       <Text style={commonStyles.bigTitle}>בחר פרופיל משתמש</Text>
       <View style={{ flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between' }}>
         {profiles.map((profile) => (
@@ -197,7 +195,6 @@ const ProfileSelectionScreen = ({ route, navigation }) => {
             style={[
               styles.profileItem,
               editMode && profile.isSelected && styles.selectedProfileItem,
-              { marginRight: 29 }
             ]}
             onPress={() => handleProfileSelect(profile._id)}
           >
@@ -250,23 +247,23 @@ const ProfileSelectionScreen = ({ route, navigation }) => {
       )}
       <Modal visible={isSearchMenuVisible} animationType="slide" transparent>
         <View style={styles.modalContainer}>
-          <Text style={styles.modalTitle}>Search and Add Child</Text>
+          <Text style={styles.modalTitle}>חיפוש והוספת פרופיל</Text>
           {/* Add search input fields for child's email or username */}
           <TextInput
             style={styles.input}
-            placeholder="Child's Email"
+            placeholder="חיפוש לפי דואר אלקטרוני"
             onChangeText={(text) => setNewChildEmail(text)}
           />
           <TextInput
             style={styles.input}
-            placeholder="Child's Username"
+            placeholder="חיפוש לפי שם משתמש"
             onChangeText={(text) => setNewChildUsername(text)}
           />
           {errorMessage !== '' && (
             <Text style={styles.errorText}>{errorMessage}</Text>
           )}
-          <Button title="Search and Add Child" onPress={handleSearchChild} />
-          <Button title="Cancel" onPress={toggleSearchMenu} />
+          <Button title="חיפוש" onPress={handleSearchChild} />
+          <Button title="ביטול" onPress={toggleSearchMenu} />
         </View>
       </Modal>
     </View>
@@ -288,11 +285,12 @@ const styles = StyleSheet.create({
   profileItem: {
     alignItems: 'center',
     borderRadius: 80,
-    marginBottom: 40,
-    borderWidth: 7, // Add white border
-    borderColor: '#FBB8A5', // Set border color to white
-    width:150,
-    height:150,
+    marginBottom: RFValue(65),
+    marginRight : RFValue(15),
+    borderWidth: RFValue(4), // Adds border
+    borderColor: '#FBB8A5', // Set border color to pink
+    width: RFValue(85), 
+    height: RFValue(85),
   },
   profileImage: {
     width: '100%',
@@ -304,6 +302,8 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: '#333',
     marginTop: 14,
+    textAlign: 'right',
+    flexWrap: 'wrap',
   },
   addButton: {
     position: 'absolute',
@@ -333,10 +333,12 @@ const styles = StyleSheet.create({
   },
   input: {
     marginBottom: 10,
-    padding: 10,
-    borderWidth: 1,
-    borderColor: 'gray',
-    borderRadius: 5,
+    padding: 15, // Increased padding for more space
+    borderWidth: 2, // Increased border width
+    borderColor: '#3498db', // Blue color for the border
+    borderRadius: 8, // Rounded corners
+    fontSize: 16, 
+    color: '#2c3e50', 
   },
   errorText: {
     color: 'red',
@@ -376,18 +378,24 @@ const styles = StyleSheet.create({
     backgroundColor: 'lightblue',
   },
   checkboxContainer: {
+    position: 'absolute',
+    top: 5, 
+    right: 1,
     width: 30,
     height: 30,
     marginRight: 10,
     alignItems: 'center',
     justifyContent: 'center',
+    zIndex: 1, // Set a higher zIndex value to ensure it's on top
+
   },
   checkbox: {
-    width: 20,
-    height: 20,
+    width: RFValue(13),
+    height: RFValue(13),
     borderRadius: 5,
     borderWidth: 1,
     borderColor: 'black',
+    backgroundColor: 'white', 
   },
   checkedCheckbox: {
     backgroundColor: 'blue',

@@ -7,7 +7,7 @@ import * as Speech from 'expo-speech';
 import config from './config';
 import { handleImagePicker, addAndUploadData, fetchOnlineData, fetchOfflineData, checkOnlineStatus } from './utils';
 import { pictogramSearch, downloadImage, deleteLocalImage,pictogramPartOfSpeech } from './utils';
-import NetInfo from '@react-native-community/netinfo';
+import { RFPercentage, RFValue } from "react-native-responsive-fontsize";
 import CommonHeader from './CommonHeader';
 import Color from 'color';
 import DropDownPicker from 'react-native-dropdown-picker';
@@ -415,8 +415,7 @@ const WordsScreen = ({ route }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 20,
-    marginTop: 20,  // margin to create space for bar above
+    paddingHorizontal: 20,
     marginBottom: 20,  // Add marginBottom to create space at the bottom
 
   },
@@ -446,6 +445,8 @@ const styles = StyleSheet.create({
   wordImage: {
     width: 110,
     height: 110,
+    // width: RFValue(50),
+    // height: RFValue(50),
     resizeMode: 'cover',
     borderRadius: 10,
     marginTop: 23,
@@ -453,6 +454,8 @@ const styles = StyleSheet.create({
   wordSquare: {
     width: 150,
     height: 150,
+    // width: RFValue(95),
+    // height: RFValue(95),
     justifyContent: 'center',
     alignItems: 'center',
     margin: 10,
@@ -467,6 +470,7 @@ const styles = StyleSheet.create({
   
   wordText: {
     fontSize: 28,
+    //fontSize: RFValue(20),
     paddingBottom: 18,
   },
   addButton: {
