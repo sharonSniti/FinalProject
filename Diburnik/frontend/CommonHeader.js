@@ -9,6 +9,7 @@ const CommonHeader = ({ showProfilePicture = true, showSettingsIcon = false }) =
 
   const [profilePicture, setProfilePicture] = useState('');
   const [menuVisible, setMenuVisible] = useState(false);
+  const [lastLoginInfo, setLastLoginInfo] = useState('');
   const [settingsMenuVisible, setSettingsMenuVisible] = useState(false);
 
   const signOut = 'התנתק';
@@ -66,6 +67,10 @@ const CommonHeader = ({ showProfilePicture = true, showSettingsIcon = false }) =
       await AsyncStorage.multiRemove(keys);
       //setProfilePicture('');
       navigation.navigate('Login');
+    }
+
+    if (menuItem === `${changeProfile}` && lastLoginInfo.userType === 'teacher') {
+        navigation.navigate('Profiles', { teacherId: lastLoginInfo.teacherId, child: lastLoginInfo.child });
     }
       // Close the menu
     setMenuVisible(false);
