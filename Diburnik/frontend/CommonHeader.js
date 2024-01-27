@@ -5,7 +5,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useNavigation } from '@react-navigation/native'; 
 import { RFPercentage, RFValue } from "react-native-responsive-fontsize";
 
-const CommonHeader = ({ showProfilePicture = true, showSettingsIcon = false }) => {
+const CommonHeader = ({ showProfilePicture = true, showSettingsIcon = false}) => {
 
   const [profilePicture, setProfilePicture] = useState('');
   const [menuVisible, setMenuVisible] = useState(false);
@@ -22,6 +22,7 @@ const CommonHeader = ({ showProfilePicture = true, showSettingsIcon = false }) =
   const settingsMenuItems = [`${enterEditMode}`];  
 
   const navigation = useNavigation(); 
+  
 
 
   useEffect(() => {
@@ -78,7 +79,7 @@ const CommonHeader = ({ showProfilePicture = true, showSettingsIcon = false }) =
 
   const handleSettingsMenuItemPress = async (settingsMenuItem) => {
     if (settingsMenuItem === `${enterEditMode}`) { 
-      document.body.style.backgroundColor = '#ADD8E6';
+      
       }
   };
 
