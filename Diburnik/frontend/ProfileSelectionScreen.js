@@ -20,6 +20,7 @@ const ProfileSelectionScreen = ({ route, navigation }) => {
   const [editMode, setEditMode] = useState(false);
   const [isOnline, setIsOnline] = useState(false);
 
+  const [backgroundColor,setBackgroundColor] = useState('');
 
 
   useEffect(() => {
@@ -55,12 +56,11 @@ const ProfileSelectionScreen = ({ route, navigation }) => {
           setProfiles(profilesData);
         }
 
-
       } catch (error) {
         console.log('Error fetching profiles:', error);
       }
     })();
-  }, [child,isOnline]);
+  }, [child, isOnline]);
 
 
   const handleProfileSelect = (profileId) => {
@@ -95,6 +95,7 @@ const ProfileSelectionScreen = ({ route, navigation }) => {
 
   const handleEdit = () => {
     setEditMode(!editMode);
+    setBackgroundColor(editMode ? '#b8e7d3' : '#fee5ce');     //changing background color in edit mode
     setSelectedProfiles([]); // Clear selected profiles when toggling edit mode
 
   const updatedProfiles = profiles.map((profile) => ({ ...profile, isSelected: false }));   //update the cleared profiles
@@ -185,11 +186,24 @@ const ProfileSelectionScreen = ({ route, navigation }) => {
 
 
   return (
-    <View style={commonStyles.container}>
+    <View style={[styles.container, { backgroundColor: backgroundColor }]}>
       {/* CommonHeader - the app logo */}
       <CommonHeader showProfilePicture={false} showSettingsIcon={true}/>
       <Text style={commonStyles.bigTitle}>בחר פרופיל משתמש</Text>
-      <View style={{ flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between' }}>
+      <View style={styles.profilesContainer}>
+        {editMode && (
+          /* Blank profile for adding a new profiles */
+          <TouchableOpacity
+            style={[
+              styles.profileItem,
+              styles.blankProfile,
+            ]}
+            onPress={() => handleAddProfile()}
+          >
+            <Text style={styles.blankProfileText}>+</Text>
+          </TouchableOpacity>
+        )}
+         {/* Profiles rendering */}
         {profiles.map((profile) => (
           <TouchableOpacity
             key={profile._id}
@@ -217,11 +231,11 @@ const ProfileSelectionScreen = ({ route, navigation }) => {
             </Text>
           </TouchableOpacity>
         ))}
-        </View>
+      </View>
       <TouchableOpacity 
         style={[styles.addButton, !isOnline && styles.disabledButton]}
         onPress={() => isOnline && handleAddProfile()}
-        >
+      >
         <Text style={styles.addButtonText}>+</Text>
       </TouchableOpacity>
       <TouchableOpacity 
@@ -274,14 +288,20 @@ const ProfileSelectionScreen = ({ route, navigation }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    paddingTop: 40,
-    paddingHorizontal : 10,
+    justifyContent: 'top',
+    alignItems: 'center',
+    padding: 10,
+    backgroundColor: '#b8e7d3',
   },
   title: {
     fontSize: 24,
     fontWeight: 'bold',
     marginBottom: 20,
     textAlign: 'center',
+  },
+  profilesContainer: {
+    flexDirection: 'row-reverse', 
+    justifyContent: 'flex-start', 
   },
   profileItem: {
     alignItems: 'center',
@@ -334,9 +354,9 @@ const styles = StyleSheet.create({
   },
   input: {
     marginBottom: 10,
-    padding: 15, // Increased padding for more space
-    borderWidth: 2, // Increased border width
-    borderColor: '#3498db', // Blue color for the border
+    padding: 15, 
+    borderWidth: 2, 
+    borderColor: '#3498db', 
     borderRadius: 8, // Rounded corners
     fontSize: 16, 
     color: '#2c3e50', 
@@ -415,8 +435,25 @@ const styles = StyleSheet.create({
     marginRight: 10, // Add margin to separate buttons
   },
   disabledButton: {
-    opacity: 0.5, // Set the opacity for disabled buttons
+    opacity: 0.5,     // Set the opacity for disabled buttons
     backgroundColor: '#CCCCCC', // Set a grey background color for disabled buttons
+  },
+  blankProfile: {
+    backgroundColor: 'lightgray', 
+    alignItems: 'center',
+    borderRadius: 80,
+    marginBottom: RFValue(65),
+    marginRight : RFValue(15),
+    borderWidth: RFValue(4),
+    borderColor: '#FBB8A5',
+    width: RFValue(85),
+    height: RFValue(85),
+    justifyContent: 'center', 
+  },
+  blankProfileText: {
+    fontSize: RFValue(50),
+    color: 'white',
+    paddingBottom: 5,
   },
 });
 
