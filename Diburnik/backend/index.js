@@ -211,7 +211,7 @@ app.post("/users/add", upload.single('image'), async (req, res) => {
 
 
 app.post('/words/add', upload.single('image'), async (req, res) => {
-  const { boardId, text , partOfSpeech } = req.body;
+  const { boardId, text , color } = req.body;
 
   try {
     // Find the board by ID
@@ -223,7 +223,7 @@ app.post('/words/add', upload.single('image'), async (req, res) => {
 
     const newWord = new Word({
       text,
-      partOfSpeech,
+      color,
     });
 
     if (req.file) {

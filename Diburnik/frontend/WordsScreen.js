@@ -22,6 +22,7 @@ const WordsScreen = ({ route }) => {
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [newWordText, setNewWordText] = useState('');
   const [newWordImage, setNewWordImage] = useState('');
+  const [wordColor, setWordColor] = useState('#FFFFFF');
   const [partOfSpeechTag, setPartOfSpeechTag] = useState('');
   const navigation = useNavigation();
   const [selectedSentence, setSelectedSentence] = useState([]);
@@ -29,12 +30,32 @@ const WordsScreen = ({ route }) => {
   const [selectedWords, setSelectedWords] = useState([]);
   const [loading, setLoading] = useState(true);
   const [isOnline, setIsOnline] = useState(false);
-  const [isPartOfSpeechPickerOpen, setIsPartOfSpeechPickerOpen] = useState(false);
+  const [isColorPickerOpen, setIsColorPickerOpen] = useState(false);
   const [searchResults, setSearchResults] = useState([]);
   const { width } = useWindowDimensions();
   const numColumns = Math.floor(width / 200); // Number of columns according to screen width
   const [errorMessage, setErrorMessage] = useState('');
 
+  //const colorPalette = ['#ff9800', '#faeb90', '#1bde5d', '#f4a3a0', '#bdb9de'];
+  const colorPalette = [
+    { label: 'Orange', value: '#ff9800' },
+    { label: 'Light Yellow', value: '#faeb90' },
+    { label: 'Green', value: '#1bde5d' },
+    { label: 'Light Pink', value: '#f4a3a0' },
+    { label: 'Light Purple', value: '#bdb9de' },
+  ];
+
+
+    // Group words by color
+  const groupedWords = words.reduce((acc, word) => {
+    const colorGroup = acc.find(group => group.color === word.color);
+    if (colorGroup) {
+      colorGroup.words.push(word);
+    } else {
+      acc.push({ color: word.color, words: [word] });
+    }
+    return acc;
+  }, []);
 
   useEffect(() => {
     (async () => {
@@ -131,7 +152,8 @@ const WordsScreen = ({ route }) => {
         const formData = new FormData();
         formData.append('boardId', boardId); 
         formData.append('text', newWordText);
-        formData.append('partOfSpeech',partOfSpeechTag);
+        formData.append('color', wordColor);
+        //formData.append('partOfSpeech',partOfSpeechTag);
         const response = await addAndUploadData(formData,{ uri: newWordImage },'words');
 
         const newWord = response.data;
@@ -142,6 +164,7 @@ const WordsScreen = ({ route }) => {
         setWords([...words, newWord]);
         setNewWordText('');
         setNewWordImage('');
+        setWordColor('#FFFFFF')
         setIsModalVisible(false);
       } catch (error) {
         console.log('Error creating word:', error);
@@ -207,22 +230,13 @@ const WordsScreen = ({ route }) => {
   };
 
 
-  const getBackgroundColor = (partOfSpeech) => {
-    // You can customize this function to return different colors based on the partOfSpeech value
-    switch (partOfSpeech) {
-      case 'adjective':
-        return 'lightgreen';
-      case 'verb':
-        return '#FFCCCC'; // light red
-      // Add more cases for other partOfSpeech values
-      default:
-        return '#FFFFFF'; // default color, white
-      }
-  };
+
+
+
 
   return (
     <View style={styles.container}>
-     <CommonHeader />
+     <CommonHeader style={StyleSheet.container} />
       {/* Sentence Bar and Speaking Icon outside ScrollView */}
       <View style={styles.sentenceAndSpeakContainer}>
         {/* Sentence Bar */}
@@ -247,22 +261,22 @@ const WordsScreen = ({ route }) => {
       </View>
 
       {/* ScrollView for Words */}
-      <ScrollView contentContainerStyle={styles.scrollViewContent}>
-        <Text style={styles.title}>המילים שלי</Text>
-
+      <ScrollView contentContainerStyle={styles.scrollViewContent}   horizontal={true}>
         {loading ? (
         <ActivityIndicator size="large" color="#0000ff" />
       ) : (
         <View style={styles.wordsContainer}>
-          {words?.map((word) => (
+        {groupedWords.map(group => (
+          group.words.map(word => (
             <TouchableOpacity
               key={word._id}
               style={[
                 styles.wordSquare,
                 editMode && word.isSelected && styles.selectedWord,
-                { backgroundColor: getBackgroundColor(word.partOfSpeech),
-                  borderColor: Color(getBackgroundColor(word.partOfSpeech)).darken(0.2).hex(),
-                }, // dynamic background color
+                {
+                  backgroundColor: word.color,
+                  borderColor: Color(word.color).darken(0.2).hex(),
+                },
               ]}
               onPress={() => handleWordPress(word)}
             >
@@ -288,8 +302,9 @@ const WordsScreen = ({ route }) => {
               )}
               <Text style={styles.wordText}>{word.text}</Text>
             </TouchableOpacity>
-          ))}
-        </View>
+          ))
+        ))}
+      </View>
         )}
       </ScrollView>
 
@@ -330,7 +345,17 @@ const WordsScreen = ({ route }) => {
           placeholder=" הכנס מילה לחיפוש"
           placeholderTextColor="gray" 
         />
-
+      {/*
+        <View style={styles.colorButtonsContainer}>
+            {colorPalette.map((color, index) => (
+              <TouchableOpacity
+                key={index}
+                style={[styles.colorButton, { backgroundColor: color }]}
+                onPress={() => setWordColor(color)}
+              />
+            ))}
+        </View>
+      */}
         
         <Button title="חפש" onPress={handleSearch} />
 
@@ -347,8 +372,9 @@ const WordsScreen = ({ route }) => {
               onPress={async() => {
                 const id = item.substring(item.lastIndexOf('/') + 1); // Extract ID from the URL
                 console.log("id = ", id);
+                {/* 
                 setPartOfSpeechTag(await pictogramPartOfSpeech(id));
-                console.log("partOfSpeechTag = ", partOfSpeechTag);
+                */}
 
                 downloadImage(item).then((uri) => {     
                   setNewWordImage(uri);
@@ -372,23 +398,24 @@ const WordsScreen = ({ route }) => {
     {newWordImage && (
       <>
         <Image source={{ uri: newWordImage }} style={styles.wordImage} />
-        <DropDownPicker
-          open={isPartOfSpeechPickerOpen}
-          value={partOfSpeechTag}
-          items={[
-            { label: 'שם עצם', value: 'noun', color: 'lightgreen' },
-            { label: 'פועל', value: 'verb', color: '#FFCCCC' },
-            { label: 'שם תואר', value: 'adjective', color: '#FFFFFF' },
-          ]}
-          setOpen={setIsPartOfSpeechPickerOpen}
-          setValue={setPartOfSpeechTag}
-          setItems={() => {}}
-          selectedItemContainerStyle={{
-            backgroundColor: "grey"
-         }}
-         style={styles.partOfSpeechPicker}
-
-        />
+        
+        <View style={styles.colorPickerContainer}>
+        <Text style={styles.colorPickerLabel}>בחר צבע:</Text>
+        <View style={styles.colorPicker}>
+          {colorPalette.map((colorItem, index) => (
+            <TouchableOpacity
+              key={index}
+              style={[
+                styles.colorPickerOption,
+                { backgroundColor: colorItem.value },
+                wordColor === colorItem.value && styles.selectedColorOption,
+              ]}
+              onPress={() => setWordColor(colorItem.value)}
+            />
+          ))}
+        </View>
+      </View>
+        
       </>
     )}
     {/* End of image selection UI */}
@@ -433,32 +460,34 @@ const styles = StyleSheet.create({
     alignSelf: 'center',  
   },
   scrollViewContent: {
-    paddingBottom: 100, 
+    //paddingBottom: 100, 
+    direction: 'rtl',
+    flexGrow: 1,
   },
   wordsContainer: {
-    flexDirection: 'row',
+    flexDirection: 'column',
     flexWrap: 'wrap',
-    justifyContent: 'center',
     marginBottom: 20,
     marginTop: 10,  // Add marginTop to create space at the top
+
   },
   wordImage: {
-    width: 110,
-    height: 110,
-    // width: RFValue(50),
-    // height: RFValue(50),
+    //width: 110,
+    //height: 110,
+    width: RFValue(55),
+    height: RFValue(55),
     resizeMode: 'cover',
     borderRadius: 10,
     marginTop: 23,
   },
   wordSquare: {
-    width: 150,
-    height: 150,
-    // width: RFValue(95),
-    // height: RFValue(95),
+    //width: 150,
+    //height: 150,
+    width: RFValue(77),
+    height: RFValue(77),
     justifyContent: 'center',
     alignItems: 'center',
-    margin: 10,
+    margin: 2,
     borderRadius: 20,
     borderWidth: 4,
     shadowColor: '#000',
@@ -466,11 +495,13 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.5,
     shadowRadius: 2,
     elevation: 2, // This property is for Android shadow
+    alignSelf: 'flex-end', // Align each word square to the right
+
   },
   
   wordText: {
-    fontSize: 28,
-    //fontSize: RFValue(20),
+    //fontSize: 28,
+    fontSize: RFValue(17),
     paddingBottom: 18,
   },
   addButton: {
@@ -483,6 +514,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     borderRadius: 30,
+    marginBottom: -20, // moves the button down
   },
   addButtonText: {
     fontSize: 40,
@@ -521,6 +553,8 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     borderRadius: 30,
+    marginBottom: -20, // moves the button down
+
   },
   editButtonText: {
     fontSize: 30,
@@ -536,6 +570,8 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     borderRadius: 30,
+    marginBottom: -20, // moves the button down
+
   },
   
   deleteButtonText: {
@@ -564,7 +600,7 @@ const styles = StyleSheet.create({
   sentenceAndSpeakContainer: {
     flexDirection: 'row-reverse',
     minHeight: 50,
-    marginBottom: 20,
+    //marginBottom: 5,
     justifyContent: 'space-between',
   },
   sentenceBar: {
@@ -617,7 +653,7 @@ const styles = StyleSheet.create({
     flexGrow: 1,
     justifyContent: 'center',
   },
-  partOfSpeechPicker: {
+  colorPicker: {
     textAlign: 'right',
     width: 200,
     height: 40,
@@ -627,6 +663,40 @@ const styles = StyleSheet.create({
   errorMessageText: {
     color: 'red',
     fontSize: 16,
+  },
+  colorPaletteContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginTop: 10,
+  },
+  colorButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+  },
+  colorPickerContainer: {
+    marginBottom: 10,
+  },
+  colorPickerLabel: {
+    fontSize: 16,
+    textAlign: 'right',
+  },
+  colorPicker: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginTop: 5,
+  },
+  colorPickerOption: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    borderWidth: 2,
+    borderColor: '#FFF',
+    marginHorizontal: 5,
+  },
+  selectedColorOption: {
+    borderWidth: 3,
+    borderColor: '#3498db', // Highlight color for the selected option
   },
   
 });
