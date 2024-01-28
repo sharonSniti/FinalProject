@@ -9,9 +9,6 @@ import { RFPercentage, RFValue } from "react-native-responsive-fontsize";
 import { commonStyles } from './CommonStyles';
 import CommonHeader from './CommonHeader';
 
-import { useNavigation } from '@react-navigation/native';
-
-
 const ProfileSelectionScreen = ({ route, navigation }) => {
   const { teacherId, child } = route.params;
   const [profiles, setProfiles] = useState([]);
@@ -23,15 +20,7 @@ const ProfileSelectionScreen = ({ route, navigation }) => {
   const [editMode, setEditMode] = useState(false);
   const [isOnline, setIsOnline] = useState(false);
 
-  const [bgColor, setBgColor] = useState('white');
 
-//The 'useNavigation' hook allows to navigate between screens
-  const navigation2 = useNavigation(); 
-
-  const handleButtonPress = () => {
-    const randomColor = '#' + Math.floor(Math.random()*16777215).toString(16);
-    setBgColor(randomColor);
-  };
 
   useEffect(() => {
     (async () => {
@@ -167,9 +156,7 @@ const ProfileSelectionScreen = ({ route, navigation }) => {
     });
   };
 
-  const handleProfileSelection = () => {
-    navigation2.navigate('RegisterScreen'); // Navigate to ProfileSelectionScreen
-  };
+
 
 
   const handleDeleteProfile = async (profileIds) => {
@@ -192,13 +179,16 @@ const ProfileSelectionScreen = ({ route, navigation }) => {
     }
   };
   
+
+
+
+
+
   return (
     <View style={commonStyles.container}>
-      {/* CommonHeader - the app logo , profile pictue , settings icon */}
+      {/* CommonHeader - the app logo */}
       <CommonHeader showProfilePicture={false} showSettingsIcon={true}/>
       <Text style={commonStyles.bigTitle}>בחר פרופיל משתמש</Text>
-      <Button title="Go to Profile Selection"
-      onPress={() => navigation.navigate('EditProfiles')}/>
       <View style={{ flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between' }}>
         {profiles.map((profile) => (
           <TouchableOpacity
