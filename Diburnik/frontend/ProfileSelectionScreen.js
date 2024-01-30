@@ -339,9 +339,10 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   profilesContainer: {
-    flex: 1,
-    flexDirection: 'row', // Change to 'row' to keep items in a row
-    justifyContent: 'flex-end', // Change to 'flex-end' to align items to the right
+    flexDirection: 'row-reverse', 
+    justifyContent: 'flex-start', 
+    flexWrap: 'wrap',
+
   },
   profileItem: {
     alignItems: 'center',

@@ -26,6 +26,9 @@ const BoardsScreen = ({ route }) => {
   const [loading, setLoading] = useState(true);
   const [isOnline, setIsOnline] = useState(false);
 
+  const [backgroundColor,setBackgroundColor] = useState('');
+
+
   useEffect(() => {
     (async () => {
       try {
@@ -126,6 +129,7 @@ const BoardsScreen = ({ route }) => {
 
   const handleEdit = () => {
     setEditMode(!editMode);
+    setBackgroundColor(editMode ? '#b8e7d3' : '#fee5ce');     //changing background color in edit mode
     setSelectedBoards([]); // Clear selected boards when toggling edit mode
 
     const updatedBoards = boards.map((board) => ({ ...board, isSelected: false }));
@@ -157,8 +161,7 @@ const BoardsScreen = ({ route }) => {
 
 
   return (
-    <View style={styles.container}>
-      <View style={commonStyles.container}>
+    <View style={[styles.container, { backgroundColor: backgroundColor }]}>
         {/* CommonHeader - the app logo */}
         <CommonHeader showProfilePicture={true} />
   
@@ -269,7 +272,6 @@ const BoardsScreen = ({ route }) => {
           </View>
         </Modal>
       </View>
-    </View>
   );
 };
   
@@ -280,6 +282,8 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     paddingTop: 20,
+    paddingHorizontal: 5,
+
   },
   title: {
     fontSize: 20,

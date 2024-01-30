@@ -130,7 +130,7 @@ export const fetchOnlineData = async (key,parentTypeId,url,params = null) => {
     //console.log(`setting item to: ${key}_${parentTypeId}`);
     return res;
   } catch (error) {
-    console.log('Error fetching words from server:', error);
+    console.log('Error fetching data from server:', error);
   }
 };
 
