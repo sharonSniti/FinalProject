@@ -22,6 +22,8 @@ const ProfileSelectionScreen = ({ route, navigation }) => {
 
   const [backgroundColor,setBackgroundColor] = useState('');
 
+  //State variable to track image visibility
+  const [imageVisible, setImageVisible] = useState(false);
 
   useEffect(() => {
     (async () => {
@@ -93,10 +95,12 @@ const ProfileSelectionScreen = ({ route, navigation }) => {
     setIsSearchMenuVisible(!isSearchMenuVisible);
   };
 
+  /*handleEdit - what to change in 'Edit' mode*/
   const handleEdit = () => {
     setEditMode(!editMode);
-    setBackgroundColor(editMode ? '#b8e7d3' : '#fee5ce');     //changing background color in edit mode
+    setBackgroundColor(editMode ? '#b8e7d3' : '#fee5ce');//Changing background color in edit mode
     setSelectedProfiles([]); // Clear selected profiles when toggling edit mode
+    setImageVisible(editMode); // Set image visibility based on edit mode
 
   const updatedProfiles = profiles.map((profile) => ({ ...profile, isSelected: false }));   //update the cleared profiles
   setProfiles(updatedProfiles);
@@ -157,9 +161,6 @@ const ProfileSelectionScreen = ({ route, navigation }) => {
     });
   };
 
-
-
-
   const handleDeleteProfile = async (profileIds) => {
     try {
 
@@ -179,6 +180,11 @@ const ProfileSelectionScreen = ({ route, navigation }) => {
       console.error('Error deleting profile:', error);
     }
   };
+
+    //Function to toggle image visibility
+    const toggleImageVisibility = () => {
+      setImageHidden(!imageHidden); 
+  };
   
 
 
@@ -188,8 +194,26 @@ const ProfileSelectionScreen = ({ route, navigation }) => {
   return (
     <View style={[styles.container, { backgroundColor: backgroundColor }]}>
       {/* CommonHeader - the app logo */}
-      <CommonHeader showProfilePicture={false} showSettingsIcon={true}/>
-      <Text style={commonStyles.bigTitle}>בחר פרופיל משתמש</Text>
+      <CommonHeader showProfilePicture={true} showSettingsIcon={true}/>
+      {editMode && (
+        <View style={styles.topLeft}>
+             <Image
+              source={require('./assets/appImages/editMode1.png')}
+              style={{ width: 200, height: 200}}/>
+        </View>
+        
+      )}
+       {editMode && (
+        <View style={styles.bottomRight}>
+              <Image
+              source={require('./assets/appImages/editMode2.png')}
+              style={{ width: 300, height: 300}}/>
+        </View>
+        
+      )}
+      <Text style={[commonStyles.bigTitle, { textAlign: 'center' }]}>
+      {editMode ? 'ערוך פרופילים' : 'בחר פרופיל משתמש'}
+      </Text>
       <View style={styles.profilesContainer}>
         {editMode && (
           /* Blank profile for adding a new profiles */
@@ -201,6 +225,22 @@ const ProfileSelectionScreen = ({ route, navigation }) => {
             onPress={() => handleAddProfile()}
           >
             <Text style={styles.blankProfileText}>+</Text>
+          </TouchableOpacity>
+        )}
+        {editMode && (
+          /* exit Edit mode button */
+          <TouchableOpacity
+            style={[
+              styles.profileItem,
+              styles.exitEditMode,
+            ]}
+            onPress={() => {
+              setEditMode(false); // Set editMode to false
+              handleEdit(); // Call handleEdit function
+            }}
+          >
+             <Image source={require('./assets/appImages/exitEditMode.png')}
+              style={{ width: 76, height: 76, padding: 20 }} />
           </TouchableOpacity>
         )}
          {/* Profiles rendering */}
@@ -289,7 +329,6 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     justifyContent: 'top',
-    alignItems: 'center',
     padding: 10,
     backgroundColor: '#b8e7d3',
   },
@@ -446,8 +485,20 @@ const styles = StyleSheet.create({
     borderRadius: 80,
     marginBottom: RFValue(65),
     marginRight : RFValue(15),
-    borderWidth: RFValue(4),
-    borderColor: '#FBB8A5',
+    borderWidth: RFValue(2),
+    borderColor: 'white',
+    width: RFValue(85),
+    height: RFValue(85),
+    justifyContent: 'center', 
+  },
+  exitEditMode: {
+    backgroundColor: 'rgba(205, 229, 206, 0.7)',
+    alignItems: 'center',
+    borderRadius: 80,
+    marginBottom: RFValue(65),
+    marginRight : RFValue(15),
+    borderWidth: RFValue(2),
+    borderColor: 'white',
     width: RFValue(85),
     height: RFValue(85),
     justifyContent: 'center', 
@@ -456,6 +507,21 @@ const styles = StyleSheet.create({
     fontSize: RFValue(50),
     color: 'white',
     paddingBottom: 5,
+  },
+  topLeft: {
+    position: 'absolute',
+    top: 100,
+    left: 0,
+  },
+  bottomRight: {
+    position: 'absolute',
+    bottom: 0,
+    right: 0,
+  },
+  rowContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between', // or any other alignment you prefer
+    alignItems: 'center', // or any other alignment you prefer
   },
 });
 
