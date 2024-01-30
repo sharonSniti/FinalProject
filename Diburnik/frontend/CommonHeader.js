@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Image, StyleSheet, TouchableOpacity ,Text, FlatList} from 'react-native';
+import { View, Image, StyleSheet, TouchableOpacity ,Text, FlatList,TouchableWithoutFeedback } from 'react-native';
 import ProfilePicture from './ProfilePicture'; 
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useNavigation } from '@react-navigation/native'; 
@@ -101,55 +101,60 @@ const CommonHeader = ({ showProfilePicture = true, showSettingsIcon = false }) =
     </TouchableOpacity>
   );
 
+  const handleTouchablePress = () => {
+    setMenuVisible(false);
+    setSettingsMenuVisible(false);
+  };
   
 
   return (
-    <View style={headerStyles.container}>
-      {showProfilePicture && (
-        <TouchableOpacity onPress={handleProfilePicturePress}>
-          <ProfilePicture source={{ uri: `data:image/jpeg;base64,${profilePicture}` }} size={80} />
-        </TouchableOpacity>
-      )}
+    <TouchableWithoutFeedback onPress={handleTouchablePress}>
+      <View style={headerStyles.container}>
+        {showProfilePicture && (
+          <TouchableOpacity onPress={handleProfilePicturePress}>
+            <ProfilePicture source={{ uri: `data:image/jpeg;base64,${profilePicture}` }} size={80} />
+          </TouchableOpacity>
+        )}
 
-      {showSettingsIcon && (
-        <TouchableOpacity onPress={handleSettingsIconPress}>
-                <Image
-                  source={require('./assets/appImages/settings.png')}
-                  style={{ width: 40, height: 40 }}/>
-                 </TouchableOpacity>
-            )}
+        {showSettingsIcon && (
+          <TouchableOpacity onPress={handleSettingsIconPress}>
+                  <Image
+                    source={require('./assets/appImages/settings.png')}
+                    style={{ width: 40, height: 40 }}/>
+                  </TouchableOpacity>
+              )}
 
-      {menuVisible && (
-        <View style={headerStyles.menuContainer}>
-          <FlatList
-            data={menuItems}
-            renderItem={renderMenuItem}
-            keyExtractor={(item) => item}
+        {menuVisible && (
+          <View style={headerStyles.menuContainer}>
+            <FlatList
+              data={menuItems}
+              renderItem={renderMenuItem}
+              keyExtractor={(item) => item}
+            />
+          </View>
+        )}
+
+        {settingsMenuVisible && (
+            <View style={headerStyles.settingsMenuContainer}>
+            <FlatList
+              data={settingsMenuItems}
+              renderItem={renderSettingsMenuItem}
+              keyExtractor={(item) => item}
+            />
+          </View>
+        )}
+        <View>
+          
+        </View>
+        <View style={headerStyles.logoContainer}>
+          <Image
+            source={require('./assets/appImages/logo.png')}
+            style={headerStyles.logo}
+            resizeMode="contain"
           />
         </View>
-      )}
-
-      {settingsMenuVisible && (
-           <View style={headerStyles.settingsMenuContainer}>
-           <FlatList
-             data={settingsMenuItems}
-             renderItem={renderSettingsMenuItem}
-             keyExtractor={(item) => item}
-           />
-         </View>
-      )}
-      <View>
-        
       </View>
-      <View style={headerStyles.logoContainer}>
-        <Image
-          source={require('./assets/appImages/logo.png')}
-          style={headerStyles.logo}
-          resizeMode="contain"
-        />
-      </View>
-    </View>
-   
+    </TouchableWithoutFeedback>
   );
 };
 

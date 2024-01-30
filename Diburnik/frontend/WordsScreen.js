@@ -119,8 +119,6 @@ const WordsScreen = ({ route }) => {
       ...prev,
       { text: word.text , index: prev.length},
     ]);
-    console.log("after add the sentence is: ",selectedSentence);
-
   };
 
   const handleRemoveFromSentence = (wordIndex) => {
@@ -229,7 +227,9 @@ const WordsScreen = ({ route }) => {
 
   };
 
-
+  const handleClearSentence = () => {
+    setSelectedSentence([]);
+  };
 
 
 
@@ -240,7 +240,11 @@ const WordsScreen = ({ route }) => {
       {/* Sentence Bar and Speaking Icon outside ScrollView */}
       <View style={styles.sentenceAndSpeakContainer}>
         {/* Sentence Bar */}
-        <View style={styles.sentenceBar}>
+        <ScrollView
+          style={styles.sentenceBar}
+          horizontal={true}
+          showsHorizontalScrollIndicator={false} //  hides the horizontal scroll indicator
+        >
           {selectedSentence.map((word, index) => (
             <TouchableOpacity
               key={word.index}
@@ -250,13 +254,21 @@ const WordsScreen = ({ route }) => {
               <Text style={styles.sentenceWordText}>{word.text}</Text>
             </TouchableOpacity>
           ))}
-        </View>
-        {/* Speaking Icon */}
-        <TouchableOpacity
-          style={styles.speakSentenceButton}
-          onPress={handleSpeakSentence}
-        >
+          </ScrollView>
+          {/* Speaking Icon */}
+          <TouchableOpacity
+            style={styles.speakSentenceButton}
+            onPress={handleSpeakSentence}
+          >
           <Text style={{ fontSize: 48 }}>📢 </Text>
+        </TouchableOpacity>
+
+            {/* "X" Button */}
+        <TouchableOpacity
+          style={styles.clearSentenceButton}
+          onPress={handleClearSentence}
+        >
+          <Text style={{ fontSize: 24 }}>❌</Text>
         </TouchableOpacity>
       </View>
 
@@ -604,12 +616,21 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
   },
   sentenceBar: {
+    direction: 'rtl',
     flexDirection: 'row-reverse',
-    justifyContent: 'flex-start',
     flexWrap: 'wrap',
     minHeight: 50,
     flexGrow: 1,
     marginRight: 65,        // Add space between speaker icon and sentence
+
+    shadowColor: '#000',
+    shadowOffset: { width: 2, height: 2 },
+    shadowOpacity: 0.6,
+    shadowRadius: 2,
+
+    borderWidth: 2,
+    borderRadius: 10,
+    borderColor: 'gray',
   },
   speakSentenceButton: {
     backgroundColor: '#a09db2',
@@ -617,6 +638,7 @@ const styles = StyleSheet.create({
     width: 65,
     height: 65,
     marginLeft: 'auto', // Push the speaker button to the left
+    marginRight: 5,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -697,6 +719,16 @@ const styles = StyleSheet.create({
   selectedColorOption: {
     borderWidth: 3,
     borderColor: '#3498db', // Highlight color for the selected option
+  },
+  clearSentenceButton: {
+    backgroundColor: 'red',
+    borderRadius: 8,
+    width: RFValue(25),
+    height: RFValue(25),
+    marginTop: 10,
+    position: 'absolute',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   
 });

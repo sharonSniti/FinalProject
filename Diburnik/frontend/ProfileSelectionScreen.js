@@ -302,6 +302,8 @@ const styles = StyleSheet.create({
   profilesContainer: {
     flexDirection: 'row-reverse', 
     justifyContent: 'flex-start', 
+    flexWrap: 'wrap',
+
   },
   profileItem: {
     alignItems: 'center',
