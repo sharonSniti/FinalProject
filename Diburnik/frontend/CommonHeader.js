@@ -88,7 +88,7 @@ const CommonHeader = ({ showProfilePicture = true, showSettingsIcon = false }) =
       style={headerStyles.menuItem}
       onPress={() => handleMenuItemPress(item)}
     >
-      <Text>{item}</Text>
+       <Text style={headerStyles.menuItemText}>{item}</Text>
     </TouchableOpacity>
   );
 
@@ -158,8 +158,10 @@ const headerStyles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     width: '100%',
+    //height: 'auto',
+    height: 120,
     paddingHorizontal: 5,
-    marginBottom: 20,
+    //marginBottom: 10,
     marginTop: -10,
   },
   logoContainer: {
@@ -173,12 +175,14 @@ const headerStyles = StyleSheet.create({
 
   menuItem: {
     paddingVertical: 10,
+    alignSelf: 'center', 
   },
   menuContainer: {
     backgroundColor: 'white',
     borderRadius: 5,
     elevation: 5,
-    padding: 10,
+    paddingHorizontal: 3,
+    height: '70%',
   },
   settingsMenuContainer: {
     backgroundColor: 'rgba(146, 164, 156, 0.78)', //gray transperent background to settings menu
@@ -188,6 +192,10 @@ const headerStyles = StyleSheet.create({
     alignItems: 'center',
     marginLeft: -15, 
     marginTop: 35, 
+  },
+  menuItemText: {
+    fontSize: 16, 
+    
   },
 });
 

@@ -7,10 +7,11 @@ const wordSchema = new mongoose.Schema({
   },
   image: {
     data: Buffer, // Store binary image data
-    contentType: String, // Store content type (e.g., image/jpeg, image/png, etc.)
+    contentType: String, 
   },
-  partOfSpeech: {
-    type: String,
+  color: {
+    type: String, // Store color as hex value
+    match: /^#([0-9a-f]{3}|[0-9a-f]{6})$/i, // Validate hex color format
   },
 });
 
