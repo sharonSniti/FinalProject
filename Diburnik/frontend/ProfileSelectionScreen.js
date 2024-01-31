@@ -201,7 +201,6 @@ const ProfileSelectionScreen = ({ route, navigation }) => {
               source={require('./assets/appImages/editMode1.png')}
               style={{ width: 200, height: 200}}/>
         </View>
-        
       )}
        {editMode && (
         <View style={styles.bottomRight}>
@@ -222,30 +221,28 @@ const ProfileSelectionScreen = ({ route, navigation }) => {
           /* Blank profile for adding a new profiles */
           <TouchableOpacity
             style={[
-              styles.profileItem,
               styles.blankProfile, 
             ]}
-            onPress={() => handleAddProfile()}
-          >
-            <Text style={styles.blankProfileText}>+</Text>
+            onPress={() => handleAddProfile()}>
+            <Text style={styles.blankProfileText }>+</Text>
+            <Text style={[styles.profileName, { marginTop: 30 }]}>הוסף פרופיל חדש</Text>
           </TouchableOpacity>
         )}
         </View>
-      <View>
+        <View>
         {editMode && (
           /* exit Edit mode button */
           <TouchableOpacity
             style={[
-              styles.profileItem,
               styles.exitEditMode,
             ]}
             onPress={() => {
               setEditMode(false); // Set editMode to false
               handleEdit(); // Call handleEdit function
-            }}
-          >
+            }}>
              <Image source={require('./assets/appImages/exitEditMode.png')}
-              style={{ width: 76, height: 76, padding: 20 }} />
+              style={{ width: 76, height: 76, marginTop: 30, marginLeft: 15}} />
+              <Text style={[styles.profileName, { marginTop: 35 }]}>יציאה ממצב עריכה</Text>
           </TouchableOpacity>
         )}
         </View>
@@ -379,6 +376,7 @@ const styles = StyleSheet.create({
     marginTop: 14,
     textAlign: 'right',
     flexWrap: 'wrap',
+    textAlign: 'center',
   },
   addButton: {
     position: 'absolute',
@@ -502,7 +500,6 @@ const styles = StyleSheet.create({
     borderColor: 'white',
     width: RFValue(85),
     height: RFValue(85),
-    justifyContent: 'center', 
   },
   exitEditMode: {
     backgroundColor: 'rgba(205, 229, 206, 0.7)',
@@ -514,12 +511,11 @@ const styles = StyleSheet.create({
     borderColor: 'white',
     width: RFValue(85),
     height: RFValue(85),
-    justifyContent: 'center', 
   },
   blankProfileText: {
     fontSize: RFValue(50),
     color: 'white',
-    paddingBottom: 5,
+    marginTop: 15,
   },
   topLeft: {
     position: 'absolute',
