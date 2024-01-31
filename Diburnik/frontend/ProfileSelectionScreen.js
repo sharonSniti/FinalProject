@@ -214,19 +214,24 @@ const ProfileSelectionScreen = ({ route, navigation }) => {
       <Text style={[commonStyles.bigTitle, { textAlign: 'center' }]}>
       {editMode ? 'ערוך פרופילים' : 'בחר פרופיל משתמש'}
       </Text>
+      <View style={styles.innerContainer}>
       <View style={styles.profilesContainer}>
+      <View style={{ alignItems: 'flex-start'}}>
+      <View>
         {editMode && (
           /* Blank profile for adding a new profiles */
           <TouchableOpacity
             style={[
               styles.profileItem,
-              styles.blankProfile,
+              styles.blankProfile, 
             ]}
             onPress={() => handleAddProfile()}
           >
             <Text style={styles.blankProfileText}>+</Text>
           </TouchableOpacity>
         )}
+        </View>
+      <View>
         {editMode && (
           /* exit Edit mode button */
           <TouchableOpacity
@@ -243,6 +248,9 @@ const ProfileSelectionScreen = ({ route, navigation }) => {
               style={{ width: 76, height: 76, padding: 20 }} />
           </TouchableOpacity>
         )}
+        </View>
+        </View>
+        <View style={styles.profilesContainer}>
          {/* Profiles rendering */}
         {profiles.map((profile) => (
           <TouchableOpacity
@@ -271,6 +279,8 @@ const ProfileSelectionScreen = ({ route, navigation }) => {
             </Text>
           </TouchableOpacity>
         ))}
+      </View>
+      </View>
       </View>
       <TouchableOpacity 
         style={[styles.addButton, !isOnline && styles.disabledButton]}
@@ -338,10 +348,14 @@ const styles = StyleSheet.create({
     marginBottom: 20,
     textAlign: 'center',
   },
+  innerContainer: {
+    flex: 1,
+    width: '95%', // Adjust as needed
+  },
   profilesContainer: {
     flex: 1,
-    flexDirection: 'row', // Change to 'row' to keep items in a row
-    justifyContent: 'flex-end', // Change to 'flex-end' to align items to the right
+    flexDirection: 'row-reverse', // Change to 'row' to keep items in a row
+    flexWrap: 'wrap',
   },
   profileItem: {
     alignItems: 'center',
