@@ -259,10 +259,35 @@ const ProfileSelectionScreen = ({ route, navigation }) => {
             onPress={() => handleProfileSelect(profile._id)}
           >
             {editMode && (
-              <View style={styles.checkboxContainer}>
-                <View style={[styles.checkbox, profile.isSelected && styles.checkedCheckbox]} />
+          <View style={styles.checkboxContainer}>
+             <View style={{ transform: [{ scale: 0.35 }] }}>
+          <TouchableOpacity
+            style={[styles.blankProfile, { borderWidth: 8 }]}
+            onPress={() => handleAddProfile()}>
+               <Text style={styles.blankProfileText }>x</Text>
+          </TouchableOpacity>
+          </View>
               </View>
             )}
+
+{
+  editMode && (
+    <View style={[styles.checkboxContainer, { top: 108, right: 80, width: 30, height: 30, marginRight: 10 }]}>
+      <View style={{ transform: [{ scale: 0.35 }] }}>
+        <TouchableOpacity
+          style={[styles.blankProfile, { borderWidth: 8 }]}
+          onPress={() => handleAddProfile()}>
+          <Image
+            source={require('./assets/appImages/editPenIcon.png')} // Provide the path to your image
+            style={{ width: '70%', height: '100%', resizeMode: 'contain' }} // Adjust the style as needed
+          />
+        </TouchableOpacity>
+      </View>
+    </View>
+  )
+}
+
+
             {profile.image && (
               <Image
                 source={{
@@ -452,15 +477,14 @@ const styles = StyleSheet.create({
   },
   checkboxContainer: {
     position: 'absolute',
-    top: 5, 
-    right: 1,
+    top: 9, 
+    right: -20,
     width: 30,
     height: 30,
     marginRight: 10,
     alignItems: 'center',
     justifyContent: 'center',
     zIndex: 1, // Set a higher zIndex value to ensure it's on top
-
   },
   checkbox: {
     width: RFValue(13),
@@ -516,6 +540,7 @@ const styles = StyleSheet.create({
     fontSize: RFValue(50),
     color: 'white',
     marginTop: 15,
+    fontWeight: 'bold',
   },
   topLeft: {
     position: 'absolute',
