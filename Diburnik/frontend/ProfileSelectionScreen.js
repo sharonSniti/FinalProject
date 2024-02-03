@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, TouchableOpacity, Image, Modal, TextInput, Button, StyleSheet ,ScrollView  } from 'react-native';
+import { View, Text, TouchableOpacity, Image, Modal, TextInput, Button, StyleSheet ,ScrollView} from 'react-native';
 import axios from 'axios';
 import config from './config';
 import { fetchOfflineData, fetchOnlineData, checkOnlineStatus } from './utils';
@@ -13,6 +13,7 @@ const ProfileSelectionScreen = ({ route, navigation }) => {
   const { teacherId, child } = route.params;
   const [profiles, setProfiles] = useState([]);
   const [isSearchMenuVisible, setIsSearchMenuVisible] = useState(false);
+  const [isEditSingleProfileVisible, setEditSingleProfileVisible] = useState(false);
   const [newChildUsername, setNewChildUsername] = useState('');
   const [newChildEmail, setNewChildEmail] = useState('');
   const [errorMessage, setErrorMessage] = useState(''); 
@@ -91,8 +92,16 @@ const ProfileSelectionScreen = ({ route, navigation }) => {
     toggleSearchMenu();
   };
 
+  const handleEditSingleProfile = () => {
+    toggleEditSingleProfile();
+  };
+
   const toggleSearchMenu = () => {
     setIsSearchMenuVisible(!isSearchMenuVisible);
+  };
+
+  const toggleEditSingleProfile = () => {
+    setEditSingleProfileVisible(!isEditSingleProfileVisible);
   };
 
   /*handleEdit - what to change in 'Edit' mode*/
@@ -247,6 +256,7 @@ const ProfileSelectionScreen = ({ route, navigation }) => {
         )}
         </View>
         </View>
+        {/*The start of the profiles section*/}
         <View style={styles.profilesContainer}>
          {/* Profiles rendering */}
         {profiles.map((profile) => (
@@ -271,12 +281,15 @@ const ProfileSelectionScreen = ({ route, navigation }) => {
             )}
 
 {
+  /*what to do when pressing on the pen icon = edit a single profile information*/
   editMode && (
     <View style={[styles.checkboxContainer, { top: 108, right: 80, width: 30, height: 30, marginRight: 10 }]}>
       <View style={{ transform: [{ scale: 0.35 }] }}>
         <TouchableOpacity
+         key={profile._id}
           style={[styles.blankProfile, { borderWidth: 8 }]}
-          onPress={() => handleAddProfile()}>
+          onPress={() => {handleProfileSelect(profile._id);
+          handleEditSingleProfile();}}>
           <Image
             source={require('./assets/appImages/editPenIcon.png')} // Provide the path to your image
             style={{ width: '70%', height: '100%', resizeMode: 'contain' }} // Adjust the style as needed
@@ -353,6 +366,64 @@ const ProfileSelectionScreen = ({ route, navigation }) => {
           <Button title="ביטול" onPress={toggleSearchMenu} />
         </View>
       </Modal>
+      <Modal visible={isEditSingleProfileVisible} animationType="slide" transparent>
+        <View style={styles.modalContainer}>
+          <Text style={commonStyles.bigTitle}>ערוך פרופיל משתמש</Text>
+          {/*The design of edit single profile view*/}
+          <View style={styles.topLeft}>
+             <Image
+              source={require('./assets/appImages/editMode1.png')}
+              style={{ width: 200, height: 200}}/>
+           </View>
+           <View style={styles.bottomRight}>
+              <Image
+              source={require('./assets/appImages/editMode2.png')}
+              style={{ width: 300, height: 300}}/>
+          </View>
+          {/*Edit Profile Picture item*/}
+          <View style={styles.editProfileItem}>
+          <TouchableOpacity>
+          <View style={styles.halfCircle}>
+          <Image
+              source={require('./assets/appImages/editPenIcon.png')}
+              style={{ width: 50, height: 50}}/>
+          </View>
+          </TouchableOpacity>
+          </View>
+          {/*End of Profile Picture*/}
+          {/*Another User Data:*/}
+          <Text style={styles.infoText}>שם משתמש:</Text>
+          <TextInput style={[styles.inputField]}/>
+          <Text>שם פרטי:</Text>
+          <TextInput style={[styles.inputField]}/>
+          <Text>שם משפחה:</Text>
+          <TextInput style={[styles.inputField]}/>
+          <Text>אימייל:</Text>
+          <TextInput style={[styles.inputField]}/>
+          {/*Save button*/}
+          <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+          <TouchableOpacity style={[styles.saveButton]}>
+          <Image
+              source={require('./assets/appImages/saveIcon.png')}
+              style={{ width: 35, height: 35 ,marginRight: 10 }} />
+            <Text style={styles.buttonsText}>
+            שמור</Text> 
+          </TouchableOpacity>
+          </View>
+          {/*End of Save button*/}
+          {/*Go Back button*/}
+          <View style={styles.bottomLeft}>
+          <TouchableOpacity
+            onPress={() => toggleEditSingleProfile()}>
+          <Text style={styles.buttonsText}>ביטול</Text>
+          <Image
+              source={require('./assets/appImages/goBackBtn.png')}
+              style={{ width: 95, height: 95}}/>
+          </TouchableOpacity>
+          </View>
+        </View>
+        {/*End of model container*/}
+      </Modal>
     </View>
   );
 };
@@ -389,6 +460,30 @@ const styles = StyleSheet.create({
     width: RFValue(85), 
     height: RFValue(85),
   },
+  editProfileItem: {
+    alignItems: 'center',
+    borderRadius: 90,
+    marginBottom: RFValue(65),
+    marginRight : RFValue(15),
+    borderWidth: RFValue(4), // Adds border
+    borderColor: '#FBB8A5', // Set border color to pink
+    width: RFValue(112), 
+    height: RFValue(115),
+  },
+  halfCircle: {
+    position: 'absolute',
+    justifyContent: 'center',
+    alignItems: 'center',
+    width: RFValue(104)/2,
+    height: RFValue(210)/2,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    overflow: 'hidden',
+    bottom:-212.99,
+    left:-41.6,
+    borderTopLeftRadius:180, 
+    borderBottomLeftRadius:180,
+    transform: [{ rotate: '-90deg' }] // Rotate by 90 degrees
+  },
   profileImage: {
     width: '100%',
     height: '100%',
@@ -399,6 +494,14 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: '#333',
     marginTop: 14,
+    textAlign: 'right',
+    flexWrap: 'wrap',
+    textAlign: 'center',
+  },
+  buttonsText: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#333',
     textAlign: 'right',
     flexWrap: 'wrap',
     textAlign: 'center',
@@ -419,9 +522,8 @@ const styles = StyleSheet.create({
     color: 'white',
   },
   modalContainer: {
-    backgroundColor: 'rgba(255, 255, 255, 0.93)', // Use an off-white color with some transparency
+    backgroundColor: 'rgba(254, 229, 206,1)',
     flex: 1,
-    justifyContent: 'center',
     alignItems: 'center',
   },
   modalTitle: {
@@ -552,10 +654,48 @@ const styles = StyleSheet.create({
     bottom: 0,
     right: 0,
   },
+  bottomLeft: {
+    position: 'absolute',
+    bottom: 20,
+    left: 25,
+  },
   rowContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between', // or any other alignment you prefer
     alignItems: 'center', // or any other alignment you prefer
+  },
+  inputField: {
+    marginLeft: 'auto',
+    marginRight: 'auto',
+    width: '50%',
+    height: 40,
+    borderColor: '#ccc',
+    borderWidth: 2,
+    borderRadius: 5,
+    marginBottom: 10,
+    paddingHorizontal: 10,
+    backgroundColor: '#ffffff',
+    textAlign :'right',
+  },
+  infoText: {
+    textAlign :'right',
+  },
+  saveButton: {
+    backgroundColor: '#28A745',
+    paddingVertical: 10,
+    marginLeft: 'auto',
+    marginRight: 'auto',
+    width : '16%' ,
+    borderRadius: 5,
+    flexDirection: 'row', 
+    alignItems: 'center', 
+    padding: 10,
+  },
+  buttonText: {
+    color: '#fff',
+    fontSize: 18,
+    fontWeight: 'bold',
+    textAlign: 'center',
   },
 });
 
