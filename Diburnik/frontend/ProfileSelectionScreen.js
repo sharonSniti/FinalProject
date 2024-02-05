@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, TouchableOpacity, Image, Modal, TextInput, Button, StyleSheet ,ScrollView} from 'react-native';
+import { View, Text, TouchableOpacity, Image, Modal, TextInput, Button, StyleSheet ,ScrollView, TouchableWithoutFeedback  } from 'react-native';
 import axios from 'axios';
 import config from './config';
 import { fetchOfflineData, fetchOnlineData, checkOnlineStatus } from './utils';
@@ -20,8 +20,10 @@ const ProfileSelectionScreen = ({ route, navigation }) => {
   const [selectedProfiles, setSelectedProfiles] = useState([]);
   const [editMode, setEditMode] = useState(false);
   const [isOnline, setIsOnline] = useState(false);
-
   const [backgroundColor,setBackgroundColor] = useState('');
+
+  const [screenTouched,setScreenTouched] = useState(false);
+
 
   //State variable to track image visibility
   const [imageVisible, setImageVisible] = useState(false);
@@ -76,6 +78,7 @@ const ProfileSelectionScreen = ({ route, navigation }) => {
     }
 
       navigation.navigate('Boards', { profileId });
+      toggleScreenTouched();      // close the settings menu
     } else {
       const updatedProfiles = profiles.map((profile) =>
         profile._id === profileId
@@ -194,6 +197,10 @@ const ProfileSelectionScreen = ({ route, navigation }) => {
     const toggleImageVisibility = () => {
       setImageHidden(!imageHidden); 
   };
+
+  const toggleScreenTouched = () => {
+    setScreenTouched(!screenTouched);
+  }
   
 
 
@@ -201,9 +208,10 @@ const ProfileSelectionScreen = ({ route, navigation }) => {
 
 
   return (
+    <TouchableWithoutFeedback onPress={toggleScreenTouched}>
     <View style={[styles.container, { backgroundColor: backgroundColor }]}>
       {/* CommonHeader - the app logo */}
-      <CommonHeader showProfilePicture={true} showSettingsIcon={true}/>
+      <CommonHeader showProfilePicture={false} showSettingsIcon={true} handleEdit={handleEdit} screenTouched={screenTouched}/>
       {editMode && (
         <View style={styles.topLeft}>
              <Image
@@ -425,6 +433,7 @@ const ProfileSelectionScreen = ({ route, navigation }) => {
         {/*End of model container*/}
       </Modal>
     </View>
+    </TouchableWithoutFeedback>
   );
 };
 

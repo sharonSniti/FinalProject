@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, TouchableOpacity, Modal, TextInput, Button, StyleSheet ,Image, ActivityIndicator,ScrollView } from 'react-native';
+import { View, Text, TouchableOpacity, Modal, TextInput, Button, StyleSheet ,Image, ActivityIndicator,ScrollView, TouchableWithoutFeedback } from 'react-native';
 import axios from 'axios';
 import { useNavigation } from '@react-navigation/native';
 import { Buffer } from 'buffer'; 
@@ -25,8 +25,8 @@ const BoardsScreen = ({ route }) => {
   const [selectedBoards, setSelectedBoards] = useState([]);
   const [loading, setLoading] = useState(true);
   const [isOnline, setIsOnline] = useState(false);
-
   const [backgroundColor,setBackgroundColor] = useState('');
+  const [screenTouched,setScreenTouched] = useState(false);
 
 
   useEffect(() => {
@@ -80,7 +80,7 @@ const BoardsScreen = ({ route }) => {
             navigation.navigate('Words', { boardId, words: updatedWords });
           }
         }
-
+        toggleScreenTouched();      // close the settings menu
       } catch (error) {
         console.log('Error fetching updated words:', error);
         }
@@ -159,11 +159,16 @@ const BoardsScreen = ({ route }) => {
     }
   };
 
+  const toggleScreenTouched = () => {
+    setScreenTouched(!screenTouched);
+  }
+
 
   return (
+  <TouchableWithoutFeedback onPress={toggleScreenTouched}>
     <View style={[styles.container, { backgroundColor: backgroundColor }]}>
         {/* CommonHeader - the app logo */}
-        <CommonHeader showProfilePicture={true} />
+        <CommonHeader showProfilePicture={true} showSettingsIcon={true} handleEdit={handleEdit} screenTouched={screenTouched}/>
   
         <Text style={styles.title}>הלוחות שלי</Text>
         <ScrollView contentContainerStyle={styles.scrollContent}>
@@ -272,6 +277,8 @@ const BoardsScreen = ({ route }) => {
           </View>
         </Modal>
       </View>
+    </TouchableWithoutFeedback>
+
   );
 };
   
