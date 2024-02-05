@@ -13,6 +13,7 @@ const ProfileSelectionScreen = ({ route, navigation }) => {
   const { teacherId, child } = route.params;
   const [profiles, setProfiles] = useState([]);
   const [isSearchMenuVisible, setIsSearchMenuVisible] = useState(false);
+  const [isEditSingleProfileVisible, setEditSingleProfileVisible] = useState(false);
   const [newChildUsername, setNewChildUsername] = useState('');
   const [newChildEmail, setNewChildEmail] = useState('');
   const [errorMessage, setErrorMessage] = useState(''); 
@@ -94,8 +95,16 @@ const ProfileSelectionScreen = ({ route, navigation }) => {
     toggleSearchMenu();
   };
 
+  const handleEditSingleProfile = () => {
+    toggleEditSingleProfile();
+  };
+
   const toggleSearchMenu = () => {
     setIsSearchMenuVisible(!isSearchMenuVisible);
+  };
+
+  const toggleEditSingleProfile = () => {
+    setEditSingleProfileVisible(!isEditSingleProfileVisible);
   };
 
   /*handleEdit - what to change in 'Edit' mode*/
@@ -209,7 +218,6 @@ const ProfileSelectionScreen = ({ route, navigation }) => {
               source={require('./assets/appImages/editMode1.png')}
               style={{ width: 200, height: 200}}/>
         </View>
-        
       )}
        {editMode && (
         <View style={styles.bottomRight}>
@@ -222,35 +230,42 @@ const ProfileSelectionScreen = ({ route, navigation }) => {
       <Text style={[commonStyles.bigTitle, { textAlign: 'center' }]}>
       {editMode ? 'ערוך פרופילים' : 'בחר פרופיל משתמש'}
       </Text>
+      <View style={styles.innerContainer}>
       <View style={styles.profilesContainer}>
+      <View style={{ alignItems: 'flex-start'}}>
+      <View>
         {editMode && (
           /* Blank profile for adding a new profiles */
           <TouchableOpacity
             style={[
-              styles.profileItem,
-              styles.blankProfile,
+              styles.blankProfile, 
             ]}
-            onPress={() => handleAddProfile()}
-          >
-            <Text style={styles.blankProfileText}>+</Text>
+            onPress={() => handleAddProfile()}>
+            <Text style={styles.blankProfileText }>+</Text>
+            <Text style={[styles.profileName, { marginTop: 30 }]}>הוסף פרופיל חדש</Text>
           </TouchableOpacity>
         )}
+        </View>
+        <View>
         {editMode && (
           /* exit Edit mode button */
           <TouchableOpacity
             style={[
-              styles.profileItem,
               styles.exitEditMode,
             ]}
             onPress={() => {
               setEditMode(false); // Set editMode to false
               handleEdit(); // Call handleEdit function
-            }}
-          >
+            }}>
              <Image source={require('./assets/appImages/exitEditMode.png')}
-              style={{ width: 76, height: 76, padding: 20 }} />
+              style={{ width: 76, height: 76, marginTop: 30, marginLeft: 15}} />
+              <Text style={[styles.profileName, { marginTop: 35 }]}>יציאה ממצב עריכה</Text>
           </TouchableOpacity>
         )}
+        </View>
+        </View>
+        {/*The start of the profiles section*/}
+        <View style={styles.profilesContainer}>
          {/* Profiles rendering */}
         {profiles.map((profile) => (
           <TouchableOpacity
@@ -262,10 +277,38 @@ const ProfileSelectionScreen = ({ route, navigation }) => {
             onPress={() => handleProfileSelect(profile._id)}
           >
             {editMode && (
-              <View style={styles.checkboxContainer}>
-                <View style={[styles.checkbox, profile.isSelected && styles.checkedCheckbox]} />
+          <View style={styles.checkboxContainer}>
+             <View style={{ transform: [{ scale: 0.35 }] }}>
+          <TouchableOpacity
+            style={[styles.blankProfile, { borderWidth: 8 }]}
+            onPress={() => handleAddProfile()}>
+               <Text style={styles.blankProfileText }>x</Text>
+          </TouchableOpacity>
+          </View>
               </View>
             )}
+
+{
+  /*what to do when pressing on the pen icon = edit a single profile information*/
+  editMode && (
+    <View style={[styles.checkboxContainer, { top: 108, right: 80, width: 30, height: 30, marginRight: 10 }]}>
+      <View style={{ transform: [{ scale: 0.35 }] }}>
+        <TouchableOpacity
+         key={profile._id}
+          style={[styles.blankProfile, { borderWidth: 8 }]}
+          onPress={() => {handleProfileSelect(profile._id);
+          handleEditSingleProfile();}}>
+          <Image
+            source={require('./assets/appImages/editPenIcon.png')} // Provide the path to your image
+            style={{ width: '70%', height: '100%', resizeMode: 'contain' }} // Adjust the style as needed
+          />
+        </TouchableOpacity>
+      </View>
+    </View>
+  )
+}
+
+
             {profile.image && (
               <Image
                 source={{
@@ -279,6 +322,8 @@ const ProfileSelectionScreen = ({ route, navigation }) => {
             </Text>
           </TouchableOpacity>
         ))}
+      </View>
+      </View>
       </View>
       <TouchableOpacity 
         style={[styles.addButton, !isOnline && styles.disabledButton]}
@@ -329,6 +374,64 @@ const ProfileSelectionScreen = ({ route, navigation }) => {
           <Button title="ביטול" onPress={toggleSearchMenu} />
         </View>
       </Modal>
+      <Modal visible={isEditSingleProfileVisible} animationType="slide" transparent>
+        <View style={styles.modalContainer}>
+          <Text style={commonStyles.bigTitle}>ערוך פרופיל משתמש</Text>
+          {/*The design of edit single profile view*/}
+          <View style={styles.topLeft}>
+             <Image
+              source={require('./assets/appImages/editMode1.png')}
+              style={{ width: 200, height: 200}}/>
+           </View>
+           <View style={styles.bottomRight}>
+              <Image
+              source={require('./assets/appImages/editMode2.png')}
+              style={{ width: 300, height: 300}}/>
+          </View>
+          {/*Edit Profile Picture item*/}
+          <View style={styles.editProfileItem}>
+          <TouchableOpacity>
+          <View style={styles.halfCircle}>
+          <Image
+              source={require('./assets/appImages/editPenIcon.png')}
+              style={{ width: 50, height: 50}}/>
+          </View>
+          </TouchableOpacity>
+          </View>
+          {/*End of Profile Picture*/}
+          {/*Another User Data:*/}
+          <Text style={styles.infoText}>שם משתמש:</Text>
+          <TextInput style={[styles.inputField]}/>
+          <Text>שם פרטי:</Text>
+          <TextInput style={[styles.inputField]}/>
+          <Text>שם משפחה:</Text>
+          <TextInput style={[styles.inputField]}/>
+          <Text>אימייל:</Text>
+          <TextInput style={[styles.inputField]}/>
+          {/*Save button*/}
+          <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+          <TouchableOpacity style={[styles.saveButton]}>
+          <Image
+              source={require('./assets/appImages/saveIcon.png')}
+              style={{ width: 35, height: 35 ,marginRight: 10 }} />
+            <Text style={styles.buttonsText}>
+            שמור</Text> 
+          </TouchableOpacity>
+          </View>
+          {/*End of Save button*/}
+          {/*Go Back button*/}
+          <View style={styles.bottomLeft}>
+          <TouchableOpacity
+            onPress={() => toggleEditSingleProfile()}>
+          <Text style={styles.buttonsText}>ביטול</Text>
+          <Image
+              source={require('./assets/appImages/goBackBtn.png')}
+              style={{ width: 95, height: 95}}/>
+          </TouchableOpacity>
+          </View>
+        </View>
+        {/*End of model container*/}
+      </Modal>
     </View>
     </TouchableWithoutFeedback>
   );
@@ -347,11 +450,14 @@ const styles = StyleSheet.create({
     marginBottom: 20,
     textAlign: 'center',
   },
+  innerContainer: {
+    flex: 1,
+    width: '95%', // Adjust as needed
+  },
   profilesContainer: {
-    flexDirection: 'row-reverse', 
-    justifyContent: 'flex-start', 
+    flex: 1,
+    flexDirection: 'row-reverse', // Change to 'row' to keep items in a row
     flexWrap: 'wrap',
-
   },
   profileItem: {
     alignItems: 'center',
@@ -362,6 +468,30 @@ const styles = StyleSheet.create({
     borderColor: '#FBB8A5', // Set border color to pink
     width: RFValue(85), 
     height: RFValue(85),
+  },
+  editProfileItem: {
+    alignItems: 'center',
+    borderRadius: 90,
+    marginBottom: RFValue(65),
+    marginRight : RFValue(15),
+    borderWidth: RFValue(4), // Adds border
+    borderColor: '#FBB8A5', // Set border color to pink
+    width: RFValue(112), 
+    height: RFValue(115),
+  },
+  halfCircle: {
+    position: 'absolute',
+    justifyContent: 'center',
+    alignItems: 'center',
+    width: RFValue(104)/2,
+    height: RFValue(210)/2,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    overflow: 'hidden',
+    bottom:-212.99,
+    left:-41.6,
+    borderTopLeftRadius:180, 
+    borderBottomLeftRadius:180,
+    transform: [{ rotate: '-90deg' }] // Rotate by 90 degrees
   },
   profileImage: {
     width: '100%',
@@ -375,6 +505,15 @@ const styles = StyleSheet.create({
     marginTop: 14,
     textAlign: 'right',
     flexWrap: 'wrap',
+    textAlign: 'center',
+  },
+  buttonsText: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#333',
+    textAlign: 'right',
+    flexWrap: 'wrap',
+    textAlign: 'center',
   },
   addButton: {
     position: 'absolute',
@@ -392,9 +531,8 @@ const styles = StyleSheet.create({
     color: 'white',
   },
   modalContainer: {
-    backgroundColor: 'rgba(255, 255, 255, 0.93)', // Use an off-white color with some transparency
+    backgroundColor: 'rgba(254, 229, 206,1)',
     flex: 1,
-    justifyContent: 'center',
     alignItems: 'center',
   },
   modalTitle: {
@@ -450,15 +588,14 @@ const styles = StyleSheet.create({
   },
   checkboxContainer: {
     position: 'absolute',
-    top: 5, 
-    right: 1,
+    top: 9, 
+    right: -20,
     width: 30,
     height: 30,
     marginRight: 10,
     alignItems: 'center',
     justifyContent: 'center',
     zIndex: 1, // Set a higher zIndex value to ensure it's on top
-
   },
   checkbox: {
     width: RFValue(13),
@@ -498,7 +635,6 @@ const styles = StyleSheet.create({
     borderColor: 'white',
     width: RFValue(85),
     height: RFValue(85),
-    justifyContent: 'center', 
   },
   exitEditMode: {
     backgroundColor: 'rgba(205, 229, 206, 0.7)',
@@ -510,12 +646,12 @@ const styles = StyleSheet.create({
     borderColor: 'white',
     width: RFValue(85),
     height: RFValue(85),
-    justifyContent: 'center', 
   },
   blankProfileText: {
     fontSize: RFValue(50),
     color: 'white',
-    paddingBottom: 5,
+    marginTop: 15,
+    fontWeight: 'bold',
   },
   topLeft: {
     position: 'absolute',
@@ -527,10 +663,48 @@ const styles = StyleSheet.create({
     bottom: 0,
     right: 0,
   },
+  bottomLeft: {
+    position: 'absolute',
+    bottom: 20,
+    left: 25,
+  },
   rowContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between', // or any other alignment you prefer
     alignItems: 'center', // or any other alignment you prefer
+  },
+  inputField: {
+    marginLeft: 'auto',
+    marginRight: 'auto',
+    width: '50%',
+    height: 40,
+    borderColor: '#ccc',
+    borderWidth: 2,
+    borderRadius: 5,
+    marginBottom: 10,
+    paddingHorizontal: 10,
+    backgroundColor: '#ffffff',
+    textAlign :'right',
+  },
+  infoText: {
+    textAlign :'right',
+  },
+  saveButton: {
+    backgroundColor: '#28A745',
+    paddingVertical: 10,
+    marginLeft: 'auto',
+    marginRight: 'auto',
+    width : '16%' ,
+    borderRadius: 5,
+    flexDirection: 'row', 
+    alignItems: 'center', 
+    padding: 10,
+  },
+  buttonText: {
+    color: '#fff',
+    fontSize: 18,
+    fontWeight: 'bold',
+    textAlign: 'center',
   },
 });
 
