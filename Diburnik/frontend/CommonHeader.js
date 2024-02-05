@@ -5,22 +5,17 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useNavigation } from '@react-navigation/native'; 
 import { RFPercentage, RFValue } from "react-native-responsive-fontsize";
 
-const CommonHeader = ({ showProfilePicture = true, showSettingsIcon = false }) => {
+const CommonHeader = ({ showProfilePicture = true, showSettingsIcon = false, handleEdit = null, screenTouched }) => {
 
   const [profilePicture, setProfilePicture] = useState('');
   const [menuVisible, setMenuVisible] = useState(false);
   const [lastLoginInfo, setLastLoginInfo] = useState('');
   const [settingsMenuVisible, setSettingsMenuVisible] = useState(false);
-
   const signOut = 'התנתק';
-  const [menuItems, setMenuItems] = useState([`${signOut}`]);
-
-
-  const changeProfile = 'שנה פרופיל';
-
   const enterEditMode = 'היכנס למצב עריכה';
+  const [menuItems, setMenuItems] = useState([`${signOut}`,`${enterEditMode}`]);
+  const changeProfile = 'שנה פרופיל';
   const settingsMenuItems = [`${enterEditMode}`];  
-
   const navigation = useNavigation(); 
 
 
@@ -40,24 +35,25 @@ const CommonHeader = ({ showProfilePicture = true, showSettingsIcon = false }) =
           setLastLoginInfo(lastLoginInfo);
           //console.log("Header is fetching profile picture");
 
+
           // update the menu based on userType
           if (lastLoginInfo.userType === 'teacher') {
-            setMenuItems([...menuItems, `${changeProfile}`]);
+            const set = new Set([...menuItems, changeProfile]);
+            setMenuItems(Array.from(set));
           }
         }
       } catch (error) {
         console.log('Error fetching profile picture:', error);
       }
+      handleTouchablePress();       //close the settings menu
     };
     fetchProfilePicture();
-  }, [showProfilePicture]); 
+  }, [showProfilePicture,screenTouched]); 
 
 
-  const handleProfilePicturePress = () => {
-    setMenuVisible(!menuVisible);
-  };
 
   const handleSettingsIconPress = () => {
+    setMenuVisible(!menuVisible);
     setSettingsMenuVisible(!settingsMenuVisible);
   };
 
@@ -72,15 +68,13 @@ const CommonHeader = ({ showProfilePicture = true, showSettingsIcon = false }) =
     if (menuItem === `${changeProfile}` && lastLoginInfo.userType === 'teacher') {
         navigation.navigate('Profiles', { teacherId: lastLoginInfo.teacherId, child: lastLoginInfo.child });
     }
+    if (menuItem === `${enterEditMode}`) {
+      handleEdit(); // Call the toggleEditMode function from props
+    }
       // Close the menu
     setMenuVisible(false);
   };
 
-  const handleSettingsMenuItemPress = async (settingsMenuItem) => {
-    if (settingsMenuItem === `${enterEditMode}`) { 
-      document.body.style.backgroundColor = '#ADD8E6';
-      }
-  };
 
 
   const renderMenuItem = ({ item }) => (
@@ -92,14 +86,7 @@ const CommonHeader = ({ showProfilePicture = true, showSettingsIcon = false }) =
     </TouchableOpacity>
   );
 
-  const renderSettingsMenuItem = ({ item }) => (
-    <TouchableOpacity
-      style={headerStyles.menuItem}
-      onPress={() => handleSettingsMenuItemPress(item)}
-    >
-      <Text>{item}</Text>
-    </TouchableOpacity>
-  );
+
 
   const handleTouchablePress = () => {
     setMenuVisible(false);
@@ -111,41 +98,31 @@ const CommonHeader = ({ showProfilePicture = true, showSettingsIcon = false }) =
     <TouchableWithoutFeedback onPress={handleTouchablePress}>
       <View style={headerStyles.container}>
         {showProfilePicture && (
-          <TouchableOpacity onPress={handleProfilePicturePress}>
-            <ProfilePicture source={{ uri: `data:image/jpeg;base64,${profilePicture}` }} size={80} />
-          </TouchableOpacity>
-        )}
+             <ProfilePicture
+             source={{ uri: `data:image/jpeg;base64,${profilePicture}` }}
+             size={RFValue(50)}
+             style={headerStyles.profilePictureIcon}
+           />
+            )}
 
         {showSettingsIcon && (
           <TouchableOpacity onPress={handleSettingsIconPress}>
                   <Image
                     source={require('./assets/appImages/settings.png')}
-                    style={{ width: 40, height: 40 }}/>
+                    style={{ width: RFValue(23), height: RFValue(23), marginHorizontal: 20  }}/>
                   </TouchableOpacity>
-              )}
+          )}
 
         {menuVisible && (
           <View style={headerStyles.menuContainer}>
             <FlatList
-              data={menuItems}
+              data={menuItems.slice().reverse()}  // Create a copy and reverse the order
               renderItem={renderMenuItem}
               keyExtractor={(item) => item}
-            />
+              />
           </View>
         )}
 
-        {settingsMenuVisible && (
-            <View style={headerStyles.settingsMenuContainer}>
-            <FlatList
-              data={settingsMenuItems}
-              renderItem={renderSettingsMenuItem}
-              keyExtractor={(item) => item}
-            />
-          </View>
-        )}
-        <View>
-          
-        </View>
         <View style={headerStyles.logoContainer}>
           <Image
             source={require('./assets/appImages/logo.png')}
@@ -163,10 +140,8 @@ const headerStyles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     width: '100%',
-    //height: 'auto',
     height: 120,
     paddingHorizontal: 5,
-    //marginBottom: 10,
     marginTop: -10,
   },
   logoContainer: {
@@ -186,21 +161,16 @@ const headerStyles = StyleSheet.create({
     backgroundColor: 'white',
     borderRadius: 5,
     elevation: 5,
+    marginTop: 5,
     paddingHorizontal: 3,
-    height: '70%',
+    height: '95%',
   },
-  settingsMenuContainer: {
-    backgroundColor: 'rgba(146, 164, 156, 0.78)', //gray transperent background to settings menu
-    borderRadius: 5,
-    width: 200, // Set the desired width
-    height: 40, // Set the desired height
-    alignItems: 'center',
-    marginLeft: -15, 
-    marginTop: 35, 
-  },
+  
   menuItemText: {
     fontSize: 16, 
-    
+  },
+  profilePictureIcon: {
+    marginRight: 10,
   },
 });
 

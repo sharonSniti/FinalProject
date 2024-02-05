@@ -236,7 +236,7 @@ const WordsScreen = ({ route }) => {
 
   return (
     <View style={styles.container}>
-     <CommonHeader style={StyleSheet.container} />
+      <CommonHeader showProfilePicture={true} showSettingsIcon={true} handleEdit={handleEdit}/>
       {/* Sentence Bar and Speaking Icon outside ScrollView */}
       <View style={styles.sentenceAndSpeakContainer}>
         {/* Sentence Bar */}
@@ -472,8 +472,8 @@ const styles = StyleSheet.create({
     alignSelf: 'center',  
   },
   scrollViewContent: {
-    //paddingBottom: 100, 
-    direction: 'rtl',
+    //direction: 'rtl',           //render the words squares from right to left
+    flexDirection: 'row-reverse',
     flexGrow: 1,
   },
   wordsContainer: {
@@ -481,7 +481,7 @@ const styles = StyleSheet.create({
     flexWrap: 'wrap',
     marginBottom: 20,
     marginTop: 10,  // Add marginTop to create space at the top
-
+    direction: 'rtl',   // Add next colum on the left of this column
   },
   wordImage: {
     //width: 110,
@@ -621,13 +621,14 @@ const styles = StyleSheet.create({
     flexWrap: 'wrap',
     minHeight: 50,
     flexGrow: 1,
-    marginRight: 65,        // Add space between speaker icon and sentence
-
+                            //  FLIPPED BETWEEN IOS AND ANDROID!!
+    marginRight: 45,        // Add space between speaker icon and sentence
+    marginLeft: 30,        // Add space between X and bar
     shadowColor: '#000',
     shadowOffset: { width: 2, height: 2 },
     shadowOpacity: 0.6,
     shadowRadius: 2,
-
+    elevation: 30, // This property is for Android shadow
     borderWidth: 2,
     borderRadius: 10,
     borderColor: 'gray',
