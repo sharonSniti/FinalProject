@@ -28,6 +28,9 @@ const BoardsScreen = ({ route }) => {
   const [backgroundColor,setBackgroundColor] = useState('');
   const [screenTouched,setScreenTouched] = useState(false);
 
+  const goBack = () => {
+    navigation.goBack();
+  };
 
   useEffect(() => {
     (async () => {
@@ -168,16 +171,72 @@ const BoardsScreen = ({ route }) => {
   <TouchableWithoutFeedback onPress={toggleScreenTouched}>
     <View style={[styles.container, { backgroundColor: backgroundColor }]}>
         {/* CommonHeader - the app logo */}
-        <CommonHeader showProfilePicture={true} showSettingsIcon={true} handleEdit={handleEdit} screenTouched={screenTouched}/>
-  
-        <Text style={styles.title}>הלוחות שלי</Text>
-        <ScrollView contentContainerStyle={styles.scrollContent}>
+        <CommonHeader showProfilePicture={true} />
+        {editMode && (
+        <View style={commonStyles.topLeft}>
+             <Image
+              source={require('./assets/appImages/editMode1.png')}
+              style={{ width: 200, height: 200}}/>
+        </View>
+      )}
+       {editMode && (
+        <View style={commonStyles.bottomRight}>
+              <Image
+              source={require('./assets/appImages/editMode2.png')}
+              style={{ width: 300, height: 300}}/>
+        </View>
+      )}
+        <Text style={[commonStyles.bigTitle, { textAlign: 'center' }]}>
+        {editMode ? 'ערוך לוחות תקשורת' : 'לוחות התקשורת שלי'}
+        </Text>
+      <View style={styles.innerContainer}>
+      <View style={styles.boardsContainer}>
+      <View style={{ alignItems: 'flex-start'}}>
+        <View>
+        {editMode && (
+          /* Blank board for adding a new board */
+          <TouchableOpacity
+        style={[styles.blankBoard, 
+          !isOnline && styles.disabledButton]}
+        onPress={() => isOnline && setIsModalVisible(true)}>
+            <Text style={styles.blankBoardText }>+</Text>
+            <Text style={[styles.boardName, { marginTop: 40 }]}>הוסף לוח תקשורת חדש</Text>
+          </TouchableOpacity>
+        )}
+        </View>
+        <View>
+        {editMode && (
+          /* exit Edit mode button */
+          <TouchableOpacity
+            style={[
+              commonStyles.exitEditMode,
+            ]}
+            onPress={() => {
+              setEditMode(false); // Set editMode to false
+              handleEdit(); // Call handleEdit function
+            }}>
+             <Image source={require('./assets/appImages/exitEditMode.png')}
+              style={{ width: 76, height: 76, marginTop: 30, marginLeft: 15}} />
+              <Text style={[styles.boardName, { marginTop: 35 }]}>יציאה ממצב עריכה</Text>
+          </TouchableOpacity>
+        )}
+        </View>
+        </View>
+        {/*The start of the boards section*/}
+        <View style={styles.boardsContainer}>
         {loading ? (
           <ActivityIndicator size="large" color="#0000ff" />
         ) : (
           <View style={styles.boardContainer}>
-            {boards.length === 0 ? (
-              <Text>לא נמצאו לוחות עבור פרופיל זה</Text>
+            {boards.length === 0 && !editMode ? (
+              <View style={{ flex: 0.96, 
+              alignItems: 'center', 
+              justifyContent: 'center' 
+              , paddingVertical: 150 }}>
+              <Text style={styles.notFoundText}>לא קיימים לוחות תקשורת עבור פרופיל זה</Text>
+              <Image source={require('./assets/appImages/notFound.png')}
+              style={{ width: 200, height: 222}} />
+              </View>
             ) : (
               boards.map((board) => (
                 <TouchableOpacity
@@ -199,16 +258,32 @@ const BoardsScreen = ({ route }) => {
                     />
                   )}
                   {editMode && (
-                    <View style={styles.checkboxContainer}>
-                      <View
-                        style={[
-                          styles.checkbox,
-                          board.isSelected && styles.checkedCheckbox,
-                        ]}
-                      />
+                  <View style={styles.checkboxContainer}>
+                    <View style={{ transform: [{ scale: 0.35 }] }}>
+                      <TouchableOpacity
+                      style={[styles.deletedBoardBtn, { borderWidth: 8 }]}
+                      onPress={() => handleAddProfile()}>
+                      <Text style={styles.deleteBoardText}>x</Text>
+                      </TouchableOpacity>
+                      </View>
                     </View>
-                  )}
-                  
+            )}
+
+            {/*what to do when pressing on the pen icon = edit a single profile information*/}
+            {editMode && (
+            <View style={[styles.checkboxContainer, { top: 148, right: 117, width: 30, height: 30, marginRight: 10 }]}>
+              <View style={{ transform: [{ scale: 0.35 }] }}>
+                <TouchableOpacity
+                      style={[styles.deletedBoardBtn, { borderWidth: 8 }]}
+                      onPress={() => handleAddProfile()}>
+                        <Image
+                        source={require('./assets/appImages/editPenIcon.png')}
+                        style={{ width: '70%', height: '100%', resizeMode: 'contain' }}
+                        />
+                      </TouchableOpacity>
+                      </View>
+                    </View>
+            )}
                   <View style={styles.buttomOfBoard}>
                   <Text style={styles.categoryText}>{board.category}</Text>
                   </View>
@@ -217,18 +292,11 @@ const BoardsScreen = ({ route }) => {
             )}
           </View>
         )}
-        </ScrollView>
-
-  
-        {/* Add button */}
-
-        <TouchableOpacity
-        style={[styles.addButton, !isOnline && styles.disabledButton]}
-        onPress={() => isOnline && setIsModalVisible(true)}
-        >
-          <Text style={styles.addButtonText}>+</Text>
-        </TouchableOpacity>
-  
+        </View>
+        </View>
+        {/* end of boards container */}
+        </View> 
+        {/* end of inner container */}
         {/* Edit button */}
         <TouchableOpacity 
         style={[styles.editButton, !isOnline && styles.disabledButton]}
@@ -247,13 +315,32 @@ const BoardsScreen = ({ route }) => {
             <Text style={styles.deleteButtonText}>🗑️</Text>
           </TouchableOpacity>
         )}
+
+<View style={commonStyles.goBackContainer}>
+      <TouchableOpacity onPress={goBack}>
+        <Image source={require('./assets/appImages/goBackBtn.png')}
+              style={commonStyles.goBackButton} />
+        <Text style={commonStyles.goBackText}>חזור</Text>
+       </TouchableOpacity>
+       </View>
   
+
         <Modal visible={isModalVisible} animationType="slide" transparent>
           <View style={styles.modalContainer}>
-            <Text style={styles.title}>הוסף לוח חדש</Text>
-  
+          <Text style={commonStyles.bigTitle}>הוסף לוח תקשורת חדש</Text>
+          <View style={commonStyles.topLeft}>
+             <Image
+              source={require('./assets/appImages/editMode1.png')}
+              style={{ width: 200, height: 200}}/>
+           </View>
+           <View style={commonStyles.bottomRight}>
+              <Image
+              source={require('./assets/appImages/editMode2.png')}
+              style={{ width: 300, height: 300}}/>
+          </View>
+             <Text style={commonStyles.infoText}>שם לוח התקשורת:</Text>
             <TextInput
-              style={styles.input}
+              style={commonStyles.inputField}
               value={newBoardName}
               onChangeText={setNewBoardName}
               placeholder=" הכנס שם לוח"
@@ -263,7 +350,17 @@ const BoardsScreen = ({ route }) => {
             <TouchableOpacity onPress={handleBoardImagePicker}>
               <Text style={styles.selectImageText}>בחר תמונה</Text>
             </TouchableOpacity>
-  
+            {/*Edit Board Picture item*/}
+            <View style={styles.editBoardItem}>
+              <TouchableOpacity>
+              <View style={styles.halfCircle}>
+              <Image
+                  source={require('./assets/appImages/editPenIcon.png')}
+                  style={{ width: 50, height: 50}}/>
+              </View>
+              </TouchableOpacity>
+            </View>
+            {/*End of Profile Picture*/}
             {newBoardImage && (
               <Image
                 source={{ uri: newBoardImage.uri }}
@@ -273,7 +370,18 @@ const BoardsScreen = ({ route }) => {
             {/* End of image selection UI */}
   
             <Button title="הוסף" onPress={handleAddBoard} />
-            <Button title="סגור" onPress={() => setIsModalVisible(false)} />
+
+            {/*Go Back button*/}
+            <View style={commonStyles.bottomLeft}>
+              <TouchableOpacity
+              onPress={() => setIsModalVisible(false)}>
+                <Text style={commonStyles.buttonsText}>ביטול</Text>
+                <Image
+                source={require('./assets/appImages/goBackBtn.png')}
+                style={{ width: 95, height: 95}}/>
+                </TouchableOpacity>
+            </View>
+            
           </View>
         </Modal>
       </View>
@@ -286,11 +394,9 @@ const BoardsScreen = ({ route }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingTop: 20,
-    paddingHorizontal: 5,
-
+    justifyContent: 'top',
+    padding: 10,
+    backgroundColor: '#b8e7d3',
   },
   title: {
     fontSize: 20,
@@ -298,24 +404,22 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   boardContainer: {
-    flexDirection: 'row',
+    flex: 1,
+    flexDirection: 'row-reverse', // Change to 'row' to keep items in a row
     flexWrap: 'wrap',
-    justifyContent: 'center', 
-    marginBottom: 20,
   },
    // The base of the board , the image and title will add on it
   board: {
-    // width: 140,
-    // height: 140,
     width: RFValue(100),
     height: RFValue(100),
-    //width: RFPercentage(15),
-    //height: RFPercentage(15),
     backgroundColor: 'lightblue',
     margin: RFValue(10),
     borderRadius: 10,
-    borderWidth: 3,
     borderColor: '#B9C4D1', 
+    marginBottom: RFValue(35),
+    marginRight : RFValue(10),
+    borderWidth: RFValue(3), // Adds border
+    ////
   },
   buttomOfBoard: {
     position: 'absolute',
@@ -347,9 +451,8 @@ const styles = StyleSheet.create({
     color: 'white',
   },
   modalContainer: {
-    backgroundColor: 'rgba(255, 255, 255, 0.9)', // Use an off-white color with some transparency
+    backgroundColor: 'rgba(254, 229, 206,1)',
     flex: 1,
-    justifyContent: 'center',
     alignItems: 'center',
   },
   input: {
@@ -406,18 +509,27 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     borderRadius: 30,
   },
-  
+  goBackButton: {
+    position: 'absolute',
+    left: 0,
+    bottom: 20,
+    width: 60,
+    height: 60,
+  },
   deleteButtonText: {
     fontSize: 20,
     color: 'white',
   },
   checkboxContainer: {
     position: 'absolute',
-    top: 5,
-    right: 5,
-    backgroundColor: 'white',
-    borderRadius: 5,
-    padding: 5,
+    top: 9, 
+    right: -20,
+    width: 30,
+    height: 30,
+    marginRight: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+    zIndex: 1, // Set a higher zIndex value to ensure it's on top
   },
   checkbox: {
     width: 20,
@@ -436,6 +548,83 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     paddingBottom: 100, 
+  },
+  goBackText: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#333',
+    marginTop: 14,
+    flexWrap: 'wrap',
+    textAlign: 'left',
+  },
+  blankBoardText: {
+    fontSize: RFValue(50),
+    color: 'white',
+    marginTop: 15,
+    fontWeight: 'bold',
+  },
+  boardName: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#333',
+    marginTop: 14,
+    textAlign: 'right',
+    flexWrap: 'wrap',
+    textAlign: 'center',
+  },
+  blankBoard: {
+    backgroundColor: 'lightgray', 
+    alignItems: 'center',
+    borderRadius: 10,
+    marginBottom: RFValue(55),
+    marginLeft : RFValue(8),
+    marginTop : RFValue(11),
+    borderWidth: RFValue(2),
+    borderColor: 'white',
+    width: RFValue(95),
+    height: RFValue(95),
+  },
+  boardsContainer: {
+    flex: 1,
+    flexDirection: 'row-reverse', // Change to 'row' to keep items in a row
+    flexWrap: 'wrap',
+  },
+  innerContainer: {
+    flex: 1,
+    width: '95%', // Adjust as needed
+  },
+  deletedBoardBtn: {
+    backgroundColor: 'lightgray', 
+    alignItems: 'center',
+    borderRadius: 80,
+    marginBottom: RFValue(65),
+    marginRight : RFValue(15),
+    borderWidth: RFValue(2),
+    borderColor: 'white',
+    width: RFValue(85),
+    height: RFValue(85),
+  },
+  deleteBoardText: {
+    fontSize: RFValue(50),
+    color: 'white',
+    marginTop: 15,
+    fontWeight: 'bold',
+  },
+  notFoundText: {
+    fontWeight: 'bold',
+    color: '#A8A5B6',
+    fontSize: 34,
+    marginBottom: 60,
+  },
+  editBoardItem: {
+    alignItems: 'center',
+    borderRadius: 30,
+    marginBottom: RFValue(65),
+    marginRight : RFValue(15),
+    borderWidth: RFValue(4), // Adds border
+    borderColor: '#FBB8A5', // Set border color to pink
+    width: RFValue(112), 
+    height: RFValue(115),
   },
 });
 

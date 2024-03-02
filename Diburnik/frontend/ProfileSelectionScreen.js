@@ -208,29 +208,28 @@ const ProfileSelectionScreen = ({ route, navigation }) => {
 
 
   return (
-    <TouchableWithoutFeedback onPress={toggleScreenTouched}>
+    //Srart of 'container' view
     <View style={[styles.container, { backgroundColor: backgroundColor }]}>
       {/* CommonHeader - the app logo */}
       <CommonHeader showProfilePicture={false} showSettingsIcon={true} handleEdit={handleEdit} screenTouched={screenTouched}/>
       {editMode && (
-        <View style={styles.topLeft}>
+        <View style={commonStyles.topLeft}>
              <Image
               source={require('./assets/appImages/editMode1.png')}
               style={{ width: 200, height: 200}}/>
         </View>
       )}
        {editMode && (
-        <View style={styles.bottomRight}>
+        <View style={commonStyles.bottomRight}>
               <Image
               source={require('./assets/appImages/editMode2.png')}
               style={{ width: 300, height: 300}}/>
         </View>
-        
       )}
       <Text style={[commonStyles.bigTitle, { textAlign: 'center' }]}>
       {editMode ? 'ערוך פרופילים' : 'בחר פרופיל משתמש'}
       </Text>
-      <View style={styles.innerContainer}>
+      <View style={commonStyles.innerContainer}>
       <View style={styles.profilesContainer}>
       <View style={{ alignItems: 'flex-start'}}>
       <View>
@@ -251,7 +250,7 @@ const ProfileSelectionScreen = ({ route, navigation }) => {
           /* exit Edit mode button */
           <TouchableOpacity
             style={[
-              styles.exitEditMode,
+              commonStyles.exitEditMode,
             ]}
             onPress={() => {
               setEditMode(false); // Set editMode to false
@@ -274,8 +273,7 @@ const ProfileSelectionScreen = ({ route, navigation }) => {
               styles.profileItem,
               editMode && profile.isSelected && styles.selectedProfileItem,
             ]}
-            onPress={() => handleProfileSelect(profile._id)}
-          >
+            onPress={() => handleProfileSelect(profile._id)}>
             {editMode && (
           <View style={styles.checkboxContainer}>
              <View style={{ transform: [{ scale: 0.35 }] }}>
@@ -378,12 +376,12 @@ const ProfileSelectionScreen = ({ route, navigation }) => {
         <View style={styles.modalContainer}>
           <Text style={commonStyles.bigTitle}>ערוך פרופיל משתמש</Text>
           {/*The design of edit single profile view*/}
-          <View style={styles.topLeft}>
+          <View style={commonStyles.topLeft}>
              <Image
               source={require('./assets/appImages/editMode1.png')}
               style={{ width: 200, height: 200}}/>
            </View>
-           <View style={styles.bottomRight}>
+           <View style={commonStyles.bottomRight}>
               <Image
               source={require('./assets/appImages/editMode2.png')}
               style={{ width: 300, height: 300}}/>
@@ -400,30 +398,30 @@ const ProfileSelectionScreen = ({ route, navigation }) => {
           </View>
           {/*End of Profile Picture*/}
           {/*Another User Data:*/}
-          <Text style={styles.infoText}>שם משתמש:</Text>
-          <TextInput style={[styles.inputField]}/>
-          <Text>שם פרטי:</Text>
-          <TextInput style={[styles.inputField]}/>
-          <Text>שם משפחה:</Text>
-          <TextInput style={[styles.inputField]}/>
-          <Text>אימייל:</Text>
-          <TextInput style={[styles.inputField]}/>
+          <Text style={commonStyles.infoText}>שם משתמש:</Text>
+          <TextInput style={[commonStyles.inputField]}/>
+          <Text style={commonStyles.infoText}>שם פרטי:</Text>
+          <TextInput style={[commonStyles.inputField]}/>
+          <Text style={commonStyles.infoText}>שם משפחה:</Text>
+          <TextInput style={[commonStyles.inputField]}/>
+          <Text style={commonStyles.infoText}>אימייל:</Text>
+          <TextInput style={[commonStyles.inputField]}/>
           {/*Save button*/}
           <View style={{ flexDirection: 'row', alignItems: 'center' }}>
           <TouchableOpacity style={[styles.saveButton]}>
           <Image
               source={require('./assets/appImages/saveIcon.png')}
               style={{ width: 35, height: 35 ,marginRight: 10 }} />
-            <Text style={styles.buttonsText}>
+            <Text style={commonStyles.buttonsText}>
             שמור</Text> 
           </TouchableOpacity>
           </View>
           {/*End of Save button*/}
           {/*Go Back button*/}
-          <View style={styles.bottomLeft}>
+          <View style={commonStyles.bottomLeft}>
           <TouchableOpacity
             onPress={() => toggleEditSingleProfile()}>
-          <Text style={styles.buttonsText}>ביטול</Text>
+          <Text style={commonStyles.buttonsText}>ביטול</Text>
           <Image
               source={require('./assets/appImages/goBackBtn.png')}
               style={{ width: 95, height: 95}}/>
@@ -433,7 +431,7 @@ const ProfileSelectionScreen = ({ route, navigation }) => {
         {/*End of model container*/}
       </Modal>
     </View>
-    </TouchableWithoutFeedback>
+    //end of 'container view
   );
 };
 
@@ -688,6 +686,7 @@ const styles = StyleSheet.create({
   },
   infoText: {
     textAlign :'right',
+    fontSize: 18,
   },
   saveButton: {
     backgroundColor: '#28A745',

@@ -12,7 +12,7 @@ import CommonHeader from './CommonHeader';
 import Color from 'color';
 import DropDownPicker from 'react-native-dropdown-picker';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-
+import { commonStyles } from './CommonStyles';
 
 
 
@@ -35,6 +35,9 @@ const WordsScreen = ({ route }) => {
   const { width } = useWindowDimensions();
   const numColumns = Math.floor(width / 200); // Number of columns according to screen width
   const [errorMessage, setErrorMessage] = useState('');
+  const goBack = () => {
+    navigation.goBack();
+  };
 
   //const colorPalette = ['#ff9800', '#faeb90', '#1bde5d', '#f4a3a0', '#bdb9de'];
   const colorPalette = [
@@ -345,6 +348,14 @@ const WordsScreen = ({ route }) => {
           <Text style={styles.deleteButtonText}>🗑️</Text>
         </TouchableOpacity>
       )}
+
+    <View style={commonStyles.goBackContainer}>
+      <TouchableOpacity onPress={goBack}>
+        <Image source={require('./assets/appImages/goBackBtn.png')}
+              style={commonStyles.goBackButton} />
+        <Text style={commonStyles.goBackText}>חזור</Text>
+       </TouchableOpacity>
+       </View>
 
       {/* Modal for Adding New Word */}
       <Modal visible={isModalVisible} animationType="slide" transparent>
