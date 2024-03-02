@@ -127,7 +127,7 @@ export const fetchOnlineData = async (key,parentTypeId,url,params = null) => {
 
     // Save the fetched data to AsyncStorage 
     await AsyncStorage.setItem(`${key}_${parentTypeId}`, JSON.stringify(res));
-    //console.log(`setting item to: ${key}_${parentTypeId}`);
+    // console.log(`setting item to: ${key}_${parentTypeId}`);
     return res;
   } catch (error) {
     console.log('Error fetching data from server:', error);

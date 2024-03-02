@@ -437,6 +437,34 @@ app.get("/children", async (req, res) => {
 });
 
 
+  // finds the ids to display in the profiles selection
+  app.get('/children/findIds/:teacherId', async (req, res) => {
+    const { teacherId } = req.params;
+    try {
+      const teacher = await User.findById(teacherId); // Make sure to use await here
+      const childIds = teacher.child;
+      res.status(200).json(childIds);
+    } catch (error) {
+      console.log('Error finding ids:', error);
+      res.status(500).json({ message: 'Server error' });
+    }
+  });
+
+
+    // finds the ids to display in the boards selection
+    app.get('/boards/findIds/:profileId', async (req, res) => {
+      const { profileId } = req.params;
+      try {
+        const child = await Child.findById(profileId); // Make sure to use await here
+        const boardsIds = child.boards;
+        res.status(200).json(boardsIds);
+      } catch (error) {
+        console.log('Error finding ids:', error);
+        res.status(500).json({ message: 'Server error' });
+      }
+    });
+
+
 
   app.get('/children/:profileId', async (req, res) => {
     const { profileId } = req.params;
@@ -615,4 +643,77 @@ app.delete('/deleteWords', async (req, res) => {
 })
 
 
-  
+/********************************************************* */
+///////                   app.patch                   /////
+/********************************************************* */
+
+
+
+app.post('/profile/update/add', upload.single('image'), async (req, res) => {
+  try {
+    const { _id, firstName, lastName } = req.body;
+    const updateFields = {
+      firstName,
+      lastName,
+    };
+
+    // Check if there is a file attached in the request
+    if (req.file) {
+      updateFields.image = {
+        data: req.file.buffer, 
+        contentType: req.file.mimetype,
+      };
+    }
+
+    // Update the child profile with the appropriate fields
+    const updatedChild = await Child.findOneAndUpdate(
+      { _id },
+      updateFields,
+    );
+    if (!updatedChild) {
+      console.log('Profile not found');
+      return res.status(404).json({ message: 'Profile not found' });
+    }
+    
+    res.status(200).json({ message: 'Profile updated successfully' });
+  } catch (error) {
+    console.error('Error updating profile:', error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+});
+
+
+
+
+app.post('/board/update/add', upload.single('image'), async (req, res) => {
+  try {
+    const { _id, category } = req.body;
+    const updateFields = {
+      category,
+    };
+
+    // Check if there is a file attached in the request
+    if (req.file) {
+      updateFields.image = {
+        data: req.file.buffer, 
+        contentType: req.file.mimetype,
+      };
+    }
+
+    // Update the child profile with the appropriate fields
+    const updatedBoard = await Board.findOneAndUpdate(
+      { _id },
+      updateFields,
+    );
+    if (!updatedBoard) {
+      console.log('Board not found');
+      return res.status(404).json({ message: 'Board not found' });
+    }
+    
+    res.status(200).json({ message: 'Board updated successfully' });
+  } catch (error) {
+    console.error('Error updating profile:', error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+});
+
