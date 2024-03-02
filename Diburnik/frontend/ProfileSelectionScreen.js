@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { View, Text, TouchableOpacity, Image, Modal, TextInput, Button, StyleSheet ,ScrollView, TouchableWithoutFeedback  } from 'react-native';
 import axios from 'axios';
 import config from './config';
-import { fetchOfflineData, fetchOnlineData, checkOnlineStatus } from './utils';
+import { fetchOfflineData, fetchOnlineData, checkOnlineStatus, handleImagePicker, addAndUploadData } from './utils';
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { RFPercentage, RFValue } from "react-native-responsive-fontsize";
 
@@ -10,31 +10,41 @@ import { commonStyles } from './CommonStyles';
 import CommonHeader from './CommonHeader';
 
 const ProfileSelectionScreen = ({ route, navigation }) => {
-  const { teacherId, child } = route.params;
+  const { teacherId } = route.params;                  //child - list of ids belongs to teacher
+  const [child, setChild] = useState('');
   const [profiles, setProfiles] = useState([]);
   const [isSearchMenuVisible, setIsSearchMenuVisible] = useState(false);
   const [isEditSingleProfileVisible, setEditSingleProfileVisible] = useState(false);
   const [newChildUsername, setNewChildUsername] = useState('');
   const [newChildEmail, setNewChildEmail] = useState('');
   const [errorMessage, setErrorMessage] = useState(''); 
-  const [selectedProfiles, setSelectedProfiles] = useState([]);
   const [editMode, setEditMode] = useState(false);
   const [isOnline, setIsOnline] = useState(false);
   const [backgroundColor,setBackgroundColor] = useState('');
-
   const [screenTouched,setScreenTouched] = useState(false);
+  const [selectedProfile, setSelectedProfile] = useState('');
 
+  const [temp, setTemp] = useState('');
 
-  //State variable to track image visibility
-  const [imageVisible, setImageVisible] = useState(false);
+  useEffect(() => {
+    // Fetch initial childIds when the component mounts
+    getChildIds(teacherId);
+
+    //when a new iamge is uploaded to the selected profile in the editing menu, refresh the profile picture 
+    setSelectedProfile((prevProfile) => ({
+      ...prevProfile,
+      image: {
+        uri: temp.uri,
+      },
+    }));
+  }, [temp,toggleScreenTouched]); 
 
   useEffect(() => {
     (async () => {
       try {
         //const data = await fetchData(`offlineProfiles`, `${teacherId}`, 'children', { child: child });
-
-        const offlineData = await fetchOfflineData(`offlineProfiles`, `${teacherId}`);
         let onlineData;
+        const offlineData = await fetchOfflineData(`offlineProfiles`, `${teacherId}`);
 
         if (offlineData) {
           const profilesData = offlineData.map((child) => ({
@@ -42,31 +52,46 @@ const ProfileSelectionScreen = ({ route, navigation }) => {
             firstName: child.firstName,
             lastName: child.lastName,
             image: child.image,
-            isSelected: false,
           }));
-          setProfiles(profilesData);
-        }
-        checkOnlineStatus().then((status) => {setIsOnline(status);});         //Check online status and keep it updated
 
-        if(isOnline)
+          setProfiles(prevProfiles => ([...profilesData]));
+        }
+        await checkOnlineStatus().then((status) => {
+          setIsOnline(status);
+        });         //Check online status and keep it updated
+
+        if(isOnline) {
           onlineData = await fetchOnlineData(`offlineProfiles`, `${teacherId}`, 'children', { child: child });
+        }
         if (onlineData) {
           const profilesData = onlineData.map((child) => ({
             _id: child._id,
             firstName: child.firstName,
             lastName: child.lastName,
             image: child.image,
-            isSelected: false,
           }));
-          setProfiles(profilesData);
+          setProfiles(prevProfiles => ([...profilesData]));
         }
 
       } catch (error) {
         console.log('Error fetching profiles:', error);
       }
     })();
-  }, [child, isOnline]);
+  }, [ child , isOnline]);
 
+
+  const getChildIds = async (teacherId) => {
+    try {
+      const response = await axios.get(`${config.baseUrl}/children/findIds/${teacherId}`);
+      setChild(response.data);
+      await AsyncStorage.setItem(`childrenIds`, JSON.stringify(response.data));
+    } catch (error) {     
+      // If cant get children ids from server, use the stored ids (mainly for offline usage)
+      const storedChildren = await AsyncStorage.getItem(`childrenIds`);
+      setChild(JSON.parse(storedChildren));
+    }
+  };
+  
 
   const handleProfileSelect = (profileId) => {
     if (!editMode) {
@@ -79,43 +104,14 @@ const ProfileSelectionScreen = ({ route, navigation }) => {
 
       navigation.navigate('Boards', { profileId });
       toggleScreenTouched();      // close the settings menu
-    } else {
-      const updatedProfiles = profiles.map((profile) =>
-        profile._id === profileId
-          ? { ...profile, isSelected: !profile.isSelected }
-          : profile
-      );
-      setProfiles(updatedProfiles);
-      const selectedProfiles = updatedProfiles.filter((profile) => profile.isSelected);
-      setSelectedProfiles(selectedProfiles);
-    }
+    } 
   };
 
-  const handleAddProfile = () => {
-    toggleSearchMenu();
-  };
-
-  const handleEditSingleProfile = () => {
-    toggleEditSingleProfile();
-  };
-
-  const toggleSearchMenu = () => {
-    setIsSearchMenuVisible(!isSearchMenuVisible);
-  };
-
-  const toggleEditSingleProfile = () => {
-    setEditSingleProfileVisible(!isEditSingleProfileVisible);
-  };
 
   /*handleEdit - what to change in 'Edit' mode*/
   const handleEdit = () => {
     setEditMode(!editMode);
     setBackgroundColor(editMode ? '#b8e7d3' : '#fee5ce');//Changing background color in edit mode
-    setSelectedProfiles([]); // Clear selected profiles when toggling edit mode
-    setImageVisible(editMode); // Set image visibility based on edit mode
-
-  const updatedProfiles = profiles.map((profile) => ({ ...profile, isSelected: false }));   //update the cleared profiles
-  setProfiles(updatedProfiles);
   };
   
 
@@ -126,47 +122,48 @@ const ProfileSelectionScreen = ({ route, navigation }) => {
     formData.append('email', newChildEmail);
     formData.append('teacherId', teacherId);
 
-
-
-    axios.post(`${config.baseUrl}/addChildId`, formData).then((response) => {
+    // Added to request header to support android 
+    axios.post(`${config.baseUrl}/addChildId`, formData, { headers: { Accept: 'application/json', 'Content-Type': 'multipart/form-data'}}).then((response) => {
       console.log("response status = ",response.status);
       if (response.status === 200) {
         const newChild = response.data.child; // The child found in the search
         // Add the new child to the profiles
-        setProfiles([...profiles, { ...newChild, isSelected: false }]);
+        //setProfiles([...profiles, { ...newChild, isSelected: false }]);
+        setProfiles(prevProfiles => ([...prevProfiles, newChild]));
+
         toggleSearchMenu();
-        //fetchProfiles();
 
       }
 
     }).catch((error) => {
+      console.log("error = ",error)
       if (error.response && error.response.status === 400) {
         const errorTxt = 'הילד כבר קיים ברשימה';
         setErrorMessage(errorTxt);
     
         // Show the message for 5 seconds
-        setTimeout(() => {
-          setErrorMessage('');
-        }, 5000);
+        setTimeout(() => {setErrorMessage('');}, 5000);
       } else {
-        setErrorMessage('Error adding child to teacher. Please try again.');
+        setErrorMessage('Error adding child to teacher. Please try again.',);
+        setTimeout(() => {setErrorMessage('');}, 5000);
       }
     });
   }
     
 
-  const removeChildFromTeacher = (profileIds) => {
+  const removeChildFromTeacher = (profileId) => {
     const data = {
       teacherId: teacherId,
-      profileIds: profileIds,
+      profileIds: [profileId],
     };
-    console.log("on frontend profileIds to delete: ",profileIds);
+    console.log("on frontend profileIds to delete: ",profileId);
 
   
     axios.delete(`${config.baseUrl}/removeChildFromTeacher/`, { data: data }).then((response) => {
       if (response.status === 200) {
-        const updatedProfiles = profiles.filter(profile => !profileIds.includes(profile._id));
-        setProfiles(updatedProfiles);
+        const updatedProfiles = profiles.filter(profile => profile._id !== profileId);
+        // setProfiles(updatedProfiles);
+        setProfiles(prevProfiles => ([...updatedProfiles]));
       }
     }).catch((error) => {
       console.error('Error deleting profile:', error);
@@ -184,7 +181,7 @@ const ProfileSelectionScreen = ({ route, navigation }) => {
       // const response = await axios.delete(`${config.baseUrl}/deleteChildren?childrenIds=${profileId}`);
       if (response.status === 200) {
         const updatedProfiles = profiles.filter(profile => !profileIds.includes(profile._id));
-        setProfiles(updatedProfiles);
+        setProfiles(prevProfiles => ([...updatedProfiles]));
       } else {
         console.error('Error deleting profile. Unexpected response:', response.status);
       }
@@ -193,15 +190,74 @@ const ProfileSelectionScreen = ({ route, navigation }) => {
     }
   };
 
-    //Function to toggle image visibility
-    const toggleImageVisibility = () => {
-      setImageHidden(!imageHidden); 
+
+  const handleAddProfile = () => {
+    toggleSearchMenu();
+  };
+  const toggleSearchMenu = () => {
+    setIsSearchMenuVisible(!isSearchMenuVisible);
   };
 
+  const handleEditSingleProfile = (profileId) => {
+    const selectedProfile = profiles.find((profile) => profile._id === profileId);
+    setSelectedProfile(selectedProfile);
+    toggleEditSingleProfile();
+
+  };
+  const toggleEditSingleProfile = () => {
+    setEditSingleProfileVisible(!isEditSingleProfileVisible);
+    setTemp('');
+  };
+
+  // changes the selectedProfile first name 
+  const handleFirstNameChange = (firstName) => {
+    setSelectedProfile((prevProfile) => ({
+      ...prevProfile,
+      firstName: firstName
+    }));
+  }
+    // changes the selectedProfile last name
+    const handleLastNameChange = (lastName) => {
+      setSelectedProfile((prevProfile) => ({
+        ...prevProfile,
+        lastName: lastName
+      }));
+    }
+
+  // function for hiding the menu when pressing anywhere in the screen
   const toggleScreenTouched = () => {
     setScreenTouched(!screenTouched);
   }
   
+
+
+
+
+  //change the edited profile's profile picture
+  const handlePenIconPress = async () => {
+    await handleImagePicker(setTemp) 
+  };
+
+
+  // update the edited profile and save it to the db
+  const updateProfileDetails = async () => {
+    const formData = new FormData();
+    formData.append('_id', selectedProfile._id);
+    formData.append('firstName', selectedProfile.firstName);
+    formData.append('lastName', selectedProfile.lastName);
+
+    const response = await addAndUploadData(formData,temp,'profile/update');
+    if (response.status === 200) {
+      console.log("Profile updated successfully");  
+      getChildIds(teacherId);                   //refresh the rendered profiles
+      toggleEditSingleProfile();                //close the editing menu
+    } else {
+      console.error('Error saving profile changes', response.status);
+      //add a message showing changes error
+    }
+  }
+
+
 
 
 
@@ -214,16 +270,16 @@ const ProfileSelectionScreen = ({ route, navigation }) => {
       <CommonHeader showProfilePicture={false} showSettingsIcon={true} handleEdit={handleEdit} screenTouched={screenTouched}/>
       {editMode && (
         <View style={styles.topLeft}>
-             <Image
-              source={require('./assets/appImages/editMode1.png')}
-              style={{ width: 200, height: 200}}/>
+          <Image
+          source={require('./assets/appImages/editMode1.png')}
+          style={{ width: 200, height: 200}}/>
         </View>
       )}
        {editMode && (
         <View style={styles.bottomRight}>
-              <Image
-              source={require('./assets/appImages/editMode2.png')}
-              style={{ width: 300, height: 300}}/>
+          <Image
+          source={require('./assets/appImages/editMode2.png')}
+          style={{ width: 300, height: 300}}/>
         </View>
         
       )}
@@ -242,7 +298,7 @@ const ProfileSelectionScreen = ({ route, navigation }) => {
             ]}
             onPress={() => handleAddProfile()}>
             <Text style={styles.blankProfileText }>+</Text>
-            <Text style={[styles.profileName, { marginTop: 30 }]}>הוסף פרופיל חדש</Text>
+            <Text style={[styles.profileName, { marginTop: RFValue(20) }]}>הוסף פרופיל חדש</Text>
           </TouchableOpacity>
         )}
         </View>
@@ -258,7 +314,7 @@ const ProfileSelectionScreen = ({ route, navigation }) => {
               handleEdit(); // Call handleEdit function
             }}>
              <Image source={require('./assets/appImages/exitEditMode.png')}
-              style={{ width: 76, height: 76, marginTop: 30, marginLeft: 15}} />
+              style={{ width: RFValue(50), height: RFValue(50), marginTop: RFValue(20), marginLeft: 15}} />
               <Text style={[styles.profileName, { marginTop: 35 }]}>יציאה ממצב עריכה</Text>
           </TouchableOpacity>
         )}
@@ -272,7 +328,7 @@ const ProfileSelectionScreen = ({ route, navigation }) => {
             key={profile._id}
             style={[
               styles.profileItem,
-              editMode && profile.isSelected && styles.selectedProfileItem,
+              editMode && styles.selectedProfileItem,
             ]}
             onPress={() => handleProfileSelect(profile._id)}
           >
@@ -281,7 +337,7 @@ const ProfileSelectionScreen = ({ route, navigation }) => {
              <View style={{ transform: [{ scale: 0.35 }] }}>
           <TouchableOpacity
             style={[styles.blankProfile, { borderWidth: 8 }]}
-            onPress={() => handleAddProfile()}>
+            onPress={() => removeChildFromTeacher(profile._id)}>
                <Text style={styles.blankProfileText }>x</Text>
           </TouchableOpacity>
           </View>
@@ -289,70 +345,39 @@ const ProfileSelectionScreen = ({ route, navigation }) => {
             )}
 
 {
-  /*what to do when pressing on the pen icon = edit a single profile information*/
-  editMode && (
-    <View style={[styles.checkboxContainer, { top: 108, right: 80, width: 30, height: 30, marginRight: 10 }]}>
-      <View style={{ transform: [{ scale: 0.35 }] }}>
-        <TouchableOpacity
-         key={profile._id}
-          style={[styles.blankProfile, { borderWidth: 8 }]}
-          onPress={() => {handleProfileSelect(profile._id);
-          handleEditSingleProfile();}}>
-          <Image
-            source={require('./assets/appImages/editPenIcon.png')} // Provide the path to your image
-            style={{ width: '70%', height: '100%', resizeMode: 'contain' }} // Adjust the style as needed
-          />
-        </TouchableOpacity>
-      </View>
-    </View>
-  )
-}
-
-
-            {profile.image && (
+      /*what to do when pressing on the pen icon = edit a single profile information*/
+      editMode && (
+        <View style={[styles.checkboxContainer, { top: RFValue(62), right: RFValue(46), width: 30, height: 30, marginRight: 10 }]}>
+          <View style={{ transform: [{ scale: 0.35 }] }}>
+            <TouchableOpacity
+            key={profile._id}
+              style={[styles.blankProfile, { borderWidth: 8 }]}
+              onPress={() => {handleEditSingleProfile(profile._id)}}>
               <Image
-                source={{
-                  uri: `data:${profile.image.contentType};base64,${profile.image.data}`,
-                }}
-                style={styles.profileImage}
+                source={require('./assets/appImages/editPenIcon.png')} // Provide the path to your image
+                style={{ width: '70%', height: '100%', resizeMode: 'contain' }} // Adjust the style as needed
               />
-            )}
-            <Text style={styles.profileName}>
-              {profile.firstName} {profile.lastName}
-            </Text>
-          </TouchableOpacity>
+            </TouchableOpacity>
+          </View>
+        </View>
+      )
+    }
+          {profile.image && (
+            <Image
+              source={{
+                uri: `data:${profile.image.contentType};base64,${profile.image.data}`,
+              }}
+              style={styles.profileImage}
+            />
+          )}
+          <Text style={styles.profileName}>
+            {profile.firstName} {profile.lastName}
+          </Text>
+        </TouchableOpacity>
         ))}
       </View>
       </View>
       </View>
-      <TouchableOpacity 
-        style={[styles.addButton, !isOnline && styles.disabledButton]}
-        onPress={() => isOnline && handleAddProfile()}
-      >
-        <Text style={styles.addButtonText}>+</Text>
-      </TouchableOpacity>
-      <TouchableOpacity 
-        style={[styles.editButton, !isOnline && styles.disabledButton]}
-        onPress={() => isOnline && handleEdit()}
-      >
-        <Text style={styles.editButtonText}>{editMode ? '✅' : '✏️'}</Text>
-      </TouchableOpacity>
-      {editMode && selectedProfiles.length > 0 && (
-        <>
-          <TouchableOpacity
-            style={styles.deleteButton}
-            onPress={() => handleDeleteProfile(selectedProfiles.map(profile => profile._id))}
-          >
-            <Text style={styles.deleteButtonText}>🗑️</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={styles.removeFromTeacherButton}
-            onPress={() => removeChildFromTeacher(selectedProfiles.map(profile => profile._id))}
-          >
-            <Text style={styles.deleteButtonText}>🚫</Text>
-          </TouchableOpacity>
-        </>
-      )}
       <Modal visible={isSearchMenuVisible} animationType="slide" transparent>
         <View style={styles.modalContainer}>
           <Text style={styles.modalTitle}>חיפוש והוספת פרופיל</Text>
@@ -388,29 +413,48 @@ const ProfileSelectionScreen = ({ route, navigation }) => {
               source={require('./assets/appImages/editMode2.png')}
               style={{ width: 300, height: 300}}/>
           </View>
-          {/*Edit Profile Picture item*/}
-          <View style={styles.editProfileItem}>
-          <TouchableOpacity>
-          <View style={styles.halfCircle}>
-          <Image
-              source={require('./assets/appImages/editPenIcon.png')}
-              style={{ width: 50, height: 50}}/>
-          </View>
-          </TouchableOpacity>
-          </View>
+
+
+        {/* Edit Profile Picture item */}
+        <View style={styles.editProfilePictureContainer}>
+              <View style={styles.editProfileItem}>
+                {selectedProfile.image ? (
+                  <Image
+                    source={{
+                      uri: selectedProfile.image.data ? `data:${selectedProfile.image.contentType};base64,${selectedProfile.image.data}` : selectedProfile.image.uri ,
+                    }}
+                    style={{ width: '100%', height: '100%', borderRadius: 90 }}
+                  />
+                ) : null}
+              </View>
+            <TouchableOpacity onPress={handlePenIconPress}>
+              <View style={styles.halfCircle}>
+                <Image
+                  source={require('./assets/appImages/editPenIcon.png')}
+                  style={{ width: '70%', height: '70%', resizeMode: 'contain' }}
+                  />
+              </View>
+            </TouchableOpacity>
+        </View>
           {/*End of Profile Picture*/}
-          {/*Another User Data:*/}
-          <Text style={styles.infoText}>שם משתמש:</Text>
-          <TextInput style={[styles.inputField]}/>
+          {/*Edit child details:*/}
           <Text>שם פרטי:</Text>
-          <TextInput style={[styles.inputField]}/>
+          <TextInput 
+            style={[styles.inputField]}
+            value = {selectedProfile.firstName}
+            onChangeText={(firstName) => handleFirstNameChange(firstName)}
+          />
           <Text>שם משפחה:</Text>
-          <TextInput style={[styles.inputField]}/>
-          <Text>אימייל:</Text>
-          <TextInput style={[styles.inputField]}/>
+          <TextInput 
+            style={[styles.inputField]}
+            value = {selectedProfile.lastName}
+            onChangeText={(lastName) => handleLastNameChange(lastName)}
+          />
+          
           {/*Save button*/}
           <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-          <TouchableOpacity style={[styles.saveButton]}>
+          <TouchableOpacity  onPress={updateProfileDetails}
+          style={[styles.saveButton]}>
           <Image
               source={require('./assets/appImages/saveIcon.png')}
               style={{ width: 35, height: 35 ,marginRight: 10 }} />
@@ -426,7 +470,7 @@ const ProfileSelectionScreen = ({ route, navigation }) => {
           <Text style={styles.buttonsText}>ביטול</Text>
           <Image
               source={require('./assets/appImages/goBackBtn.png')}
-              style={{ width: 95, height: 95}}/>
+              style={{ width: RFValue(60), height: RFValue(60)}}/>
           </TouchableOpacity>
           </View>
         </View>
@@ -469,6 +513,11 @@ const styles = StyleSheet.create({
     width: RFValue(85), 
     height: RFValue(85),
   },
+  editProfilePictureContainer: {
+    flexDirection: 'row', 
+    alignItems: 'center',
+
+  },
   editProfileItem: {
     alignItems: 'center',
     borderRadius: 90,
@@ -479,16 +528,16 @@ const styles = StyleSheet.create({
     width: RFValue(112), 
     height: RFValue(115),
   },
-  halfCircle: {
+  halfCircle: {           //the one with the pencil
     position: 'absolute',
+    bottom: RFValue(-48),
+    right: RFValue(45),
     justifyContent: 'center',
     alignItems: 'center',
-    width: RFValue(104)/2,
-    height: RFValue(210)/2,
+    width: RFValue(52),
+    height: RFValue(105),
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
     overflow: 'hidden',
-    bottom:-212.99,
-    left:-41.6,
     borderTopLeftRadius:180, 
     borderBottomLeftRadius:180,
     transform: [{ rotate: '-90deg' }] // Rotate by 90 degrees
@@ -508,7 +557,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   buttonsText: {
-    fontSize: 18,
+    fontSize: RFValue(13),
     fontWeight: 'bold',
     color: '#333',
     textAlign: 'right',
@@ -531,6 +580,7 @@ const styles = StyleSheet.create({
     color: 'white',
   },
   modalContainer: {
+    marginTop: RFValue(50),
     backgroundColor: 'rgba(254, 229, 206,1)',
     flex: 1,
     alignItems: 'center',
@@ -583,9 +633,6 @@ const styles = StyleSheet.create({
     fontSize: 20,
     color: 'white',
   },
-  selectedProfileItem: {
-    backgroundColor: 'lightblue',
-  },
   checkboxContainer: {
     position: 'absolute',
     top: 9, 
@@ -597,14 +644,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     zIndex: 1, // Set a higher zIndex value to ensure it's on top
   },
-  checkbox: {
-    width: RFValue(13),
-    height: RFValue(13),
-    borderRadius: 5,
-    borderWidth: 1,
-    borderColor: 'black',
-    backgroundColor: 'white', 
-  },
+  
   checkedCheckbox: {
     backgroundColor: 'blue',
     borderColor: 'blue',
@@ -681,7 +721,7 @@ const styles = StyleSheet.create({
     borderColor: '#ccc',
     borderWidth: 2,
     borderRadius: 5,
-    marginBottom: 10,
+    marginBottom: 30,
     paddingHorizontal: 10,
     backgroundColor: '#ffffff',
     textAlign :'right',
@@ -694,11 +734,12 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     marginLeft: 'auto',
     marginRight: 'auto',
-    width : '16%' ,
+    width : RFPercentage(16) ,
     borderRadius: 5,
     flexDirection: 'row', 
     alignItems: 'center', 
     padding: 10,
+
   },
   buttonText: {
     color: '#fff',

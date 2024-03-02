@@ -81,7 +81,9 @@ const LoginScreen = () => {
   
       // Navigate based on user type
       if (lastLoginInfo.userType === 'teacher') {
-        navigation.navigate('Profiles', { teacherId: lastLoginInfo.teacherId, child: lastLoginInfo.child });
+        //navigation.navigate('Profiles', { teacherId: lastLoginInfo.teacherId, child: lastLoginInfo.child });
+        navigation.navigate('Profiles', { teacherId: lastLoginInfo.teacherId });
+
       } else if (lastLoginInfo.userType === 'child') {
         navigation.navigate('Boards', { profileId: lastLoginInfo.child[0] });
       } 
