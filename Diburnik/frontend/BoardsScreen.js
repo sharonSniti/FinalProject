@@ -27,6 +27,9 @@ const BoardsScreen = ({ route }) => {
   const [isOnline, setIsOnline] = useState(false);
   const [backgroundColor,setBackgroundColor] = useState('');
   const [screenTouched,setScreenTouched] = useState(false);
+  const [isEditSingleBoardVisible, setEditSingleBoardVisible] = useState(false);
+  const [selectedBoard, setSelectedBoard] = useState('');
+  const [temp, setTemp] = useState('');
 
   const goBack = () => {
     navigation.goBack();
@@ -35,29 +38,41 @@ const BoardsScreen = ({ route }) => {
   useEffect(() => {
     (async () => {
       try {
-        // change url according to : `${config.baseUrl}/${url}`part
-        //const data = await fetchData(`offlineBoards`, `${profileId}`, `children/${profileId}`);
-
-        const offlineData = await fetchOfflineData(`offlineBoards`, `${profileId}`);
-        let onlineData;
-
-        if (offlineData) {
-          setLoading(false);
-          setBoards(offlineData.boards);
-        }
-        checkOnlineStatus().then((status) => {setIsOnline(status);});         //Check online status and keep it updated
-      
-        if(isOnline)
-          onlineData = await fetchOnlineData(`offlineBoards`, `${profileId}`, `children/${profileId}`);
-        if (onlineData) {
-          setLoading(false);
-          setBoards(onlineData.boards);
-        }
+        await fetchBoardsData();
       } catch (error) {
         console.log('Error fetching data for profile:', error);
       }
     })();
-  }, [profileId,isOnline]);
+  }, [profileId, isOnline]);
+ 
+
+  const fetchBoardsData = async () => {
+    try {
+      const offlineData = await fetchOfflineData(`offlineBoards`, `${profileId}`);
+      let onlineData;
+
+      if (offlineData) {
+        setLoading(false);
+        setBoards(offlineData.boards);
+      }
+
+      checkOnlineStatus().then((status) => {
+        setIsOnline(status);
+      });
+
+      if (isOnline) {
+        onlineData = await fetchOnlineData(`offlineBoards`, `${profileId}`, `children/${profileId}`);
+      }
+
+      if (onlineData) {
+        setLoading(false);
+        setBoards(onlineData.boards);
+      }
+    } catch (error) {
+      console.log('Error fetching data for profile:', error);
+    }
+  };
+
   
 
   const handleBoardSelect = async (boardId) => {
@@ -162,6 +177,54 @@ const BoardsScreen = ({ route }) => {
     }
   };
 
+
+    // update the edited board and save it to the db
+    const updateBoardDetails = async () => {
+      const formData = new FormData();
+      formData.append('_id', selectedBoard._id);
+      formData.append('category', selectedBoard.category);
+  
+      // temp will have the temporary image
+      const response = await addAndUploadData(formData,temp,'board/update');
+      if (response.status === 200) {
+        console.log("Board updated successfully");  
+        fetchBoardsData();                      // refresh boards
+        toggleEditSingleBoard();                //close the editing menu
+      } else {
+        console.error('Error saving profile changes', response.status);
+        //add a message showing changes error
+      }
+    }
+
+
+  const handleEditSingleBoard = (boardId) => {
+    const selectedBoard = boards.find((board) => board._id === boardId);
+    setSelectedBoard(selectedBoard);
+    toggleEditSingleBoard();
+  };
+
+  const toggleEditSingleBoard = () => {
+    setEditSingleBoardVisible(!isEditSingleBoardVisible);
+    setTemp('');
+  };
+
+  //change the edited board's picture
+  const handlePenIconPress = async () => {
+    await handleImagePicker(setTemp) 
+    console.log("selectedBoard = ",selectedBoard);
+  };
+
+  // changes the selectedProfile category
+  const handleCategoryChange = (category) => {
+    setSelectedBoard((prevBoard) => ({
+      ...prevBoard,
+      category: category
+    }));
+  }
+
+
+
+
   const toggleScreenTouched = () => {
     setScreenTouched(!screenTouched);
   }
@@ -171,7 +234,7 @@ const BoardsScreen = ({ route }) => {
   <TouchableWithoutFeedback onPress={toggleScreenTouched}>
     <View style={[styles.container, { backgroundColor: backgroundColor }]}>
         {/* CommonHeader - the app logo */}
-        <CommonHeader showProfilePicture={true} />
+        <CommonHeader showProfilePicture={true} showSettingsIcon={true} handleEdit={handleEdit} screenTouched={screenTouched}/>
         {editMode && (
         <View style={commonStyles.topLeft}>
              <Image
@@ -200,30 +263,102 @@ const BoardsScreen = ({ route }) => {
           !isOnline && styles.disabledButton]}
         onPress={() => isOnline && setIsModalVisible(true)}>
             <Text style={styles.blankBoardText }>+</Text>
-            <Text style={[styles.boardName, { marginTop: 40 }]}>הוסף לוח תקשורת חדש</Text>
+            <Text style={[styles.boardName, { marginTop: RFValue(30) }]}>הוסף לוח תקשורת חדש</Text>
           </TouchableOpacity>
         )}
         </View>
+        {/* Edit Modal */}
+        <Modal visible={isEditSingleBoardVisible} animationType="slide" transparent>
+        <View style={styles.modalContainer}>
+          <Text style={commonStyles.bigTitle}>ערוך לוח</Text>
+          <View style={styles.topLeft}>
+             <Image
+              source={require('./assets/appImages/editMode1.png')}
+              style={{ width: 200, height: 200}}/>
+           </View>
+           <View style={styles.bottomRight}>
+              <Image
+              source={require('./assets/appImages/editMode2.png')}
+              style={{ width: 300, height: 300}}/>
+          </View>
+
+
+        {/* Edit Board Picture item */}
+        <View style={styles.editBoardPictureContainer}>
+              <View style={styles.editBoardItem}>
+                {selectedBoard.image ? (
+                  <Image
+                    source={{
+                      uri: temp?.uri || `data:${selectedBoard.image.contentType};base64,${Buffer.from(selectedBoard.image.data).toString('base64')}`,
+                    }}
+                    style={{ width: '100%', height: '100%', borderRadius: 10 }}
+                  />
+                ) : null}
+              </View>
+            <TouchableOpacity onPress={handlePenIconPress}>
+              <View style={styles.halfCircle}>
+                <Image
+                  source={require('./assets/appImages/editPenIcon.png')}
+                  style={{ width: '70%', height: '70%', resizeMode: 'contain' }}
+                  />
+              </View>
+            </TouchableOpacity>
+        </View>
+          {/*End of Board Picture*/}
+
+          {/*Edit board details:*/}
+          <Text>שם לוח:</Text>
+          <TextInput 
+            style={[styles.inputField]}
+            value = {selectedBoard.category}
+            onChangeText={(category) => handleCategoryChange(category)}
+          />
+          
+          {/*Save button*/}
+          <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+          <TouchableOpacity  onPress={updateBoardDetails}
+          style={[styles.saveButton]}>
+          <Image
+              source={require('./assets/appImages/saveIcon.png')}
+              style={{ width: 35, height: 35 ,marginRight: 10 }} />
+            <Text style={styles.buttonsText}>
+            שמור</Text> 
+          </TouchableOpacity>
+          </View>
+          {/*End of Save button*/}
+          {/*Go Back button*/}
+          <View style={styles.bottomLeft}>
+          <TouchableOpacity
+            onPress={() => toggleEditSingleBoard()}>
+          <Text style={styles.buttonsText}>ביטול</Text>
+          <Image
+              source={require('./assets/appImages/goBackBtn.png')}
+              style={{ width: RFValue(60), height: RFValue(60)}}/>
+          </TouchableOpacity>
+          </View>
+        </View>
+        {/*End of model container*/}
+      </Modal>
         <View>
         {editMode && (
           /* exit Edit mode button */
           <TouchableOpacity
-            style={[
-              commonStyles.exitEditMode,
-            ]}
+            style={[styles.exitEditMode,]}
             onPress={() => {
               setEditMode(false); // Set editMode to false
               handleEdit(); // Call handleEdit function
             }}>
              <Image source={require('./assets/appImages/exitEditMode.png')}
-              style={{ width: 76, height: 76, marginTop: 30, marginLeft: 15}} />
-              <Text style={[styles.boardName, { marginTop: 35 }]}>יציאה ממצב עריכה</Text>
+              style={{ width: RFValue(45), height: RFValue(45), marginTop: RFValue(20), marginLeft: 15}} />
+              <Text style={[styles.boardName, { marginTop: RFValue(20) }]}>יציאה ממצב עריכה</Text>
           </TouchableOpacity>
         )}
         </View>
+
+
         </View>
         {/*The start of the boards section*/}
-        <View style={styles.boardsContainer}>
+        <ScrollView contentContainerStyle={styles.scrollContent}>
         {loading ? (
           <ActivityIndicator size="large" color="#0000ff" />
         ) : (
@@ -269,20 +404,22 @@ const BoardsScreen = ({ route }) => {
                     </View>
             )}
 
-            {/*what to do when pressing on the pen icon = edit a single profile information*/}
+            {/*what to do when pressing on the pen icon = edit a single board information*/}
             {editMode && (
-            <View style={[styles.checkboxContainer, { top: 148, right: 117, width: 30, height: 30, marginRight: 10 }]}>
-              <View style={{ transform: [{ scale: 0.35 }] }}>
+                    <View style={[styles.checkboxContainer, { top: RFValue(80), right: RFValue(70), width: 30, height: 30, marginRight: 10 }]}>
+                      <View style={{ transform: [{ scale: 0.35 }] }}>
                 <TouchableOpacity
-                      style={[styles.deletedBoardBtn, { borderWidth: 8 }]}
-                      onPress={() => handleAddProfile()}>
-                        <Image
-                        source={require('./assets/appImages/editPenIcon.png')}
-                        style={{ width: '70%', height: '100%', resizeMode: 'contain' }}
-                        />
-                      </TouchableOpacity>
-                      </View>
-                    </View>
+                  key={board._id}
+                  style={[styles.blankBoard, { borderWidth: 8 ,borderRadius: 80}]}
+                  onPress={() => {handleEditSingleBoard(board._id);}}
+                >
+                  <Image
+                  source={require('./assets/appImages/editPenIcon.png')}
+                  style={{ width: '70%', height: '100%', resizeMode: 'contain' }}
+                  />
+                </TouchableOpacity>
+                </View>
+              </View>
             )}
                   <View style={styles.buttomOfBoard}>
                   <Text style={styles.categoryText}>{board.category}</Text>
@@ -292,36 +429,22 @@ const BoardsScreen = ({ route }) => {
             )}
           </View>
         )}
-        </View>
+        </ScrollView>
         </View>
         {/* end of boards container */}
         </View> 
         {/* end of inner container */}
-        {/* Edit button */}
-        <TouchableOpacity 
-        style={[styles.editButton, !isOnline && styles.disabledButton]}
-        onPress={() => isOnline && handleEdit()}
-        >
-          <Text style={styles.editButtonText}>{editMode ? '✅' : '✏️'}</Text>
-        </TouchableOpacity>
-  
-        {editMode && selectedBoards?.length > 0 && (
-          <TouchableOpacity
-            style={styles.deleteButton}
-            onPress={() =>
-              handleDeleteBoards(selectedBoards.map((board) => board._id))
-            }
-          >
-            <Text style={styles.deleteButtonText}>🗑️</Text>
-          </TouchableOpacity>
-        )}
 
-<View style={commonStyles.goBackContainer}>
-      <TouchableOpacity onPress={goBack}>
-        <Image source={require('./assets/appImages/goBackBtn.png')}
-              style={commonStyles.goBackButton} />
-        <Text style={commonStyles.goBackText}>חזור</Text>
-       </TouchableOpacity>
+
+        
+        
+
+        <View style={commonStyles.goBackContainer}>
+        <TouchableOpacity onPress={goBack}>
+          <Image source={require('./assets/appImages/goBackBtn.png')}
+                style={commonStyles.goBackButton} />
+          <Text style={commonStyles.goBackText}>חזור</Text>
+        </TouchableOpacity>
        </View>
   
 
@@ -419,7 +542,6 @@ const styles = StyleSheet.create({
     marginBottom: RFValue(35),
     marginRight : RFValue(10),
     borderWidth: RFValue(3), // Adds border
-    ////
   },
   buttomOfBoard: {
     position: 'absolute',
@@ -588,6 +710,7 @@ const styles = StyleSheet.create({
     flex: 1,
     flexDirection: 'row-reverse', // Change to 'row' to keep items in a row
     flexWrap: 'wrap',
+
   },
   innerContainer: {
     flex: 1,
@@ -625,6 +748,91 @@ const styles = StyleSheet.create({
     borderColor: '#FBB8A5', // Set border color to pink
     width: RFValue(112), 
     height: RFValue(115),
+  },
+  blankBoard: {
+    backgroundColor: 'lightgray',
+    alignItems: 'center',
+    borderRadius: 10,
+    borderWidth: RFValue(2),
+    borderColor: 'white',
+    width: RFValue(100),
+    height: RFValue(100),
+    margin: RFValue(10),
+    alignSelf: 'flex-start',
+  },
+  buttonsText: {
+    fontSize: RFValue(13),
+    fontWeight: 'bold',
+    color: '#333',
+    textAlign: 'right',
+    flexWrap: 'wrap',
+    textAlign: 'center',
+  },
+  editBoardPictureContainer: {
+    flexDirection: 'row', 
+    alignItems: 'center',
+  },
+  topLeft: {
+    position: 'absolute',
+    top: 100,
+    left: 0,
+  },
+  bottomRight: {
+    position: 'absolute',
+    bottom: 0,
+    right: 0,
+  },
+  bottomLeft: {
+    position: 'absolute',
+    bottom: 20,
+    left: 25,
+  },
+  halfCircle: {           //the one with the pencil
+    position: 'absolute',
+    bottom: RFValue(-48),
+    right: RFValue(45),
+    justifyContent: 'center',
+    alignItems: 'center',
+    width: RFValue(52),
+    height: RFValue(105),
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    overflow: 'hidden',
+    transform: [{ rotate: '-90deg' }] // Rotate by 90 degrees
+  },
+  saveButton: {
+    backgroundColor: '#28A745',
+    paddingVertical: 10,
+    marginLeft: 'auto',
+    marginRight: 'auto',
+    width : RFPercentage(16) ,
+    borderRadius: 5,
+    flexDirection: 'row', 
+    alignItems: 'center', 
+    padding: 10,
+  },
+  inputField: {
+    marginLeft: 'auto',
+    marginRight: 'auto',
+    width: '50%',
+    height: 40,
+    borderColor: '#ccc',
+    borderWidth: 2,
+    borderRadius: 5,
+    marginBottom: 30,
+    paddingHorizontal: 10,
+    backgroundColor: '#ffffff',
+    textAlign :'right',
+  },
+  exitEditMode: {
+    backgroundColor: 'rgba(205, 229, 206, 0.7)',
+    alignItems: 'center',
+    borderRadius: 80,
+    borderWidth: RFValue(2),
+    marginHorizontal: RFValue(15),
+    borderColor: 'white',
+    width: RFValue(85),
+    height: RFValue(85),
+    marginTop: RFValue(30),   //change this value to change the position of exit mode button
   },
 });
 
