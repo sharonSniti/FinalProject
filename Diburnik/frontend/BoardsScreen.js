@@ -204,6 +204,7 @@ const BoardsScreen = ({ route }) => {
   };
 
   const toggleEditSingleBoard = () => {
+     // Clear the modal
     setEditSingleBoardVisible(!isEditSingleBoardVisible);
     setTemp('');
   };
@@ -282,8 +283,15 @@ const BoardsScreen = ({ route }) => {
               style={{ width: 300, height: 300}}/>
           </View>
 
-
-        {/* Edit Board Picture item */}
+          {/*Edit board details:*/}
+          <Text style={commonStyles.infoText}>שם לוח התקשורת:</Text>
+          <TextInput 
+            style={[styles.inputField]}
+            value = {selectedBoard.category}
+            onChangeText={(category) => handleCategoryChange(category)}
+          />
+           <Text style={commonStyles.infoText}>בחר תמונה עבור הלוח:</Text>
+                  {/* Edit Board Picture item */}
         <View style={styles.editBoardPictureContainer}>
               <View style={styles.editBoardItem}>
                 {selectedBoard.image ? (
@@ -295,24 +303,23 @@ const BoardsScreen = ({ route }) => {
                   />
                 ) : null}
               </View>
-            <TouchableOpacity onPress={handlePenIconPress}>
-              <View style={styles.halfCircle}>
-                <Image
-                  source={require('./assets/appImages/editPenIcon.png')}
-                  style={{ width: '70%', height: '70%', resizeMode: 'contain' }}
-                  />
-              </View>
-            </TouchableOpacity>
         </View>
-          {/*End of Board Picture*/}
-
-          {/*Edit board details:*/}
-          <Text>שם לוח:</Text>
-          <TextInput 
-            style={[styles.inputField]}
-            value = {selectedBoard.category}
-            onChangeText={(category) => handleCategoryChange(category)}
-          />
+        
+        {/****/}
+        {/****/}
+        {/*Start the bottom icon for edit picture with the pen*/}
+        <View>
+            <TouchableOpacity onPress={handleBoardImagePicker}>
+              <View style={styles.halfCircle}>
+              <Image
+                  source={require('./assets/appImages/editPenIcon.png')}
+                  style={{ width: 25, height: 35}}/>
+              </View>
+              </TouchableOpacity>
+          </View>
+          {/*End of the bottom icon for edit picture with the pen*/}
+          {/****/}
+          {/****/}
           
           {/*Save button*/}
           <View style={{ flexDirection: 'row', alignItems: 'center' }}>
@@ -320,7 +327,7 @@ const BoardsScreen = ({ route }) => {
           style={[styles.saveButton]}>
           <Image
               source={require('./assets/appImages/saveIcon.png')}
-              style={{ width: 35, height: 35 ,marginRight: 10 }} />
+              style={{ width: 35, height: 35 ,marginRight: 25 }} />
             <Text style={styles.buttonsText}>
             שמור</Text> 
           </TouchableOpacity>
@@ -394,7 +401,7 @@ const BoardsScreen = ({ route }) => {
                   )}
                   {editMode && (
                   <View style={styles.checkboxContainer}>
-                    <View style={{ transform: [{ scale: 0.35 }] }}>
+                    <View style={{ transform: [{ scale: 0.32 }] }}>
                       <TouchableOpacity
                       style={[styles.deletedBoardBtn, { borderWidth: 8 }]}
                       onPress={() => handleAddProfile()}>
@@ -406,17 +413,19 @@ const BoardsScreen = ({ route }) => {
 
             {/*what to do when pressing on the pen icon = edit a single board information*/}
             {editMode && (
-                    <View style={[styles.checkboxContainer, { top: RFValue(80), right: RFValue(70), width: 30, height: 30, marginRight: 10 }]}>
-                      <View style={{ transform: [{ scale: 0.35 }] }}>
+                    <View style={[styles.checkboxContainer, { top: RFValue(85), right: RFValue(82), width: 20, height: 20, marginRight: 10 }]}>
+                      <View style={{ transform: [{ scale: 0.3 }] }}>
                 <TouchableOpacity
                   key={board._id}
                   style={[styles.blankBoard, { borderWidth: 8 ,borderRadius: 80}]}
                   onPress={() => {handleEditSingleBoard(board._id);}}
                 >
+                   {/*Edit single board*/}
                   <Image
                   source={require('./assets/appImages/editPenIcon.png')}
                   style={{ width: '70%', height: '100%', resizeMode: 'contain' }}
                   />
+                   {/*End of edit single board*/}
                 </TouchableOpacity>
                 </View>
               </View>
@@ -470,29 +479,38 @@ const BoardsScreen = ({ route }) => {
             />
   
             {/* Add the image selection UI */}
-            <TouchableOpacity onPress={handleBoardImagePicker}>
-              <Text style={styles.selectImageText}>בחר תמונה</Text>
-            </TouchableOpacity>
+            <Text style={commonStyles.infoText}>בחר תמונה עבור הלוח:</Text>
             {/*Edit Board Picture item*/}
             <View style={styles.editBoardItem}>
-              <TouchableOpacity>
-              <View style={styles.halfCircle}>
-              <Image
-                  source={require('./assets/appImages/editPenIcon.png')}
-                  style={{ width: 50, height: 50}}/>
-              </View>
-              </TouchableOpacity>
-            </View>
-            {/*End of Profile Picture*/}
             {newBoardImage && (
               <Image
                 source={{ uri: newBoardImage.uri }}
                 style={styles.boardImagePreview}
               />
             )}
+            </View>
+            <View>
+            <TouchableOpacity onPress={handleBoardImagePicker}>
+              <View style={styles.halfCircle}>
+              <Image
+                  source={require('./assets/appImages/editPenIcon.png')}
+                  style={{ width: 25, height: 35}}/>
+              </View>
+              </TouchableOpacity>
+            </View>
+            {/*End of Profile Picture*/}
             {/* End of image selection UI */}
   
-            <Button title="הוסף" onPress={handleAddBoard} />
+          {/*Add button*/}
+          <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+          <TouchableOpacity onPress={handleAddBoard}
+          style={[styles.saveButton]}>
+          <Image
+              source={require('./assets/appImages/saveIcon.png')}
+              style={{ width: 35, height: 35 ,marginRight: 25 }} />
+            <Text style={styles.buttonsText}>שמור</Text> 
+          </TouchableOpacity>
+          </View>
 
             {/*Go Back button*/}
             <View style={commonStyles.bottomLeft}>
@@ -590,15 +608,15 @@ const styles = StyleSheet.create({
     position: 'absolute',
     width: '100%',
     height: '85%',
-    borderTopLeftRadius: 8,  
-    borderTopRightRadius: 8,  
+    borderTopLeftRadius: RFValue(8),  
+    borderTopRightRadius: RFValue(8),  
   },
   boardImagePreview: {
-    width: 140,
-    height: 140,
-    resizeMode: 'cover',
-    borderRadius: 10,
-    marginTop: 23,
+    width: RFValue(106), 
+    height: RFValue(108),
+    borderRadius: RFValue(15),
+    marginTop: RFValue(24.5),
+    bottom: RFValue(25),
   },
   selectImageText: {
     color: 'blue',
@@ -644,8 +662,8 @@ const styles = StyleSheet.create({
   },
   checkboxContainer: {
     position: 'absolute',
-    top: 9, 
-    right: -20,
+    top: 2, 
+    right: -26,
     width: 30,
     height: 30,
     marginRight: 10,
@@ -742,8 +760,6 @@ const styles = StyleSheet.create({
   editBoardItem: {
     alignItems: 'center',
     borderRadius: 30,
-    marginBottom: RFValue(65),
-    marginRight : RFValue(15),
     borderWidth: RFValue(4), // Adds border
     borderColor: '#FBB8A5', // Set border color to pink
     width: RFValue(112), 
@@ -787,17 +803,18 @@ const styles = StyleSheet.create({
     bottom: 20,
     left: 25,
   },
-  halfCircle: {           //the one with the pencil
+  halfCircle: {//the one with the pencil
     position: 'absolute',
-    bottom: RFValue(-48),
-    right: RFValue(45),
+    bottom: RFValue(2.9),
+    right: RFValue(-52),
     justifyContent: 'center',
     alignItems: 'center',
-    width: RFValue(52),
-    height: RFValue(105),
+    width: RFValue(105),
+    height: RFValue(36),
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
     overflow: 'hidden',
-    transform: [{ rotate: '-90deg' }] // Rotate by 90 degrees
+    borderBottomLeftRadius:RFValue(17),  
+    borderBottomRightRadius: RFValue(17),
   },
   saveButton: {
     backgroundColor: '#28A745',
@@ -809,12 +826,13 @@ const styles = StyleSheet.create({
     flexDirection: 'row', 
     alignItems: 'center', 
     padding: 10,
+    marginTop: RFValue(30), 
   },
   inputField: {
     marginLeft: 'auto',
     marginRight: 'auto',
     width: '50%',
-    height: 40,
+    height: RFValue(30),
     borderColor: '#ccc',
     borderWidth: 2,
     borderRadius: 5,

@@ -263,7 +263,7 @@ const WordsScreen = ({ route }) => {
             style={styles.speakSentenceButton}
             onPress={handleSpeakSentence}
           >
-          <Text style={{ fontSize: 48 }}>📢 </Text>
+          <Text style={{ fontSize: 55 }}>📢 </Text>
         </TouchableOpacity>
 
             {/* "X" Button */}
@@ -271,7 +271,10 @@ const WordsScreen = ({ route }) => {
           style={styles.clearSentenceButton}
           onPress={handleClearSentence}
         >
-          <Text style={{ fontSize: 24 }}>❌</Text>
+          
+          <Image
+              source={require('./assets/appImages/cancel.png')}
+              style={{ width: 50, height: 50}}/>
         </TouchableOpacity>
       </View>
 
@@ -633,8 +636,8 @@ const styles = StyleSheet.create({
     minHeight: 50,
     flexGrow: 1,
                             //  FLIPPED BETWEEN IOS AND ANDROID!!
-    marginRight: 45,        // Add space between speaker icon and sentence
-    marginLeft: 30,        // Add space between X and bar
+    marginRight: 55,        // Add space between speaker icon and sentence
+    marginLeft: 12,        // Add space between X and bar
     shadowColor: '#000',
     shadowOffset: { width: 2, height: 2 },
     shadowOpacity: 0.6,
@@ -650,7 +653,7 @@ const styles = StyleSheet.create({
     width: 65,
     height: 65,
     marginLeft: 'auto', // Push the speaker button to the left
-    marginRight: 5,
+    marginRight: 0,
     alignItems: 'center',
     justifyContent: 'center',
   },

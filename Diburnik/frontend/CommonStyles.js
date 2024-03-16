@@ -80,7 +80,7 @@ export const commonStyles = StyleSheet.create({
     marginLeft: 'auto',
     marginRight: 'auto',
     width: '50%',
-    height: 40,
+    height: RFValue(30),
     borderColor: '#ccc',
     borderWidth: 2,
     borderRadius: 5,
@@ -88,5 +88,7 @@ export const commonStyles = StyleSheet.create({
     paddingHorizontal: 10,
     backgroundColor: '#ffffff',
     textAlign :'right',
+    marginBottom: RFValue(30),
+    
   },
 });

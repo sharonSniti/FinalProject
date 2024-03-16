@@ -144,7 +144,7 @@ const ProfileSelectionScreen = ({ route, navigation }) => {
         // Show the message for 5 seconds
         setTimeout(() => {setErrorMessage('');}, 5000);
       } else {
-        setErrorMessage('Error adding child to teacher. Please try again.',);
+        setErrorMessage('שגיאה בהוספת התלמיד למורה. אנא נסה שוב',);
         setTimeout(() => {setErrorMessage('');}, 5000);
       }
     });
@@ -345,8 +345,8 @@ const ProfileSelectionScreen = ({ route, navigation }) => {
 {
       /*what to do when pressing on the pen icon = edit a single profile information*/
       editMode && (
-        <View style={[styles.checkboxContainer, { top: RFValue(62), right: RFValue(46), width: 30, height: 30, marginRight: 10 }]}>
-          <View style={{ transform: [{ scale: 0.35 }] }}>
+        <View style={[styles.checkboxContainer, { top: RFValue(67), right: RFValue(49), width: 30, height: 30, marginRight: 10 }]}>
+          <View style={{ transform: [{ scale: 0.36 }] }}>
             <TouchableOpacity
             key={profile._id}
               style={[styles.blankProfile, { borderWidth: 8 }]}
@@ -378,23 +378,54 @@ const ProfileSelectionScreen = ({ route, navigation }) => {
       </View>
       <Modal visible={isSearchMenuVisible} animationType="slide" transparent>
         <View style={styles.modalContainer}>
-          <Text style={styles.modalTitle}>חיפוש והוספת פרופיל</Text>
+          <Text style={commonStyles.bigTitle}>חיפוש והוספת פרופיל</Text>
+          <View style={commonStyles.topLeft}>
+             <Image
+              source={require('./assets/appImages/searchLeft.png')}
+              style={{ width: 100, height:200}}/>
+           </View>
+           <View style={commonStyles.bottomRight}>
+              <Image
+              source={require('./assets/appImages/searchRight.png')}
+              style={{ width: 94, height: 230}}/>
+          </View>
+          <Image
+              source={require('./assets/appImages/searchProfile.png')}
+              style={{ width: RFValue(90), height: RFValue(80)}}/>
           {/* Add search input fields for child's email or username */}
-          <TextInput
-            style={styles.input}
-            placeholder="חיפוש לפי דואר אלקטרוני"
-            onChangeText={(text) => setNewChildEmail(text)}
-          />
+          <Text style={{...commonStyles.infoText, paddingTop: 40 }}>חיפוש לפי שם משתמש:</Text>
           <TextInput
             style={styles.input}
             placeholder="חיפוש לפי שם משתמש"
             onChangeText={(text) => setNewChildUsername(text)}
           />
+            <Text style={commonStyles.infoText}>חיפוש לפי דואר אלקטרוני:</Text>
+          <TextInput
+            style={styles.input}
+            placeholder="חיפוש לפי דואר אלקטרוני"
+            onChangeText={(text) => setNewChildEmail(text)}
+          />
           {errorMessage !== '' && (
             <Text style={styles.errorText}>{errorMessage}</Text>
           )}
-          <Button title="חיפוש" onPress={handleSearchChild} />
-          <Button title="ביטול" onPress={toggleSearchMenu} />
+          <TouchableOpacity  onPress={handleSearchChild}
+          style={[styles.saveButton, { backgroundColor: '#3EBCFF' }]}>
+          <Image
+              source={require('./assets/appImages/searchIcon.png')}
+              style={{ width: 35, height: 35 ,marginRight: 25}} />
+            <Text style={commonStyles.buttonsText}>
+            חיפוש</Text> 
+          </TouchableOpacity>
+          {/*Go Back button*/}
+          <View style={commonStyles.bottomLeft}>
+          <TouchableOpacity
+            onPress={() => toggleSearchMenu()}>
+          <Text style={commonStyles.buttonsText}>ביטול</Text>
+          <Image
+              source={require('./assets/appImages/goBackBtn.png')}
+              style={{ width: RFValue(60), height: RFValue(60)}}/>
+          </TouchableOpacity>
+          </View>
         </View>
       </Modal>
       <Modal visible={isEditSingleProfileVisible} animationType="slide" transparent>
@@ -436,13 +467,13 @@ const ProfileSelectionScreen = ({ route, navigation }) => {
         </View>
           {/*End of Profile Picture*/}
           {/*Edit child details:*/}
-          <Text>שם פרטי:</Text>
+          <Text style={[commonStyles.infoText]}>שם פרטי:</Text>
           <TextInput 
             style={[styles.inputField]}
             value = {selectedProfile.firstName}
             onChangeText={(firstName) => handleFirstNameChange(firstName)}
           />
-          <Text>שם משפחה:</Text>
+          <Text style={[commonStyles.infoText]}>שם משפחה:</Text>
           <TextInput 
             style={[styles.inputField]}
             value = {selectedProfile.lastName}
@@ -455,7 +486,7 @@ const ProfileSelectionScreen = ({ route, navigation }) => {
           style={[styles.saveButton]}>
           <Image
               source={require('./assets/appImages/saveIcon.png')}
-              style={{ width: 35, height: 35 ,marginRight: 10 }} />
+              style={{ width: 35, height: 35 ,marginRight: 25 }} />
             <Text style={commonStyles.buttonsText}>
             שמור</Text> 
           </TouchableOpacity>
@@ -528,11 +559,11 @@ const styles = StyleSheet.create({
   },
   halfCircle: {           //the one with the pencil
     position: 'absolute',
-    bottom: RFValue(-48),
-    right: RFValue(45),
+    bottom: RFValue(-49),
+    right: RFValue(46.6),
     justifyContent: 'center',
     alignItems: 'center',
-    width: RFValue(52),
+    width: RFValue(50),
     height: RFValue(105),
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
     overflow: 'hidden',
