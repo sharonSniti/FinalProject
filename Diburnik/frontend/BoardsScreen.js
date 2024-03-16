@@ -309,7 +309,7 @@ const BoardsScreen = ({ route }) => {
         {/****/}
         {/*Start the bottom icon for edit picture with the pen*/}
         <View>
-            <TouchableOpacity onPress={handleBoardImagePicker}>
+        <TouchableOpacity onPress={handlePenIconPress}>
               <View style={styles.halfCircle}>
               <Image
                   source={require('./assets/appImages/editPenIcon.png')}
