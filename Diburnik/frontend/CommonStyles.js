@@ -20,6 +20,12 @@ export const commonStyles = StyleSheet.create({
     color: '#646663',
     marginBottom: 10, 
   },
+  medTitle: {
+    paddingTop: 50,
+    fontSize: 30, 
+    color: '#646663',
+    marginBottom: 10, 
+  },
   goBackButton: {
     position: 'absolute',
     left: 0,
@@ -42,6 +48,11 @@ export const commonStyles = StyleSheet.create({
     position: 'absolute',
     top: 100,
     left: 0,
+  },
+  topCenter: {
+    position: 'absolute',
+    top: 40,
+    left: 30,
   },
   bottomRight: {
     position: 'absolute',
@@ -74,21 +85,21 @@ export const commonStyles = StyleSheet.create({
   },
   infoText: {
     textAlign :'right',
-    fontSize: 18,
+    fontSize: 20,
   },
   inputField: {
     marginLeft: 'auto',
     marginRight: 'auto',
     width: '50%',
-    height: RFValue(30),
+    height: 40,
     borderColor: '#ccc',
     borderWidth: 2,
     borderRadius: 5,
-    marginBottom: 10,
+    marginBottom: 30,
     paddingHorizontal: 10,
     backgroundColor: '#ffffff',
     textAlign :'right',
-    marginBottom: RFValue(30),
+    fontSize: RFValue(14)
     
   },
 });

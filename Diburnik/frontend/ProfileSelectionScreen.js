@@ -620,12 +620,12 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   input: {
-    marginBottom: 10,
+    marginBottom: 30,
     padding: 15, 
     borderWidth: 2, 
     borderColor: '#3498db', 
     borderRadius: 8, // Rounded corners
-    fontSize: 16, 
+    fontSize: 21, 
     color: '#2c3e50', 
   },
   errorText: {
@@ -754,6 +754,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     backgroundColor: '#ffffff',
     textAlign :'right',
+    fontSize: 21
   },
   infoText: {
     textAlign :'right',
@@ -769,6 +770,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row', 
     alignItems: 'center', 
     padding: 10,
+    marginTop: 30,
 
   },
   buttonText: {

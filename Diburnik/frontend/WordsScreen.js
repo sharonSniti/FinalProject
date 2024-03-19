@@ -363,7 +363,7 @@ const WordsScreen = ({ route }) => {
       {/* Modal for Adding New Word */}
       <Modal visible={isModalVisible} animationType="slide" transparent>
       <View style={styles.modalContainer}>
-        <Text style={styles.searchPictogramTitle}>חיפוש תמונה למילה</Text>
+        <Text style={commonStyles.medTitle}>חיפוש תמונה למילה</Text>
         <TextInput
           style={styles.input}
           value={newWordText}
@@ -371,6 +371,7 @@ const WordsScreen = ({ route }) => {
           placeholder=" הכנס מילה לחיפוש"
           placeholderTextColor="gray" 
         />
+  
       {/*
         <View style={styles.colorButtonsContainer}>
             {colorPalette.map((color, index) => (
@@ -547,20 +548,19 @@ const styles = StyleSheet.create({
     color: 'white',
   },
   modalContainer: {
-    backgroundColor: 'rgba(255, 255, 255, 0.93)', // Use an off-white color with some transparency
+    backgroundColor: 'rgba(254, 229, 206, 0.93)', // Use an off-white color with some transparency
     flex: 1,
     justifyContent: 'center',
-    marginTop: 45,
     alignItems: 'center',
-    marginBottom: 20,
+    alignItems: 'center',
   },
   input: {
-    marginBottom: 10,
-    padding: 15, // Increased padding for more space
-    borderWidth: 2, // Increased border width
-    borderColor: '#3498db', // Blue color for the border
+    marginBottom: 30,
+    padding: 15, 
+    borderWidth: 2, 
+    borderColor: '#3498db', 
     borderRadius: 8, // Rounded corners
-    fontSize: 16, 
+    fontSize: 21, 
     color: '#2c3e50', 
   },
   

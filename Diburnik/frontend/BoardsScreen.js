@@ -286,7 +286,7 @@ const BoardsScreen = ({ route }) => {
           {/*Edit board details:*/}
           <Text style={commonStyles.infoText}>שם לוח התקשורת:</Text>
           <TextInput 
-            style={[styles.inputField]}
+            style={[commonStyles.inputField]}
             value = {selectedBoard.category}
             onChangeText={(category) => handleCategoryChange(category)}
           />
@@ -832,7 +832,7 @@ const styles = StyleSheet.create({
     marginLeft: 'auto',
     marginRight: 'auto',
     width: '50%',
-    height: RFValue(30),
+    height: 40,
     borderColor: '#ccc',
     borderWidth: 2,
     borderRadius: 5,
@@ -840,6 +840,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     backgroundColor: '#ffffff',
     textAlign :'right',
+    fontSize: 21
   },
   exitEditMode: {
     backgroundColor: 'rgba(205, 229, 206, 0.7)',
