@@ -282,6 +282,17 @@ const ProfileSelectionScreen = ({ route, navigation }) => {
               style={{ width: 300, height: 300}}/>
         </View>
       )}
+      {editMode && (
+      <View style={commonStyles.topCenter}>
+        <Image 
+          source={require('./assets/appImages/editModeIcon.png')}
+          style={{ width: 100, height: 100 }}
+        />
+      </View>
+      )}
+   
+
+  
       <Text style={[commonStyles.bigTitle, { textAlign: 'center' }]}>
       {editMode ? 'ערוך פרופילים' : 'בחר פרופיל משתמש'}
       </Text>
@@ -297,7 +308,7 @@ const ProfileSelectionScreen = ({ route, navigation }) => {
             ]}
             onPress={() => handleAddProfile()}>
             <Text style={styles.blankProfileText }>+</Text>
-            <Text style={[styles.profileName, { marginTop: RFValue(20) }]}>הוסף פרופיל חדש</Text>
+            <Text style={[commonStyles.buttonText, { marginTop: RFValue(20) }]}>הוסף פרופיל חדש</Text>
           </TouchableOpacity>
         )}
         </View>
@@ -314,7 +325,7 @@ const ProfileSelectionScreen = ({ route, navigation }) => {
             }}>
              <Image source={require('./assets/appImages/exitEditMode.png')}
               style={{ width: RFValue(50), height: RFValue(50), marginTop: RFValue(20), marginLeft: 15}} />
-              <Text style={[styles.profileName, { marginTop: 35 }]}>יציאה ממצב עריכה</Text>
+              <Text style={[commonStyles.buttonText, { marginTop: 35 }]}>יציאה ממצב עריכה</Text>
           </TouchableOpacity>
         )}
         </View>
@@ -408,7 +419,8 @@ const ProfileSelectionScreen = ({ route, navigation }) => {
           {errorMessage !== '' && (
             <Text style={styles.errorText}>{errorMessage}</Text>
           )}
-          <TouchableOpacity  onPress={handleSearchChild}
+          {/*'Search' button*/}
+          <TouchableOpacity onPress={handleSearchChild}
           style={[styles.saveButton, { backgroundColor: '#3EBCFF' }]}>
           <Image
               source={require('./assets/appImages/searchIcon.png')}
@@ -416,7 +428,8 @@ const ProfileSelectionScreen = ({ route, navigation }) => {
             <Text style={commonStyles.buttonsText}>
             חיפוש</Text> 
           </TouchableOpacity>
-          {/*Go Back button*/}
+          {/*End of 'Search' button*/}
+          {/*'Go Back' button*/}
           <View style={commonStyles.bottomLeft}>
           <TouchableOpacity
             onPress={() => toggleSearchMenu()}>
@@ -442,8 +455,7 @@ const ProfileSelectionScreen = ({ route, navigation }) => {
               source={require('./assets/appImages/editMode2.png')}
               style={{ width: 300, height: 300}}/>
           </View>
-
-
+         
         {/* Edit Profile Picture item */}
         <View style={styles.editProfilePictureContainer}>
               <View style={styles.editProfileItem}>
@@ -771,7 +783,6 @@ const styles = StyleSheet.create({
     alignItems: 'center', 
     padding: 10,
     marginTop: 30,
-
   },
   buttonText: {
     color: '#fff',

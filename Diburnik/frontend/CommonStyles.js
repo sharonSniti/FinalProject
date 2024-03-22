@@ -15,7 +15,7 @@ export const commonStyles = StyleSheet.create({
     width: '95%', // Adjust as needed
   },
   bigTitle: {
-    paddingTop: 50,
+    paddingTop: 20,
     fontSize: 38, 
     color: '#646663',
     marginBottom: 10, 
@@ -50,9 +50,8 @@ export const commonStyles = StyleSheet.create({
     left: 0,
   },
   topCenter: {
-    position: 'absolute',
-    top: 40,
-    left: 30,
+    justifyContent: 'center',
+    alignItems: 'center' 
   },
   bottomRight: {
     position: 'absolute',
@@ -100,6 +99,34 @@ export const commonStyles = StyleSheet.create({
     backgroundColor: '#ffffff',
     textAlign :'right',
     fontSize: RFValue(14)
-    
+  },
+  buttonsText: {
+    fontSize: RFValue(13),
+    fontWeight: 'bold',
+    color: '#333',
+    textAlign: 'right',
+    flexWrap: 'wrap',
+    textAlign: 'center',
+  },
+  saveButton: {
+    backgroundColor: '#28A745',
+    paddingVertical: 10,
+    marginLeft: 'auto',
+    marginRight: 'auto',
+    width : RFPercentage(16) ,
+    borderRadius: 5,
+    flexDirection: 'row', 
+    alignItems: 'center', 
+    padding: 10,
+    marginTop: 1,
+  },
+  buttonText: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#2F2F2F',
+    marginTop: 14,
+    textAlign: 'right',
+    flexWrap: 'wrap',
+    textAlign: 'center',
   },
 });

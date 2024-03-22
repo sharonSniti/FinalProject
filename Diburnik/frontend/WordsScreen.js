@@ -39,7 +39,6 @@ const WordsScreen = ({ route }) => {
     navigation.goBack();
   };
 
-  //const colorPalette = ['#ff9800', '#faeb90', '#1bde5d', '#f4a3a0', '#bdb9de'];
   const colorPalette = [
     { label: 'Orange', value: '#ff9800' },
     { label: 'Light Yellow', value: '#faeb90' },
@@ -279,7 +278,7 @@ const WordsScreen = ({ route }) => {
       </View>
 
       {/* ScrollView for Words */}
-      <ScrollView contentContainerStyle={styles.scrollViewContent}   horizontal={true}>
+      <ScrollView contentContainerStyle={styles.scrollViewContent}  horizontal={true}>
         {loading ? (
         <ActivityIndicator size="large" color="#0000ff" />
       ) : (
@@ -326,31 +325,39 @@ const WordsScreen = ({ route }) => {
         )}
       </ScrollView>
 
-      {/* "Add" button outside ScrollView */}
-      <TouchableOpacity
-        style={[styles.addButton, !isOnline && styles.disabledButton]}
-        onPress={() => isOnline && setIsModalVisible(true)}
-      >
-        <Text style={styles.addButtonText}>+</Text>
-      </TouchableOpacity>
+  {/* Edit Mode buttons container */}
+  <View style={styles.buttonsContainer}>
+  {/* .1. 'Exit Edit Mode' button*/}
+  {editMode && (
+    <TouchableOpacity
+      style={[styles.exitEditButton, !isOnline && styles.disabledButton]}
+      onPress={() => setEditMode(false)}>
+       <Image source={require('./assets/appImages/exitEditMode.png')}
+              style={{ width: RFValue(26), height: RFValue(26), marginTop: RFValue(7),
+               marginLeft: RFValue(6), marginBottom: RFValue(8)}} />
+        <Text style={[styles.buttonText]}>יציאה ממצב עריכה</Text>
+    </TouchableOpacity>
+  )}
+  {/* .2. 'Add New Word' button*/}
+  {editMode && (
+    <TouchableOpacity
+      style={[styles.addButton, !isOnline && styles.disabledButton]}
+      onPress={() => isOnline && setIsModalVisible(true)}>
+      <Text style={[styles.addButtonText]}>+</Text>
+    </TouchableOpacity>
+  )}
 
-      {/* "Edit" button */}
-      <TouchableOpacity
-        style={[styles.editButton, !isOnline && styles.disabledButton]}
-        onPress={() => isOnline && handleEdit()}
-      >
-        <Text style={styles.editButtonText}>{editMode ? '✅' : '✏️'}</Text>
-      </TouchableOpacity>
+  {/* .3. "Delete Word" button */}
+  {editMode && selectedWords.length > 0 && (
+    <TouchableOpacity
+      style={styles.deleteButton}
+      onPress={() => handleDeleteWords(selectedWords.map(word => word._id))}
+    >
+      <Text style={styles.deleteButtonText}>🗑️</Text>
+    </TouchableOpacity>
+  )}
+</View>
 
-      {/* "Delete" button */}
-      {editMode && selectedWords.length > 0 && (
-        <TouchableOpacity
-          style={styles.deleteButton}
-          onPress={() => handleDeleteWords(selectedWords.map(word => word._id))}
-        >
-          <Text style={styles.deleteButtonText}>🗑️</Text>
-        </TouchableOpacity>
-      )}
 
     <View style={commonStyles.goBackContainer}>
       <TouchableOpacity onPress={goBack}>
@@ -372,19 +379,14 @@ const WordsScreen = ({ route }) => {
           placeholderTextColor="gray" 
         />
   
-      {/*
-        <View style={styles.colorButtonsContainer}>
-            {colorPalette.map((color, index) => (
-              <TouchableOpacity
-                key={index}
-                style={[styles.colorButton, { backgroundColor: color }]}
-                onPress={() => setWordColor(color)}
-              />
-            ))}
-        </View>
-      */}
-        
-        <Button title="חפש" onPress={handleSearch} />
+        <TouchableOpacity onPress={handleSearch}
+          style={[commonStyles.saveButton, { backgroundColor: '#3EBCFF' }]}>
+          <Image
+              source={require('./assets/appImages/searchIcon.png')}
+              style={{ width: 35, height: 35 ,marginRight: 25}} />
+            <Text style={commonStyles.buttonsText}>
+            חפש</Text> 
+          </TouchableOpacity>
 
         {/* Display search results */}
         {searchResults?.length > 0 && (
@@ -432,31 +434,51 @@ const WordsScreen = ({ route }) => {
           {colorPalette.map((colorItem, index) => (
             <TouchableOpacity
               key={index}
-              style={[
-                styles.colorPickerOption,
+              style={[styles.colorPickerOption,
                 { backgroundColor: colorItem.value },
                 wordColor === colorItem.value && styles.selectedColorOption,
               ]}
               onPress={() => setWordColor(colorItem.value)}
             />
           ))}
+        <TouchableOpacity style={[styles.colorPickerOption,
+          { backgroundColor: 'white' },
+          wordColor === '#FFFFFF' && styles.selectedColorOption]}
+          onPress={() => setWordColor('#FFFFFF')}>
+          <Text style={{ textAlign: 'center', fontSize: 20 ,paddingTop: 10 }}>
+          ללא צבע
+          </Text>
+          </TouchableOpacity>
+
         </View>
+        <TouchableOpacity onPress={handleAddWord} style={[styles.saveButton]}>
+          <Image source={require('./assets/appImages/plusIcon.png')}
+          style={{ width: 35, height: 35 ,marginRight: 8}} />
+          <Text style={commonStyles.buttonsText}>הוסף מילה</Text> 
+        </TouchableOpacity>
       </View>
         
       </>
     )}
     {/* End of image selection UI */}
-    <Button title="הוסף" onPress={handleAddWord} />
-    <Button
-      title="סגור"
-      onPress={() => {
-        setSearchResults([]); // Clear the search results
-        setNewWordText(''); // Clear the input field
-        setNewWordImage('');
-        setIsModalVisible(false);
-        deleteLocalImage(newWordImage);
-  }}
-/>
+
+
+   {/*Go Back button*/}
+   <View style={commonStyles.bottomLeft}>
+    <TouchableOpacity
+            onPress={() => {
+              setSearchResults([]); // Clear the search results
+              setNewWordText(''); // Clear the input field
+              setNewWordImage('');
+              setIsModalVisible(false);
+              deleteLocalImage(newWordImage);
+        }}>
+        <Text style={[commonStyles.buttonsText]}>ביטול</Text>
+          <Image
+              source={require('./assets/appImages/goBackBtn.png')}
+              style={{ width: RFValue(60), height: RFValue(60)}}/>
+          </TouchableOpacity>
+    </View>
     {errorMessage  ? (
       <Text style={styles.errorMessageText}>{errorMessage}</Text>
     ) : null}
@@ -494,13 +516,10 @@ const styles = StyleSheet.create({
   wordsContainer: {
     flexDirection: 'column',
     flexWrap: 'wrap',
-    marginBottom: 20,
     marginTop: 10,  // Add marginTop to create space at the top
     direction: 'rtl',   // Add next colum on the left of this column
   },
   wordImage: {
-    //width: 110,
-    //height: 110,
     width: RFValue(55),
     height: RFValue(55),
     resizeMode: 'cover',
@@ -508,8 +527,6 @@ const styles = StyleSheet.create({
     marginTop: 23,
   },
   wordSquare: {
-    //width: 150,
-    //height: 150,
     width: RFValue(77),
     height: RFValue(77),
     justifyContent: 'center',
@@ -532,16 +549,26 @@ const styles = StyleSheet.create({
     paddingBottom: 18,
   },
   addButton: {
-    position: 'absolute',
-    bottom: 20,
-    right: 20,
-    width: 60,
-    height: 60,
-    backgroundColor: 'blue',
+    backgroundColor: 'lightgray',
     justifyContent: 'center',
     alignItems: 'center',
-    borderRadius: 30,
-    marginBottom: -20, // moves the button down
+    alignItems: 'center',
+    borderRadius: 80,
+    borderWidth: RFValue(1),
+    borderColor: 'white',
+    width: RFValue(43),
+    height: RFValue(43),
+    marginLeft: RFValue(7),
+  },
+  exitEditButton: {
+    backgroundColor: 'rgba(205, 229, 206, 0.7)',
+    alignItems: 'center',
+    borderRadius: 80,
+    borderWidth: RFValue(2),
+    borderColor: 'white',
+    width: RFValue(43),
+    height: RFValue(43),
+    marginLeft: RFValue(7),
   },
   addButtonText: {
     fontSize: 40,
@@ -587,21 +614,20 @@ const styles = StyleSheet.create({
     color: 'white',
   },
   deleteButton: {
-    position: 'absolute',
-    bottom: 20,
-    right: 180, 
-    width: 60,
-    height: 60,
-    backgroundColor: 'red',
+    backgroundColor: 'rgba(255, 0, 0, 0.7)',
     justifyContent: 'center',
     alignItems: 'center',
-    borderRadius: 30,
-    marginBottom: -20, // moves the button down
+    alignItems: 'center',
+    borderRadius: 80,
+    borderWidth: RFValue(1),
+    borderColor: 'white',
+    width: RFValue(43),
+    height: RFValue(43),
 
   },
   
   deleteButtonText: {
-    fontSize: 20,
+    fontSize: 36,
     color: 'white',
   },
   checkboxContainer: {
@@ -620,8 +646,8 @@ const styles = StyleSheet.create({
     borderColor: 'black',
   },
   checkedCheckbox: {
-    backgroundColor: 'blue',
-    borderColor: 'blue',
+    backgroundColor: '#4169E1',
+    borderColor: '#008080',
   },
   sentenceAndSpeakContainer: {
     flexDirection: 'row-reverse',
@@ -715,7 +741,7 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   colorPickerLabel: {
-    fontSize: 16,
+    fontSize: 20,
     textAlign: 'right',
   },
   colorPicker: {
@@ -724,10 +750,10 @@ const styles = StyleSheet.create({
     marginTop: 5,
   },
   colorPickerOption: {
-    width: 40,
-    height: 40,
+    width: 70,
+    height: 70,
     borderRadius: 20,
-    borderWidth: 2,
+    borderWidth: 3,
     borderColor: '#FFF',
     marginHorizontal: 5,
   },
@@ -744,6 +770,34 @@ const styles = StyleSheet.create({
     position: 'absolute',
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  buttonsContainer: {
+    flexDirection: 'row-reverse',
+    paddingHorizontal: 3, // Adjust as needed
+    marginBottom: RFValue(4), // Adjust as needed
+  },
+  buttonText: {
+    fontSize: RFValue(10),
+    fontWeight: 'bold',
+    color: '#2F2F2F',
+  },
+  addButtonText: {
+    fontSize: RFValue(16),
+    fontWeight: 'bold',
+    color: '#2F2F2F',
+  },
+  saveButton: {
+    backgroundColor: '#28A745',
+    paddingVertical: 10,
+    marginLeft: 'auto',
+    marginRight: 'auto',
+    width : RFPercentage(16) ,
+    borderRadius: 5,
+    flexDirection: 'row', 
+    alignItems: 'center', 
+    padding: 10,
+    marginTop: RFValue(40), 
+    marginBottom: RFValue(20), 
   },
   
 });

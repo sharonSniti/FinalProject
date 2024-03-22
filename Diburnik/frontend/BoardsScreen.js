@@ -250,6 +250,14 @@ const BoardsScreen = ({ route }) => {
               style={{ width: 300, height: 300}}/>
         </View>
       )}
+      {editMode && (
+      <View style={commonStyles.topCenter}>
+<Image 
+          source={require('./assets/appImages/editModeIcon.png')}
+          style={{ width: 100, height: 100 }}
+        />
+          </View>
+      )}
         <Text style={[commonStyles.bigTitle, { textAlign: 'center' }]}>
         {editMode ? 'ערוך לוחות תקשורת' : 'לוחות התקשורת שלי'}
         </Text>
@@ -264,7 +272,7 @@ const BoardsScreen = ({ route }) => {
           !isOnline && styles.disabledButton]}
         onPress={() => isOnline && setIsModalVisible(true)}>
             <Text style={styles.blankBoardText }>+</Text>
-            <Text style={[styles.boardName, { marginTop: RFValue(30) }]}>הוסף לוח תקשורת חדש</Text>
+            <Text style={[commonStyles.buttonText, { marginTop: RFValue(30) }]}>הוסף לוח תקשורת חדש</Text>
           </TouchableOpacity>
         )}
         </View>
@@ -334,10 +342,10 @@ const BoardsScreen = ({ route }) => {
           </View>
           {/*End of Save button*/}
           {/*Go Back button*/}
-          <View style={styles.bottomLeft}>
+          <View style={commonStyles.bottomLeft}>
           <TouchableOpacity
             onPress={() => toggleEditSingleBoard()}>
-          <Text style={styles.buttonsText}>ביטול</Text>
+          <Text style={commonStyles.buttonsText}>ביטול</Text>
           <Image
               source={require('./assets/appImages/goBackBtn.png')}
               style={{ width: RFValue(60), height: RFValue(60)}}/>
@@ -357,7 +365,7 @@ const BoardsScreen = ({ route }) => {
             }}>
              <Image source={require('./assets/appImages/exitEditMode.png')}
               style={{ width: RFValue(45), height: RFValue(45), marginTop: RFValue(20), marginLeft: 15}} />
-              <Text style={[styles.boardName, { marginTop: RFValue(20) }]}>יציאה ממצב עריכה</Text>
+              <Text style={[commonStyles.buttonText, { marginTop: RFValue(20) }]}>יציאה ממצב עריכה</Text>
           </TouchableOpacity>
         )}
         </View>
