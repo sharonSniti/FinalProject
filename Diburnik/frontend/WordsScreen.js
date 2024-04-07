@@ -38,6 +38,7 @@ const WordsScreen = ({ route }) => {
   const goBack = () => {
     navigation.goBack();
   };
+  const [backgroundColor,setBackgroundColor] = useState('');
 
   const colorPalette = [
     { label: 'Orange', value: '#ff9800' },
@@ -178,6 +179,7 @@ const WordsScreen = ({ route }) => {
 
   const handleEdit = () => {
     setEditMode(!editMode);
+    setBackgroundColor(editMode ? '#b8e7d3' : '#fee5ce'); 
     setSelectedWords([]); // Clear selected words in selected words array when toggling edit mode 
     setWords((prevWords) =>
         prevWords.map((word) => ({ ...word, isSelected: false })));// Clear selected words icon when toggling edit mode 
@@ -237,7 +239,7 @@ const WordsScreen = ({ route }) => {
 
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: backgroundColor }]}>
       <CommonHeader showProfilePicture={true} showSettingsIcon={true} handleEdit={handleEdit}/>
       {/* Sentence Bar and Speaking Icon outside ScrollView */}
       <View style={styles.sentenceAndSpeakContainer}>
@@ -493,7 +495,6 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingHorizontal: 20,
     marginBottom: 20,  // Add marginBottom to create space at the bottom
-
   },
   title: {
     fontSize: 20,

@@ -12,6 +12,7 @@ import { commonStyles } from './CommonStyles';
 import CommonHeader from './CommonHeader';
 
 import { checkOnlineStatus, checkLastLogin } from './utils';
+import { RFPercentage, RFValue } from "react-native-responsive-fontsize";
 
 
 //Define a functional component 
@@ -127,7 +128,7 @@ const LoginScreen = () => {
         secureTextEntry
       />
       <TouchableOpacity style={loginStyles.button} onPress={handleLogin}>
-        <Text style={loginStyles.buttonText}>היכנס</Text>
+        <Text style={loginStyles.buttonText}>התחבר</Text>
       </TouchableOpacity>
       {invalidLoginMessage ? (
         <Text style={loginStyles.errorMessage}>{invalidLoginMessage}</Text>
@@ -186,13 +187,14 @@ const loginStyles = StyleSheet.create({
     paddingVertical: 10,
     paddingHorizontal: 20,
     borderRadius: 5,
+    width : '20%',
+    marginTop: RFValue(10),
   },
   buttonText: {
     color: '#fff',
     fontSize: 18,
     fontWeight: 'bold',
     textAlign: 'center',
-    paddingHorizontal: 100,
   },
   errorMessage: {
     color: 'red',
