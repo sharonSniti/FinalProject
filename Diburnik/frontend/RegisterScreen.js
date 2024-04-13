@@ -7,6 +7,7 @@ import config from './config';
 import { handleImagePicker, addAndUploadData } from './utils';
 import { commonStyles } from './CommonStyles';
 import CommonHeader from './CommonHeader';
+import { RFPercentage, RFValue } from "react-native-responsive-fontsize";
 
 
 const RegisterScreen = () => {
@@ -22,6 +23,9 @@ const RegisterScreen = () => {
 
   const navigation = useNavigation();
 
+  const goBack = () => {
+    navigation.goBack();
+  };
 
   const handleProfileImagePicker = async () => {
     handleImagePicker(setNewProfileImage);
@@ -33,6 +37,8 @@ const RegisterScreen = () => {
       setRegistrationMessage("יש למלא את כל השדות");
       return;
     }
+
+    
 
     const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailPattern.test(email)) {
@@ -101,6 +107,11 @@ const RegisterScreen = () => {
     <ScrollView contentContainerStyle={registrationStyles.scrollContainer} >
       <CommonHeader showProfilePicture={false} />
       <Text style={registrationStyles.bigTitle}>הרשמה</Text>
+      <View style={{paddingRight: RFValue(170) }}>
+        <Image
+          source={require('./assets/appImages/registrationAvatar.png')}
+          style={registrationStyles.registrationLogo}/>
+      </View>
       <TextInput
         style={[registrationStyles.inputField, { textAlign: 'right' }]}
         placeholder="שם משתמש"
@@ -147,7 +158,7 @@ const RegisterScreen = () => {
             placeholder="שם משפחה"
             value={lastName}
             onChangeText={(text) => setLastName(text)}
-          />
+          />on
           <TouchableOpacity onPress={handleProfileImagePicker}>
             <Text style={[registrationStyles.selectProfileImageText, { color: 'blue' }]}>
               בחר תמונת פרופיל
@@ -161,19 +172,26 @@ const RegisterScreen = () => {
           )}
         </>
       )}
+      <View>
       <TouchableOpacity style={registrationStyles.button} onPress={handleRegistration}>
         <Text style={registrationStyles.buttonText}>הירשם</Text>
       </TouchableOpacity>
-      <TouchableOpacity style={registrationStyles.cancelButton} onPress={handleCancel}>
-        <Text style={registrationStyles.cancelButtonText}>ביטול</Text>
-      </TouchableOpacity>
+      </View>
+
+       {/*Go Back button*/}
+       <View style={[commonStyles.bottomLeft, { bottom: RFValue(50) }]}>
+        <TouchableOpacity onPress={() => { goBack(); handleCancel(); }}>
+          <Text style={commonStyles.buttonsText}>ביטול</Text>
+          <Image
+            source={require('./assets/appImages/goBackBtn.png')}
+            style={{ width: RFValue(60), height: RFValue(60)}}/>
+        </TouchableOpacity>
+      </View>
+      {/*End of 'Go Back' button*/}
       {registrationMessage ? (
         <Text style={registrationStyles.registrationMessage}>{registrationMessage}</Text>
       ) : null}
-      <Image
-        source={require('./assets/appImages/registrationAvatar.png')}
-        style={registrationStyles.registrationLogo}
-      />
+      
       <Image
         source={require('./assets/appImages/bgLeftFlowers.png')}
         style={registrationStyles.fixedImageLeft}
@@ -222,6 +240,7 @@ const registrationStyles = StyleSheet.create({
     marginRight: 'auto',
     width : '20%' ,
     borderRadius: 5,
+    marginTop: RFValue(18),
   },
   buttonText: {
     color: '#fff',
