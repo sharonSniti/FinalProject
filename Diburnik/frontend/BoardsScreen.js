@@ -22,7 +22,6 @@ const BoardsScreen = ({ route }) => {
   const [newBoardImage, setNewBoardImage] = useState('');
   const navigation = useNavigation();
   const [editMode, setEditMode] = useState(false);
-  const [selectedBoards, setSelectedBoards] = useState([]);
   const [loading, setLoading] = useState(true);
   const [isOnline, setIsOnline] = useState(false);
   const [backgroundColor,setBackgroundColor] = useState('');
@@ -378,7 +377,7 @@ const BoardsScreen = ({ route }) => {
           <ActivityIndicator size="large" color="#0000ff" />
         ) : (
           <View style={styles.boardContainer}>
-            {boards.length === 0 && !editMode ? (
+            {boards?.length === 0 && !editMode ? (
               <View style={{ flex: 0.96, 
               alignItems: 'center', 
               justifyContent: 'center' 
@@ -388,7 +387,7 @@ const BoardsScreen = ({ route }) => {
               style={{ width: 200, height: 222}} />
               </View>
             ) : (
-              boards.map((board) => (
+              boards?.map((board) => (
                 <TouchableOpacity
                   key={board._id}
                   style={[
@@ -412,7 +411,7 @@ const BoardsScreen = ({ route }) => {
                     <View style={{ transform: [{ scale: 0.32 }] }}>
                       <TouchableOpacity
                       style={[styles.deletedBoardBtn, { borderWidth: 8 }]}
-                      onPress={() => handleAddProfile()}>
+                      onPress={() => handleDeleteBoards(board._id)}>
                       <Text style={styles.deleteBoardText}>x</Text>
                       </TouchableOpacity>
                       </View>
@@ -523,7 +522,7 @@ const BoardsScreen = ({ route }) => {
             {/*Go Back button*/}
             <View style={commonStyles.bottomLeft}>
               <TouchableOpacity
-              onPress={() => setIsModalVisible(false)}>
+              onPress={() => {setIsModalVisible(false),setNewBoardName(''),setNewBoardImage('')}}>
                 <Text style={commonStyles.buttonsText}>ביטול</Text>
                 <Image
                 source={require('./assets/appImages/goBackBtn.png')}
