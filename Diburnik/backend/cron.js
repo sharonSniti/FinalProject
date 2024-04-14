@@ -6,6 +6,8 @@ const https = require('https');
 //const backendUrl = config.baseUrl;
 const backendUrl = 'https://diburnik.onrender.com';
 
+const webUrl = 'https://webdiburnik.onrender.com';
+
 
 //Execute every 14 minutes
 const job = new cron.CronJob('*/14 * * * *', function() {
@@ -21,4 +23,15 @@ const job = new cron.CronJob('*/14 * * * *', function() {
     });
 });
 
-module.exports = {job};
+const webJob = new cron.CronJob('*/14 * * * *', function() {
+    console.log("Keeping web service alive");
+
+    // Perform HTTPS GET request to the web service
+    https.get(webUrl, (res) => {
+        console.log("Web service is alive");
+    }).on('error', (err) => {
+        console.error('Error during keeping web service alive:', err.message);
+    });
+});
+
+module.exports = {job,webJob};
