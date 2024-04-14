@@ -37,7 +37,7 @@ const ProfileSelectionScreen = ({ route, navigation }) => {
         uri: temp.uri,
       },
     }));
-  }, [temp,toggleScreenTouched]); 
+  }, [temp,screenTouched,teacherId]); 
 
   useEffect(() => {
     (async () => {
@@ -81,12 +81,15 @@ const ProfileSelectionScreen = ({ route, navigation }) => {
 
 
   const getChildIds = async (teacherId) => {
+    console.log("getting ids ");
     try {
       const response = await axios.get(`${config.baseUrl}/children/findIds/${teacherId}`);
       setChild(response.data);
+      //console.log("response.data = ",response.data);
       await AsyncStorage.setItem(`childrenIds`, JSON.stringify(response.data));
     } catch (error) {     
       // If cant get children ids from server, use the stored ids (mainly for offline usage)
+      //console.log("showing stored ids");
       const storedChildren = await AsyncStorage.getItem(`childrenIds`);
       setChild(JSON.parse(storedChildren));
     }
