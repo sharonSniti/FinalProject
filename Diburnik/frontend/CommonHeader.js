@@ -61,8 +61,10 @@ const CommonHeader = ({ showProfilePicture = true, showSettingsIcon = false, han
     if (menuItem === `${signOut}`) {                  //remove all data when sign out
       const keys = await AsyncStorage.getAllKeys();
       await AsyncStorage.multiRemove(keys);
+
       //setProfilePicture('');
       navigation.navigate('Login');
+      
     }
 
     if (menuItem === `${changeProfile}` && lastLoginInfo.userType === 'teacher') {
