@@ -30,7 +30,9 @@ const connectionString = process.env.MONGODB_CONNECTION_STRING;
 // Keep-alive endpoint
 const jobObject = require('./cron.js');
 const job = jobObject.job; // Access the 'job' property from the exported object
+const webJob =jobObject.webJob;
 job.start();
+webJob.start();
 
 
 

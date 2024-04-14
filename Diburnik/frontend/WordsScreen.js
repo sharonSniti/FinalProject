@@ -519,6 +519,8 @@ const styles = StyleSheet.create({
     flexWrap: 'wrap',
     marginTop: 10,  // Add marginTop to create space at the top
     direction: 'rtl',   // Add next colum on the left of this column
+    writingDirection: 'rtl', 
+
   },
   wordImage: {
     width: RFValue(55),
@@ -657,14 +659,15 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
   },
   sentenceBar: {
+    writingDirection: 'rtl', 
     direction: 'rtl',
-    flexDirection: 'row-reverse',
+    flexDirection: 'row',
     flexWrap: 'wrap',
     minHeight: 50,
     flexGrow: 1,
                             //  FLIPPED BETWEEN IOS AND ANDROID!!
-    marginRight: 55,        // Add space between speaker icon and sentence
-    marginLeft: 12,        // Add space between X and bar
+    marginRight: RFValue(37),        // Add space between speaker icon and sentence
+    marginLeft: 50,        // Add space between X and bar
     shadowColor: '#000',
     shadowOffset: { width: 2, height: 2 },
     shadowOpacity: 0.6,
