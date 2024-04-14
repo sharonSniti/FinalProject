@@ -202,7 +202,12 @@ const WordsScreen = ({ route }) => {
         setSelectedWords([]); // Clear selected words after deletion
 
         //Save updated words to async storage
-        await AsyncStorage.setItem(`offlineWords_${boardId}`,JSON.stringify(updatedWords) );
+        try {
+          await AsyncStorage.setItem(`offlineWords_${boardId}`,JSON.stringify(updatedWords) );
+
+        } catch (error) {
+          console.error('Error storing words:', error.message);
+      }
 
       } else {
         console.error('Error deleting words. Unexpected response:', response.status);
