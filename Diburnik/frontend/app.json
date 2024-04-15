@@ -21,10 +21,16 @@
       "adaptiveIcon": {
         "foregroundImage": "./assets/appImages/diburnikAvatar.png",
         "backgroundColor": "#ffffff"
-      }
+      },
+      "package": "com.Diburnik"
     },
     "web": {
       "favicon": "./assets/favicon.png"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "24582ebd-f86c-4b90-a940-17bdb8639585"
+      }
     }
   }
 }
