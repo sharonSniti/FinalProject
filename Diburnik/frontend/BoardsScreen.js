@@ -22,6 +22,7 @@ const BoardsScreen = ({ route }) => {
   const [newBoardImage, setNewBoardImage] = useState('');
   const navigation = useNavigation();
   const [editMode, setEditMode] = useState(false);
+  const [selectedBoards, setSelectedBoards] = useState([]);
   const [loading, setLoading] = useState(true);
   const [isOnline, setIsOnline] = useState(false);
   const [backgroundColor,setBackgroundColor] = useState('');
