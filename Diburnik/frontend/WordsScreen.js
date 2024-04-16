@@ -13,6 +13,8 @@ import Color from 'color';
 import DropDownPicker from 'react-native-dropdown-picker';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { commonStyles } from './CommonStyles';
+import { Platform , I18nManager } from 'react-native';
+
 
 
 
@@ -50,7 +52,7 @@ const WordsScreen = ({ route }) => {
 
 
     // Group words by color
-  const groupedWords = words.reduce((acc, word) => {
+  var groupedWords = words.reduce((acc, word) => {
     const colorGroup = acc.find(group => group.color === word.color);
     if (colorGroup) {
       colorGroup.words.push(word);
@@ -59,6 +61,19 @@ const WordsScreen = ({ route }) => {
     }
     return acc;
   }, []);
+
+
+  // Reverse the order of words within each color group for android
+  groupedWords.forEach(group => {
+    if (Platform.OS === 'android') {
+      group.words.reverse();
+    }
+  });
+    // Reverse the order of grouped words if the platform is Android
+  if (Platform.OS === 'android') {
+    groupedWords = groupedWords.reverse();
+  }
+ 
 
   useEffect(() => {
     (async () => {
