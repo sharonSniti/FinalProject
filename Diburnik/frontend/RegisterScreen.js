@@ -158,7 +158,7 @@ const RegisterScreen = () => {
             placeholder="שם משפחה"
             value={lastName}
             onChangeText={(text) => setLastName(text)}
-          />on
+          />
           <TouchableOpacity onPress={handleProfileImagePicker}>
             <Text style={[registrationStyles.selectProfileImageText, { color: 'blue' }]}>
               בחר תמונת פרופיל
