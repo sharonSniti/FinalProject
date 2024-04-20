@@ -373,7 +373,8 @@ const BoardsScreen = ({ route }) => {
 
         </View>
         {/*The start of the boards section*/}
-        <ScrollView contentContainerStyle={styles.scrollContent}>
+        <ScrollView contentContainerStyle={styles.scrollContent}
+         contentInset={{ bottom: 340 }}>
         {loading ? (
           <ActivityIndicator size="large" color="#0000ff" />
         ) : (
@@ -695,7 +696,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#CCCCCC', // Set a grey background color for disabled buttons
   },
   scrollContent: {
-    paddingBottom: 100, 
+    flexGrow: 1,
   },
   goBackText: {
     fontSize: 18,
