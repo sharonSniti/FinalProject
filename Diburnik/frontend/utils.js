@@ -118,20 +118,23 @@ export const fetchOfflineData = async (key,parentTypeId) => {
   }
 };
 
-export const fetchOnlineData = async (key,parentTypeId,url,params = null) => {
+
+export const fetchOnlineData = async (key, parentTypeId, url, params = null) => {
+  let res;
   try {
     const response = await axios.get(`${config.baseUrl}/${url}`, {
       params,
     });
-    const res = response.data;
+    res = response.data;
 
     // Save the fetched data to AsyncStorage 
     await AsyncStorage.setItem(`${key}_${parentTypeId}`, JSON.stringify(res));
     // console.log(`setting item to: ${key}_${parentTypeId}`);
-    return res;
-  } catch (error) {
-    console.log('Error fetching data from server:', error);
+  } catch (fetchError) {
+    console.log('Error fetching data from server or disk is full:', fetchError);
   }
+  // Regardless of whether setItem succeeded or failed, return the response
+  return res;
 };
 
 
