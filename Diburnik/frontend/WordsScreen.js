@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, TouchableOpacity, Modal, TextInput, Button, StyleSheet, Image, ScrollView, ActivityIndicator, FlatList, useWindowDimensions  } from 'react-native';
+import { View, Text, TouchableOpacity, Modal, TextInput, Button, StyleSheet, Image, ScrollView, ActivityIndicator, FlatList, useWindowDimensions ,TouchableWithoutFeedback  } from 'react-native';
 import axios from 'axios';
 import { useNavigation } from '@react-navigation/native';
 import { Buffer } from 'buffer';
@@ -37,6 +37,8 @@ const WordsScreen = ({ route }) => {
   const { width } = useWindowDimensions();
   const numColumns = Math.floor(width / 200); // Number of columns according to screen width
   const [errorMessage, setErrorMessage] = useState('');
+  const [screenTouched,setScreenTouched] = useState(false);
+
   const goBack = () => {
     navigation.goBack();
   };
@@ -50,6 +52,7 @@ const WordsScreen = ({ route }) => {
     { label: 'Light Purple', value: '#bdb9de' },
   ];
 
+  var fontSize = RFValue(17);
 
     // Group words by color
   var groupedWords = words.reduce((acc, word) => {
@@ -255,12 +258,27 @@ const WordsScreen = ({ route }) => {
     setSelectedSentence([]);
   };
 
+  const toggleScreenTouched = () => {
+    setScreenTouched(!screenTouched);
+  }
 
+  const calculateFontSize = (text) => {
+    const numWords = text.split(' ').length;
+    switch (numWords) {
+      case 1:
+        return RFValue(17); //  font size for one-worded words
+      case 2:
+        return RFValue(12); // font size for two-worded words
+      default:
+        return RFValue(8); // font size for words with three or more words
+    }
+  };
 
 
   return (
+  <TouchableWithoutFeedback onPress={toggleScreenTouched}>
     <View style={[styles.container, { backgroundColor: backgroundColor }]}>
-      <CommonHeader showProfilePicture={true} showSettingsIcon={true} handleEdit={handleEdit}/>
+      <CommonHeader showProfilePicture={true} showSettingsIcon={true} handleEdit={handleEdit} screenTouched={screenTouched} />
       {/* Sentence Bar and Speaking Icon outside ScrollView */}
       <View style={styles.sentenceAndSpeakContainer}>
         {/* Sentence Bar */}
@@ -339,7 +357,9 @@ const WordsScreen = ({ route }) => {
                   />
                 </View>
               )}
-              <Text style={styles.wordText}>{word.text}</Text>
+              <Text style={[styles.wordText, { fontSize: calculateFontSize(word.text) }]}>
+                {word.text}
+              </Text>
             </TouchableOpacity>
           ))
         ))}
@@ -353,7 +373,10 @@ const WordsScreen = ({ route }) => {
   {editMode && (
     <TouchableOpacity
       style={[styles.exitEditButton, !isOnline && styles.disabledButton]}
-      onPress={() => setEditMode(false)}>
+      onPress={() => {
+        setEditMode(false); // Set editMode to false
+        handleEdit(); // Call handleEdit function
+      }}>
        <Image source={require('./assets/appImages/exitEditMode.png')}
               style={{ width: RFValue(26), height: RFValue(26), marginTop: RFValue(7),
                marginLeft: RFValue(6), marginBottom: RFValue(8)}} />
@@ -479,7 +502,6 @@ const WordsScreen = ({ route }) => {
           <Text style={commonStyles.buttonsText}>הוסף מילה</Text> 
         </TouchableOpacity>
       </View>
-        
       </>
     )}
     {/* End of image selection UI */}
@@ -507,6 +529,7 @@ const WordsScreen = ({ route }) => {
       </View>
     </Modal>
     </View>
+    </TouchableWithoutFeedback>
   );
 };
 
