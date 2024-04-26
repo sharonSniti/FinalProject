@@ -1,12 +1,12 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, TouchableOpacity, Modal, TextInput, Button, StyleSheet ,Image, ActivityIndicator,ScrollView, TouchableWithoutFeedback } from 'react-native';
+import { View, Text, TouchableOpacity, Modal, TextInput, Button, StyleSheet ,Image, ActivityIndicator, TouchableWithoutFeedback } from 'react-native';
+import { GestureHandlerRootView , ScrollView } from 'react-native-gesture-handler'
 import axios from 'axios';
 import { useNavigation } from '@react-navigation/native';
 import { Buffer } from 'buffer'; 
 import config from './config';
 import { RFPercentage, RFValue } from "react-native-responsive-fontsize";
 import AsyncStorage from '@react-native-async-storage/async-storage';
-
 
 import { commonStyles } from './CommonStyles';
 import CommonHeader from './CommonHeader';
@@ -233,6 +233,7 @@ const BoardsScreen = ({ route }) => {
 
   return (
   <TouchableWithoutFeedback onPress={toggleScreenTouched}>
+  <GestureHandlerRootView style={{ flexGrow: 1 }}>
     <View style={[styles.container, { backgroundColor: backgroundColor }]}>
         {/* CommonHeader - the app logo */}
         <CommonHeader showProfilePicture={true} showSettingsIcon={true} handleEdit={handleEdit} screenTouched={screenTouched}/>
@@ -261,6 +262,7 @@ const BoardsScreen = ({ route }) => {
         <Text style={[commonStyles.bigTitle, { textAlign: 'center' }]}>
         {editMode ? 'ערוך לוחות תקשורת' : 'לוחות התקשורת שלי'}
         </Text>
+        <ScrollView contentContainerStyle={styles.scrollContent}>
       <View style={styles.innerContainer}>
       <View style={styles.boardsContainer}>
       <View style={{ alignItems: 'flex-start'}}>
@@ -373,7 +375,6 @@ const BoardsScreen = ({ route }) => {
 
         </View>
         {/*The start of the boards section*/}
-        <ScrollView contentContainerStyle={styles.scrollContent}>
         {loading ? (
           <ActivityIndicator size="large" color="#0000ff" />
         ) : (
@@ -446,12 +447,12 @@ const BoardsScreen = ({ route }) => {
             )}
           </View>
         )}
-        </ScrollView>
+        
         </View>
         {/* end of boards container */}
         </View> 
         {/* end of inner container */}
-
+        </ScrollView>
 
         
         
@@ -534,6 +535,7 @@ const BoardsScreen = ({ route }) => {
           </View>
         </Modal>
       </View>
+      </GestureHandlerRootView>
     </TouchableWithoutFeedback>
 
   );
