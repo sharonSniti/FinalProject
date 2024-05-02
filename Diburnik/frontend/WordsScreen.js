@@ -19,7 +19,7 @@ import { Platform , I18nManager } from 'react-native';
 
 
 const WordsScreen = ({ route }) => {
-  const { profileId, boardId } = route.params;
+  const { profileId, boardId , boardName } = route.params;
   const [words, setWords] = useState([]);
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [newWordText, setNewWordText] = useState('');
@@ -279,6 +279,10 @@ const WordsScreen = ({ route }) => {
   <TouchableWithoutFeedback onPress={toggleScreenTouched}>
     <View style={[styles.container, { backgroundColor: backgroundColor }]}>
       <CommonHeader showProfilePicture={true} showSettingsIcon={true} handleEdit={handleEdit} screenTouched={screenTouched} />
+      {/* Headline - Board's name */}
+      <View style={{ alignItems: 'center' }}> 
+        <Text style={styles.boardName}>{boardName}</Text> 
+      </View>
       {/* Sentence Bar and Speaking Icon outside ScrollView */}
       <View style={styles.sentenceAndSpeakContainer}>
         {/* Sentence Bar */}
@@ -499,7 +503,7 @@ const WordsScreen = ({ route }) => {
         <TouchableOpacity onPress={handleAddWord} style={[styles.saveButton]}>
           <Image source={require('./assets/appImages/plusIcon.png')}
           style={{ width: 35, height: 35 ,marginRight: 8}} />
-          <Text style={commonStyles.buttonsText}>הוסף מילה</Text> 
+          <Text style={commonStyles.buttonsText}>שמור מילה</Text> 
         </TouchableOpacity>
       </View>
       </>
@@ -845,6 +849,13 @@ const styles = StyleSheet.create({
     padding: 10,
     marginTop: RFValue(40), 
     marginBottom: RFValue(20), 
+  },
+  boardName: {
+    textAlign: 'center',
+    fontSize: RFValue(20),
+    color: '#646663',
+    marginTop: 5, 
+    marginBottom: 10, 
   },
   
 });

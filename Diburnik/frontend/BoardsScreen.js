@@ -73,7 +73,8 @@ const BoardsScreen = ({ route }) => {
     }
   };
 
-  
+  //            const boardName = response.data.category;
+
 
   const handleBoardSelect = async (boardId) => {
     if (!editMode) {
@@ -82,20 +83,21 @@ const BoardsScreen = ({ route }) => {
         const storageKey = `offlineNavigation_${boardId}`;
         const offlineData = await AsyncStorage.getItem(storageKey);
         if (offlineData) {
-          const { boardId, words } = JSON.parse(offlineData);
-          navigation.navigate('Words', { boardId, words });
+          const { boardId, words, boardName } = JSON.parse(offlineData); 
+          navigation.navigate('Words', { boardId, words, boardName });
         } else {
           // Check if there is a network connection
           if (isOnline) {
             // Make the API request
             const response = await axios.get(`${config.baseUrl}/boards/${boardId}`);      
             const updatedWords = response.data.words;
+            const boardName = response.data.category;
             // Save the parameters to AsyncStorage with a key specific to the board
             const storageKey = `offlineNavigation_${boardId}`;
-            await AsyncStorage.setItem(storageKey, JSON.stringify({ boardId, words: updatedWords }));
+            await AsyncStorage.setItem(storageKey, JSON.stringify({ boardId, words: updatedWords, boardName }));
     
             // Navigate to 'Words' screen
-            navigation.navigate('Words', { boardId, words: updatedWords });
+            navigation.navigate('Words', { boardId, words: updatedWords, boardName });
           }
         }
         toggleScreenTouched();      // close the settings menu
