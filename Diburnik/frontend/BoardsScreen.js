@@ -43,7 +43,7 @@ const BoardsScreen = ({ route }) => {
         console.log('Error fetching data for profile:', error);
       }
     })();
-  }, [profileId, isOnline]);
+  }, [profileId, isOnline,screenTouched]);
  
 
   const fetchBoardsData = async () => {
