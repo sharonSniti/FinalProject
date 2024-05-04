@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, TouchableOpacity, Modal, TextInput, Button, StyleSheet ,Image, ActivityIndicator, TouchableWithoutFeedback } from 'react-native';
+import { View, Text, TouchableOpacity, Modal, TextInput, Button, StyleSheet ,Image, ActivityIndicator, TouchableWithoutFeedback, KeyboardAvoidingView } from 'react-native';
 import { GestureHandlerRootView , ScrollView } from 'react-native-gesture-handler'
 import axios from 'axios';
 import { useNavigation } from '@react-navigation/native';
@@ -85,7 +85,7 @@ const BoardsScreen = ({ route }) => {
         if (offlineData) {
           const { boardId, words, boardName } = JSON.parse(offlineData); 
           navigation.navigate('Words', { boardId, words, boardName });
-        } else {
+        } //else {
           // Check if there is a network connection
           if (isOnline) {
             // Make the API request
@@ -99,7 +99,7 @@ const BoardsScreen = ({ route }) => {
             // Navigate to 'Words' screen
             navigation.navigate('Words', { boardId, words: updatedWords, boardName });
           }
-        }
+        //}
         toggleScreenTouched();      // close the settings menu
       } catch (error) {
         console.log('Error fetching updated words:', error);
@@ -234,6 +234,11 @@ const BoardsScreen = ({ route }) => {
 
 
   return (
+    <KeyboardAvoidingView
+    style={{ flex: 1 }}
+    behavior={Platform.OS === 'ios' ? 'padding' : 'height'} 
+    keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : -500} 
+    >
   <TouchableWithoutFeedback onPress={toggleScreenTouched}>
   <GestureHandlerRootView style={{ flexGrow: 1 }}>
     <View style={[styles.container, { backgroundColor: backgroundColor }]}>
@@ -539,7 +544,7 @@ const BoardsScreen = ({ route }) => {
       </View>
       </GestureHandlerRootView>
     </TouchableWithoutFeedback>
-
+    </KeyboardAvoidingView>
   );
 };
   

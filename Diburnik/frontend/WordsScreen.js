@@ -534,6 +534,7 @@ const WordsScreen = ({ route }) => {
     </Modal>
     </View>
     </TouchableWithoutFeedback>
+
   );
 };
 
@@ -629,7 +630,7 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    alignItems: 'center',
+    paddingBottom: RFValue(100),
   },
   input: {
     marginBottom: 30,

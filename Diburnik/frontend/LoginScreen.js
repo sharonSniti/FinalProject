@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, Image } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, Image, KeyboardAvoidingView, } from 'react-native';
 
 import { useNavigation } from '@react-navigation/native'; 
 import axios from 'axios';
@@ -108,6 +108,11 @@ const LoginScreen = () => {
 
 
   return (
+    <KeyboardAvoidingView
+    style={{ flex: 1 }}
+    behavior={Platform.OS === 'ios' ? 'padding' : 'height'} 
+    keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : -500} 
+    >
     <View style={commonStyles.container}>
       {/* CommonHeader - the app logo */}
       <CommonHeader showProfilePicture={false} />
@@ -149,6 +154,7 @@ const LoginScreen = () => {
       {/* Fixed image at the right-bottom corner */}
       <Image source={require('./assets/appImages/bgRightFlowers.png')} style={loginStyles.fixedImageRight} />
     </View>
+    </KeyboardAvoidingView>
   );
 };
 

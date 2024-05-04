@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, Image, ScrollView } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, Image, ScrollView, KeyboardAvoidingView } from 'react-native';
 import { CheckBox } from 'react-native-elements';
 import { useNavigation } from '@react-navigation/native';
 import axios from 'axios';
@@ -104,6 +104,11 @@ const RegisterScreen = () => {
     
 
   return (
+    <KeyboardAvoidingView
+    style={{ flex: 1 }}
+    behavior={Platform.OS === 'ios' ? 'padding' : 'height'} 
+    keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : -500} 
+    >
     <ScrollView contentContainerStyle={registrationStyles.scrollContainer} >
       <CommonHeader showProfilePicture={false} />
       <Text style={registrationStyles.bigTitle}>הרשמה</Text>
@@ -201,6 +206,7 @@ const RegisterScreen = () => {
         style={registrationStyles.fixedImageRight}
       />
     </ScrollView>
+    </KeyboardAvoidingView>
   );
   
 };
