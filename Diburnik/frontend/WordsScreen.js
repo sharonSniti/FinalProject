@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, TouchableOpacity, Modal, TextInput, Button, StyleSheet, Image, ScrollView, ActivityIndicator, FlatList, useWindowDimensions ,TouchableWithoutFeedback  } from 'react-native';
+import { View, Text, TouchableOpacity, Modal, TextInput, Button, StyleSheet, Image, ScrollView, ActivityIndicator, FlatList, useWindowDimensions ,TouchableWithoutFeedback,Keyboard } from 'react-native';
 import axios from 'axios';
 import { useNavigation } from '@react-navigation/native';
 import { Buffer } from 'buffer';
@@ -42,6 +42,11 @@ const WordsScreen = ({ route }) => {
   const goBack = () => {
     navigation.goBack();
   };
+
+  const handleCloseKeyboard = () => {
+    Keyboard.dismiss();
+  };
+
   const [backgroundColor,setBackgroundColor] = useState('');
 
   const colorPalette = [
@@ -428,7 +433,7 @@ const WordsScreen = ({ route }) => {
           placeholderTextColor="gray" 
         />
   
-        <TouchableOpacity onPress={handleSearch}
+        <TouchableOpacity onPress={() => { handleCloseKeyboard(); handleSearch(); }}
           style={[commonStyles.saveButton, { backgroundColor: '#3EBCFF' }]}>
           <Image
               source={require('./assets/appImages/searchIcon.png')}
@@ -542,7 +547,6 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     paddingHorizontal: 20,
-    marginBottom: 20,  // Add marginBottom to create space at the bottom
   },
   title: {
     fontSize: 20,
@@ -826,7 +830,7 @@ const styles = StyleSheet.create({
   buttonsContainer: {
     flexDirection: 'row-reverse',
     paddingHorizontal: 3, // Adjust as needed
-    marginBottom: RFValue(4), // Adjust as needed
+    marginBottom: RFValue(20), // Adjust as needed
   },
   buttonText: {
     fontSize: RFValue(10),
