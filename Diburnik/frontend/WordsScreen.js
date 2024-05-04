@@ -632,12 +632,11 @@ const styles = StyleSheet.create({
   modalContainer: {
     backgroundColor: 'rgba(254, 229, 206, 0.93)', // Use an off-white color with some transparency
     flex: 1,
-    justifyContent: 'center',
     alignItems: 'center',
     paddingBottom: RFValue(100),
   },
   input: {
-    marginBottom: 30,
+    marginBottom: 10,
     padding: 15, 
     borderWidth: 2, 
     borderColor: '#3498db', 
