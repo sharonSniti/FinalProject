@@ -473,6 +473,7 @@ const WordsScreen = ({ route }) => {
               />
             </TouchableOpacity>
           )}
+          key={numColumns} 
           numColumns={numColumns}  // Set the number of columns in the grid
         />
       )}
