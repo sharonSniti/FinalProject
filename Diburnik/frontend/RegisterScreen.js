@@ -16,6 +16,7 @@ const RegisterScreen = () => {
   const [email, setEmail] = useState('');
   const [userType, setUserType] = useState('');
   const [registrationMessage, setRegistrationMessage] = useState('');
+  const [registrationMessageSucsses, setRegistrationMessageSucsses] = useState('');
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [newProfileImage, setNewProfileImage] = useState('');
@@ -33,16 +34,24 @@ const RegisterScreen = () => {
   
 
   const handleRegistration = async ()  => {
-    if (!username || !password || !email || !userType) {
+    if (!username || !password || !email || !userType) 
+    {
       setRegistrationMessage("יש למלא את כל השדות");
+      setRegistrationMessageSucsses('');
       return;
     }
+    if (userType === 'child' && (!firstName || !lastName))
+      {
+        setRegistrationMessage("יש למלא את כל השדות");
+        setRegistrationMessageSucsses('');
+        return;
+      }
 
     
-
     const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailPattern.test(email)) {
       setRegistrationMessage("כתובת מייל לא חוקית");
+      setRegistrationMessageSucsses('');
       return;
     }
 
@@ -65,7 +74,7 @@ const RegisterScreen = () => {
     .then((response) => {
       //console.log(response.message);
       if (response.status === 200) {
-        setRegistrationMessage("רישום בוצע בהצלחה");
+        setRegistrationMessageSucsses("הרישום בוצע בהצלחה");
         setUsername("");
         setPassword("");
         setEmail("");
@@ -74,6 +83,7 @@ const RegisterScreen = () => {
         setLastName("");
       } else {
         setRegistrationMessage("תקלה ברישום");
+        setRegistrationMessageSucsses("");
       }
     })
     .catch((error) => {
@@ -84,8 +94,8 @@ const RegisterScreen = () => {
         setRegistrationMessage("תקלה ברישום");
       }
     });
-    setTimeout(() => setRegistrationMessage(''), 3000); // Clear message after 3 seconds
-
+    setTimeout(() => setRegistrationMessage(''), 0); // Clear message after 3 seconds
+    setTimeout(() => setRegistrationMessageSucsses(''), 5000); // Clear message after 3 seconds
   }
 
 
@@ -100,6 +110,7 @@ const RegisterScreen = () => {
     setLastName('');
     setNewProfileImage('');
     setRegistrationMessage('');
+    setRegistrationMessageSucsses('');
   };
     
 
@@ -186,7 +197,7 @@ const RegisterScreen = () => {
        {/*Go Back button*/}
        <View style={[commonStyles.bottomLeft, { bottom: RFValue(50) }]}>
         <TouchableOpacity onPress={() => { goBack(); handleCancel(); }}>
-          <Text style={commonStyles.buttonsText}>ביטול</Text>
+          <Text style={commonStyles.buttonsText}>חזור</Text>
           <Image
             source={require('./assets/appImages/goBackBtn.png')}
             style={{ width: RFValue(60), height: RFValue(60)}}/>
@@ -195,6 +206,9 @@ const RegisterScreen = () => {
       {/*End of 'Go Back' button*/}
       {registrationMessage ? (
         <Text style={registrationStyles.registrationMessage}>{registrationMessage}</Text>
+      ) : null}
+      {registrationMessageSucsses ? (
+        <Text style={registrationStyles.registrationMessageSucsses}>{registrationMessageSucsses}</Text>
       ) : null}
       
       <Image
@@ -255,7 +269,16 @@ const registrationStyles = StyleSheet.create({
     textAlign: 'center',
   },
   registrationMessage: {
+    color: 'red',
+    fontWeight: 'bold',
+    fontSize: 18,
+    marginTop: 10,
+    textAlign: 'center',
+  },
+  registrationMessageSucsses: {
     color: 'green',
+    fontWeight: 'bold',
+    fontSize: 28,
     marginTop: 10,
     textAlign: 'center',
   },
