@@ -267,7 +267,9 @@ const ProfileSelectionScreen = ({ route, navigation }) => {
 
 
   return (
+
     //Srart of 'container' view
+    <TouchableWithoutFeedback onPress={toggleScreenTouched}>
     <View style={[styles.container, { backgroundColor: backgroundColor }]}>
       {/* CommonHeader - the app logo */}
       <CommonHeader showProfilePicture={false} showSettingsIcon={true} handleEdit={handleEdit} screenTouched={screenTouched}/>
@@ -521,6 +523,7 @@ const ProfileSelectionScreen = ({ route, navigation }) => {
         {/*End of model container*/}
       </Modal>
     </View>
+    </TouchableWithoutFeedback>
     //end of 'container view
   );
 };
