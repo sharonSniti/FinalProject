@@ -1,5 +1,6 @@
-![Diburnik Logo](Diburnik/frontend/assets/appImages/diburnikAvatar.png "Diburnik Logo")
 # Diburnik
+![Diburnik Logo](Diburnik/frontend/assets/appImages/diburnikAvatar.png "Diburnik Logo")
+
 - [Introduction](#introduction)
 - [Features](#features)
 - [Installation](#installation)
